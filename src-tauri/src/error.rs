@@ -10,6 +10,8 @@ pub enum AppError {
     InvalidCredentials(&'static str),
     #[error("Invalid Firestore path: {0}")]
     InvalidPath(String),
+    #[error("Invalid payload: {0}")]
+    InvalidPayload(String),
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error(transparent)]

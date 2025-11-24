@@ -8,8 +8,8 @@ use anyhow::Context;
 use commands::*;
 use credentials::CredentialManager;
 use state::AppState;
-use tauri::Manager;
 use std::sync::Once;
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -42,7 +42,10 @@ pub fn run() {
             set_active_account,
             list_collections,
             list_documents,
-            get_document
+            get_document,
+            save_document,
+            duplicate_document,
+            duplicate_collection
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

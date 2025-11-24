@@ -38,5 +38,29 @@ export async function getDocument(documentPath: string) {
   return invoke<FirestoreDocument>('get_document', { documentPath });
 }
 
+export async function saveDocument(documentPath: string, data: Record<string, unknown>) {
+  return invoke<FirestoreDocument>('save_document', { documentPath, data });
+}
+
+export async function duplicateDocument(
+  sourcePath: string,
+  targetPath: string,
+  overwrite = false,
+) {
+  return invoke<FirestoreDocument>('duplicate_document', { sourcePath, targetPath, overwrite });
+}
+
+export async function duplicateCollection(
+  sourceCollectionPath: string,
+  targetCollectionPath: string,
+  overwrite = false,
+) {
+  return invoke<number>('duplicate_collection', {
+    sourceCollectionPath,
+    targetCollectionPath,
+    overwrite,
+  });
+}
+
 
 

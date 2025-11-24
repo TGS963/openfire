@@ -2,14 +2,21 @@ use crate::credentials::CredentialManager;
 use crate::error::{AppError, Result};
 use crate::models::{CollectionList, DocumentPage, FirestoreDocument, ServiceAccountSummary};
 use crate::state::AppState;
+use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
+use base64::Engine;
 use chrono::{DateTime, Utc};
+use firestore::errors::FirestoreError;
 use firestore::{
-    FirestoreDb, FirestoreDbOptions, FirestoreGetByIdSupport, FirestoreListCollectionIdsParams,
-    FirestoreListDocParams, FirestoreListingSupport,
+    FirestoreCreateSupport, FirestoreDb, FirestoreDbOptions, FirestoreGetByIdSupport,
+    FirestoreListCollectionIdsParams, FirestoreListDocParams, FirestoreListingSupport,
+    FirestoreUpdateSupport,
 };
-use gcloud_sdk::google::firestore::v1::Document;
+use gcloud_sdk::google::firestore::v1::value::ValueType;
+use gcloud_sdk::google::firestore::v1::{ArrayValue, Document, MapValue, Value};
+use gcloud_sdk::google::r#type::LatLng;
 use prost_types::Timestamp;
-use serde_json::Value;
+use serde_json::Value as JsonValue;
+use std::collections::HashMap;
 use tauri::State;
 
 type CmdResult<T> = std::result::Result<T, String>;
@@ -132,6 +139,182 @@ pub async fn get_document(
     document_to_model(document, &db).map_err(|err| err.to_command_err())
 }
 
+#[tauri::command]
+pub async fn save_document(
+    app_state: State<'_, AppState>,
+    document_path: String,
+    data: JsonValue,
+) -> CmdResult<FirestoreDocument> {
+    let db = app_state.db().await.map_err(|err| err.to_command_err())?;
+    let (collection_id, document_id, parent) =
+        parse_document_path(&db, &document_path).map_err(|err| err.to_command_err())?;
+    let full_name = format!("{}/{}/{}", parent, collection_id, document_id);
+    let mut serialized = json_to_document(&db, &data, Some(full_name.clone()))
+        .map_err(|err| err.to_command_err())?;
+
+    let exists = db
+        .get_doc_at(&parent, &collection_id, &document_id, None)
+        .await;
+
+    let updated = match exists {
+        Ok(_) => {
+            db.update_doc(&collection_id, serialized, None, None, None)
+                .await
+        }
+        Err(FirestoreError::DataNotFoundError(_)) => {
+            serialized.name.clear();
+            db.create_doc_at(
+                &parent,
+                &collection_id,
+                Some(document_id.clone()),
+                serialized,
+                None,
+            )
+            .await
+        }
+        Err(err) => Err(err),
+    }
+    .map_err(|err| err.to_string())?;
+
+    document_to_model(updated, &db).map_err(|err| err.to_command_err())
+}
+
+#[tauri::command]
+pub async fn duplicate_document(
+    app_state: State<'_, AppState>,
+    source_path: String,
+    target_path: String,
+    overwrite: Option<bool>,
+) -> CmdResult<FirestoreDocument> {
+    let overwrite = overwrite.unwrap_or(false);
+    let db = app_state.db().await.map_err(|err| err.to_command_err())?;
+    let (source_collection, source_id, source_parent) =
+        parse_document_path(&db, &source_path).map_err(|err| err.to_command_err())?;
+    let (target_collection, target_id, target_parent) =
+        parse_document_path(&db, &target_path).map_err(|err| err.to_command_err())?;
+
+    let mut source = db
+        .get_doc_at(&source_parent, &source_collection, source_id, None)
+        .await
+        .map_err(|err| err.to_string())?;
+
+    if !overwrite {
+        let exists = db
+            .get_doc_at(&target_parent, &target_collection, &target_id, None)
+            .await
+            .ok();
+        if exists.is_some() {
+            return Err(format!(
+                "Document {} already exists under {}",
+                target_id, target_collection
+            ));
+        }
+    }
+
+    if overwrite {
+        source.name = format!("{}/{}/{}", target_parent, target_collection, target_id);
+        let updated = db
+            .update_doc(&target_collection, source, None, None, None)
+            .await
+            .map_err(|err| err.to_string())?;
+        return document_to_model(updated, &db).map_err(|err| err.to_command_err());
+    }
+
+    source.name.clear();
+    let inserted = db
+        .create_doc_at(
+            &target_parent,
+            &target_collection,
+            Some(target_id.clone()),
+            source,
+            None,
+        )
+        .await
+        .map_err(|err| err.to_string())?;
+
+    document_to_model(inserted, &db).map_err(|err| err.to_command_err())
+}
+
+#[tauri::command]
+pub async fn duplicate_collection(
+    app_state: State<'_, AppState>,
+    source_collection_path: String,
+    target_collection_path: String,
+    overwrite: Option<bool>,
+) -> CmdResult<u32> {
+    let overwrite = overwrite.unwrap_or(false);
+    let db = app_state.db().await.map_err(|err| err.to_command_err())?;
+    let (source_collection, source_parent) =
+        parse_collection_path(&db, &source_collection_path).map_err(|err| err.to_command_err())?;
+    let (target_collection, target_parent) =
+        parse_collection_path(&db, &target_collection_path).map_err(|err| err.to_command_err())?;
+    let target_parent_path = parent_or_root(&db, &target_parent);
+
+    let mut copied = 0u32;
+    let mut page_token: Option<String> = None;
+
+    loop {
+        let params = FirestoreListDocParams {
+            collection_id: source_collection.clone(),
+            parent: source_parent.clone(),
+            page_size: 200,
+            page_token: page_token.clone(),
+            order_by: None,
+            return_only_fields: None,
+        };
+        let page = db.list_doc(params).await.map_err(|err| err.to_string())?;
+        let next_token = page.page_token.clone();
+
+        for mut doc in page.documents.into_iter() {
+            let doc_id = doc
+                .name
+                .rsplit('/')
+                .next()
+                .ok_or_else(|| "Invalid Firestore document name".to_string())?
+                .to_string();
+
+            if !overwrite {
+                let maybe_existing = db
+                    .get_doc_at(&target_parent_path, &target_collection, &doc_id, None)
+                    .await;
+                if maybe_existing.is_ok() {
+                    return Err(format!(
+                        "Document {} already exists inside {}",
+                        doc_id, target_collection
+                    ));
+                }
+            }
+
+            if overwrite {
+                doc.name = format!("{}/{}/{}", target_parent_path, target_collection, doc_id);
+                db.update_doc(&target_collection, doc, None, None, None)
+                    .await
+                    .map_err(|err| err.to_string())?;
+            } else {
+                doc.name.clear();
+                db.create_doc_at(
+                    &target_parent_path,
+                    &target_collection,
+                    Some(doc_id),
+                    doc,
+                    None,
+                )
+                .await
+                .map_err(|err| err.to_string())?;
+            }
+
+            copied += 1;
+        }
+
+        if next_token.is_none() {
+            break;
+        }
+        page_token = next_token;
+    }
+
+    Ok(copied)
+}
+
 async fn run_blocking<F, T>(func: F) -> CmdResult<T>
 where
     F: FnOnce() -> Result<T> + Send + 'static,
@@ -206,7 +389,7 @@ fn split_segments(path: &str) -> Vec<&str> {
 fn document_to_model(doc: Document, db: &FirestoreDb) -> Result<FirestoreDocument> {
     let path = relative_document_path(db, &doc.name);
     let id = path.rsplit('/').next().unwrap_or_default().to_string();
-    let data = FirestoreDb::deserialize_doc_to::<Value>(&doc)?;
+    let data = FirestoreDb::deserialize_doc_to::<JsonValue>(&doc)?;
     Ok(FirestoreDocument {
         id,
         path,
@@ -225,4 +408,132 @@ fn timestamp_to_string(ts: &Timestamp) -> String {
     DateTime::<Utc>::from_timestamp(ts.seconds, ts.nanos as u32)
         .unwrap_or_else(|| DateTime::<Utc>::from_timestamp(0, 0).unwrap())
         .to_rfc3339()
+}
+
+fn parent_or_root(db: &FirestoreDb, parent: &Option<String>) -> String {
+    parent
+        .clone()
+        .unwrap_or_else(|| db.get_documents_path().clone())
+}
+
+fn json_to_document(db: &FirestoreDb, data: &JsonValue, name: Option<String>) -> Result<Document> {
+    let object = data
+        .as_object()
+        .ok_or_else(|| AppError::InvalidPayload("Document payload must be a JSON object".into()))?;
+    let fields = json_object_to_map(db, object)?;
+    Ok(Document {
+        name: name.unwrap_or_default(),
+        fields,
+        create_time: None,
+        update_time: None,
+    })
+}
+
+fn json_object_to_map(
+    db: &FirestoreDb,
+    object: &serde_json::Map<String, JsonValue>,
+) -> Result<HashMap<String, Value>> {
+    let mut map = HashMap::new();
+    for (key, value) in object {
+        map.insert(key.clone(), json_to_value(db, value)?);
+    }
+    Ok(map)
+}
+
+fn json_to_value(db: &FirestoreDb, value: &JsonValue) -> Result<Value> {
+    let value_type =
+        match value {
+            JsonValue::Null => ValueType::NullValue(0),
+            JsonValue::Bool(boolean) => ValueType::BooleanValue(*boolean),
+            JsonValue::Number(number) => {
+                if let Some(int_value) = number.as_i64() {
+                    ValueType::IntegerValue(int_value)
+                } else {
+                    ValueType::DoubleValue(
+                        number.as_f64().ok_or_else(|| {
+                            AppError::InvalidPayload("Invalid number literal".into())
+                        })?,
+                    )
+                }
+            }
+            JsonValue::String(text) => ValueType::StringValue(text.clone()),
+            JsonValue::Array(items) => {
+                let values = items
+                    .iter()
+                    .map(|item| json_to_value(db, item))
+                    .collect::<Result<Vec<_>>>()?;
+                ValueType::ArrayValue(ArrayValue { values })
+            }
+            JsonValue::Object(object) => {
+                if let Some(type_tag) = object
+                    .get("__type")
+                    .or_else(|| object.get("__type__"))
+                    .and_then(|tag| tag.as_str())
+                {
+                    match type_tag {
+                        "timestamp" => {
+                            let seconds =
+                                object.get("seconds").and_then(|v| v.as_i64()).ok_or_else(
+                                    || AppError::InvalidPayload("Timestamp missing seconds".into()),
+                                )?;
+                            let nanos = object
+                                .get("nanos")
+                                .and_then(|v| v.as_i64())
+                                .unwrap_or_default() as i32;
+                            ValueType::TimestampValue(Timestamp { seconds, nanos })
+                        }
+                        "geo" => {
+                            let lat =
+                                object.get("lat").and_then(|v| v.as_f64()).ok_or_else(|| {
+                                    AppError::InvalidPayload("GeoPoint missing lat".into())
+                                })?;
+                            let lng =
+                                object.get("lng").and_then(|v| v.as_f64()).ok_or_else(|| {
+                                    AppError::InvalidPayload("GeoPoint missing lng".into())
+                                })?;
+                            ValueType::GeoPointValue(LatLng {
+                                latitude: lat,
+                                longitude: lng,
+                            })
+                        }
+                        "reference" => {
+                            let path =
+                                object.get("path").and_then(|v| v.as_str()).ok_or_else(|| {
+                                    AppError::InvalidPayload("Reference missing path".into())
+                                })?;
+                            let reference = if path.starts_with(db.get_documents_path().as_str()) {
+                                path.to_string()
+                            } else {
+                                format!("{}/{}", db.get_documents_path(), path.trim_matches('/'))
+                            };
+                            ValueType::ReferenceValue(reference)
+                        }
+                        "bytes" => {
+                            let encoded = object
+                                .get("base64")
+                                .and_then(|v| v.as_str())
+                                .ok_or_else(|| {
+                                    AppError::InvalidPayload("Bytes missing base64 string".into())
+                                })?;
+                            let decoded = BASE64_STANDARD
+                                .decode(encoded.as_bytes())
+                                .map_err(|_| AppError::InvalidPayload("Invalid base64".into()))?;
+                            ValueType::BytesValue(decoded)
+                        }
+                        _ => {
+                            return Err(AppError::InvalidPayload(format!(
+                                "Unknown type tag {type_tag}"
+                            )));
+                        }
+                    }
+                } else {
+                    let map = json_object_to_map(db, object)?;
+                    ValueType::MapValue(MapValue { fields: map })
+                }
+            }
+        };
+
+    Ok(Value {
+        value_type: Some(value_type),
+    })
 }

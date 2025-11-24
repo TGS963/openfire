@@ -37,3 +37,4 @@ gcloud-sdk = "0.28.3"
 prost-types = "0.14"
 tauri-plugin-dialog = "2"
 rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"] }
+base64 = "0.22"
