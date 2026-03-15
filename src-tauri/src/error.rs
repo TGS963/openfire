@@ -6,6 +6,8 @@ pub enum AppError {
     CredentialNotFound(String),
     #[error("No active Firestore client set")]
     MissingFirestoreClient,
+    #[error("Connection not found: {0}")]
+    ConnectionNotFound(String),
     #[error("Invalid credentials file: {0}")]
     InvalidCredentials(&'static str),
     #[error("Invalid Firestore path: {0}")]
@@ -24,8 +26,3 @@ pub enum AppError {
 
 pub type Result<T> = std::result::Result<T, AppError>;
 
-impl AppError {
-    pub fn to_command_err(self) -> String {
-        self.to_string()
-    }
-}

@@ -1,5 +1,6 @@
 mod commands;
 mod credentials;
+mod emulator;
 mod error;
 mod models;
 mod state;
@@ -16,6 +17,8 @@ pub fn run() {
     ensure_crypto_provider();
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_store::Builder::new().build())
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -45,7 +48,19 @@ pub fn run() {
             get_document,
             save_document,
             duplicate_document,
-            duplicate_collection
+            duplicate_collection,
+            delete_document,
+            delete_collection,
+            query_documents,
+            export_collection,
+            import_collection,
+            connect_emulator,
+            disconnect_emulator,
+            get_connection_info,
+            list_connections,
+            remove_connection,
+            set_active_connection,
+            transfer_documents
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

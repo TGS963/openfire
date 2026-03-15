@@ -1,19 +1,27 @@
 use crate::credentials::CredentialManager;
+use crate::emulator::EmulatorTokenSource;
 use crate::error::{AppError, Result};
-use crate::models::{CollectionList, DocumentPage, FirestoreDocument, ServiceAccountSummary};
-use crate::state::AppState;
+use crate::models::{
+    CollectionList, ConnectionInfo, DocumentPage, FilterOperator, FirestoreDocument, ImportMode,
+    ImportResult, QuerySpec, ServiceAccountSummary, SortDirection, TransferResult,
+};
+use crate::state::{AppState, ConnectionEntry, ConnectionMode};
 use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use base64::Engine;
 use chrono::{DateTime, Utc};
 use firestore::errors::FirestoreError;
 use firestore::{
-    FirestoreCreateSupport, FirestoreDb, FirestoreDbOptions, FirestoreGetByIdSupport,
-    FirestoreListCollectionIdsParams, FirestoreListDocParams, FirestoreListingSupport,
-    FirestoreUpdateSupport,
+    FirestoreCreateSupport, FirestoreDb, FirestoreDbOptions, FirestoreDeleteSupport,
+    FirestoreGetByIdSupport, FirestoreListCollectionIdsParams, FirestoreListDocParams,
+    FirestoreListingSupport, FirestoreQueryCollection, FirestoreQueryDirection,
+    FirestoreQueryFilter, FirestoreQueryFilterCompare, FirestoreQueryFilterComposite,
+    FirestoreQueryOrder, FirestoreQueryParams, FirestoreQuerySupport, FirestoreUpdateSupport,
+    FirestoreValue,
 };
 use gcloud_sdk::google::firestore::v1::value::ValueType;
 use gcloud_sdk::google::firestore::v1::{ArrayValue, Document, MapValue, Value};
 use gcloud_sdk::google::r#type::LatLng;
+use gcloud_sdk::TokenSourceType;
 use prost_types::Timestamp;
 use serde_json::Value as JsonValue;
 use std::collections::HashMap;
@@ -59,6 +67,7 @@ pub async fn set_active_account(
         client_email: metadata.client_email.clone(),
     };
 
+    let project_id = metadata.project_id.clone();
     let db = FirestoreDb::with_options_service_account_key_file(
         FirestoreDbOptions::new(metadata.project_id),
         credential_path,
@@ -66,7 +75,8 @@ pub async fn set_active_account(
     .await
     .map_err(|err| err.to_string())?;
 
-    app_state.set_db(db).await;
+    let conn_id = format!("prod-{}", project_id);
+    app_state.add_connection(conn_id, db, ConnectionMode::Production).await;
     Ok(summary)
 }
 
@@ -77,9 +87,9 @@ pub async fn list_collections(
     page_size: Option<usize>,
     page_token: Option<String>,
 ) -> CmdResult<CollectionList> {
-    let db = app_state.db().await.map_err(|err| err.to_command_err())?;
+    let db = app_state.db().await.map_err(|err| err.to_string())?;
     let params = FirestoreListCollectionIdsParams {
-        parent: normalize_parent_path(&db, parent_path).map_err(|err| err.to_command_err())?,
+        parent: normalize_parent_path(&db, parent_path).map_err(|err| err.to_string())?,
         page_size: page_size.unwrap_or(100),
         page_token,
     };
@@ -100,9 +110,9 @@ pub async fn list_documents(
     page_size: Option<usize>,
     page_token: Option<String>,
 ) -> CmdResult<DocumentPage> {
-    let db = app_state.db().await.map_err(|err| err.to_command_err())?;
+    let db = app_state.db().await.map_err(|err| err.to_string())?;
     let (collection_id, parent) =
-        parse_collection_path(&db, &collection_path).map_err(|err| err.to_command_err())?;
+        parse_collection_path(&db, &collection_path).map_err(|err| err.to_string())?;
     let params = FirestoreListDocParams {
         collection_id,
         parent,
@@ -117,7 +127,7 @@ pub async fn list_documents(
         .into_iter()
         .map(|doc| document_to_model(doc, &db))
         .collect::<Result<Vec<_>>>()
-        .map_err(|err| err.to_command_err())?;
+        .map_err(|err| err.to_string())?;
     Ok(DocumentPage {
         documents,
         next_page_token: result.page_token,
@@ -129,14 +139,14 @@ pub async fn get_document(
     app_state: State<'_, AppState>,
     document_path: String,
 ) -> CmdResult<FirestoreDocument> {
-    let db = app_state.db().await.map_err(|err| err.to_command_err())?;
+    let db = app_state.db().await.map_err(|err| err.to_string())?;
     let (collection_id, document_id, parent) =
-        parse_document_path(&db, &document_path).map_err(|err| err.to_command_err())?;
+        parse_document_path(&db, &document_path).map_err(|err| err.to_string())?;
     let document = db
         .get_doc_at(&parent, &collection_id, document_id, None)
         .await
         .map_err(|err| err.to_string())?;
-    document_to_model(document, &db).map_err(|err| err.to_command_err())
+    document_to_model(document, &db).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
@@ -145,12 +155,12 @@ pub async fn save_document(
     document_path: String,
     data: JsonValue,
 ) -> CmdResult<FirestoreDocument> {
-    let db = app_state.db().await.map_err(|err| err.to_command_err())?;
+    let db = app_state.db().await.map_err(|err| err.to_string())?;
     let (collection_id, document_id, parent) =
-        parse_document_path(&db, &document_path).map_err(|err| err.to_command_err())?;
+        parse_document_path(&db, &document_path).map_err(|err| err.to_string())?;
     let full_name = format!("{}/{}/{}", parent, collection_id, document_id);
     let mut serialized = json_to_document(&db, &data, Some(full_name.clone()))
-        .map_err(|err| err.to_command_err())?;
+        .map_err(|err| err.to_string())?;
 
     let exists = db
         .get_doc_at(&parent, &collection_id, &document_id, None)
@@ -176,7 +186,7 @@ pub async fn save_document(
     }
     .map_err(|err| err.to_string())?;
 
-    document_to_model(updated, &db).map_err(|err| err.to_command_err())
+    document_to_model(updated, &db).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
@@ -187,52 +197,50 @@ pub async fn duplicate_document(
     overwrite: Option<bool>,
 ) -> CmdResult<FirestoreDocument> {
     let overwrite = overwrite.unwrap_or(false);
-    let db = app_state.db().await.map_err(|err| err.to_command_err())?;
+    let db = app_state.db().await.map_err(|err| err.to_string())?;
     let (source_collection, source_id, source_parent) =
-        parse_document_path(&db, &source_path).map_err(|err| err.to_command_err())?;
+        parse_document_path(&db, &source_path).map_err(|err| err.to_string())?;
     let (target_collection, target_id, target_parent) =
-        parse_document_path(&db, &target_path).map_err(|err| err.to_command_err())?;
+        parse_document_path(&db, &target_path).map_err(|err| err.to_string())?;
 
     let mut source = db
         .get_doc_at(&source_parent, &source_collection, source_id, None)
         .await
         .map_err(|err| err.to_string())?;
 
-    if !overwrite {
-        let exists = db
-            .get_doc_at(&target_parent, &target_collection, &target_id, None)
-            .await
-            .ok();
-        if exists.is_some() {
+    let exists = db
+        .get_doc_at(&target_parent, &target_collection, &target_id, None)
+        .await;
+
+    let result = match exists {
+        Ok(_) if overwrite => {
+            source.name = format!("{}/{}/{}", target_parent, target_collection, target_id);
+            db.update_doc(&target_collection, source, None, None, None)
+                .await
+                .map_err(|err| err.to_string())?
+        }
+        Ok(_) => {
             return Err(format!(
                 "Document {} already exists under {}",
                 target_id, target_collection
             ));
         }
-    }
-
-    if overwrite {
-        source.name = format!("{}/{}/{}", target_parent, target_collection, target_id);
-        let updated = db
-            .update_doc(&target_collection, source, None, None, None)
+        Err(FirestoreError::DataNotFoundError(_)) => {
+            source.name.clear();
+            db.create_doc_at(
+                &target_parent,
+                &target_collection,
+                Some(target_id.clone()),
+                source,
+                None,
+            )
             .await
-            .map_err(|err| err.to_string())?;
-        return document_to_model(updated, &db).map_err(|err| err.to_command_err());
-    }
+            .map_err(|err| err.to_string())?
+        }
+        Err(err) => return Err(err.to_string()),
+    };
 
-    source.name.clear();
-    let inserted = db
-        .create_doc_at(
-            &target_parent,
-            &target_collection,
-            Some(target_id.clone()),
-            source,
-            None,
-        )
-        .await
-        .map_err(|err| err.to_string())?;
-
-    document_to_model(inserted, &db).map_err(|err| err.to_command_err())
+    document_to_model(result, &db).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
@@ -243,35 +251,19 @@ pub async fn duplicate_collection(
     overwrite: Option<bool>,
 ) -> CmdResult<u32> {
     let overwrite = overwrite.unwrap_or(false);
-    let db = app_state.db().await.map_err(|err| err.to_command_err())?;
+    let db = app_state.db().await.map_err(|err| err.to_string())?;
     let (source_collection, source_parent) =
-        parse_collection_path(&db, &source_collection_path).map_err(|err| err.to_command_err())?;
+        parse_collection_path(&db, &source_collection_path).map_err(|err| err.to_string())?;
     let (target_collection, target_parent) =
-        parse_collection_path(&db, &target_collection_path).map_err(|err| err.to_command_err())?;
+        parse_collection_path(&db, &target_collection_path).map_err(|err| err.to_string())?;
     let target_parent_path = parent_or_root(&db, &target_parent);
 
-    let mut copied = 0u32;
-    let mut page_token: Option<String> = None;
-
-    loop {
-        let params = FirestoreListDocParams {
-            collection_id: source_collection.clone(),
-            parent: source_parent.clone(),
-            page_size: 200,
-            page_token: page_token.clone(),
-            order_by: None,
-            return_only_fields: None,
-        };
-        let page = db.list_doc(params).await.map_err(|err| err.to_string())?;
-        let next_token = page.page_token.clone();
-
-        for mut doc in page.documents.into_iter() {
-            let doc_id = doc
-                .name
-                .rsplit('/')
-                .next()
-                .ok_or_else(|| "Invalid Firestore document name".to_string())?
-                .to_string();
+    for_each_doc_in_collection(&db, &source_collection, &source_parent, |mut doc| {
+        let db = db.clone();
+        let target_parent_path = target_parent_path.clone();
+        let target_collection = target_collection.clone();
+        async move {
+            let doc_id = extract_doc_id(&doc.name)?;
 
             if !overwrite {
                 let maybe_existing = db
@@ -303,16 +295,409 @@ pub async fn duplicate_collection(
                 .map_err(|err| err.to_string())?;
             }
 
-            copied += 1;
+            Ok(true)
         }
+    })
+    .await
+}
 
-        if next_token.is_none() {
-            break;
+#[tauri::command]
+pub async fn delete_document(
+    app_state: State<'_, AppState>,
+    document_path: String,
+) -> CmdResult<()> {
+    let db = app_state.db().await.map_err(|err| err.to_string())?;
+    let (collection_id, document_id, parent) =
+        parse_document_path(&db, &document_path).map_err(|err| err.to_string())?;
+    db.delete_by_id_at(&parent, &collection_id, &document_id, None)
+        .await
+        .map_err(|err| err.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn delete_collection(
+    app_state: State<'_, AppState>,
+    collection_path: String,
+) -> CmdResult<u32> {
+    let db = app_state.db().await.map_err(|err| err.to_string())?;
+    let (collection_id, parent) =
+        parse_collection_path(&db, &collection_path).map_err(|err| err.to_string())?;
+    let parent_path = parent_or_root(&db, &parent);
+
+    for_each_doc_in_collection(&db, &collection_id, &parent, |doc| {
+        let db = db.clone();
+        let parent_path = parent_path.clone();
+        let collection_id = collection_id.clone();
+        async move {
+            let doc_id = extract_doc_id(&doc.name)?;
+            db.delete_by_id_at(&parent_path, &collection_id, &doc_id, None)
+                .await
+                .map_err(|err| err.to_string())?;
+            Ok(true)
         }
-        page_token = next_token;
+    })
+    .await
+}
+
+#[tauri::command]
+pub async fn query_documents(
+    app_state: State<'_, AppState>,
+    query: QuerySpec,
+) -> CmdResult<DocumentPage> {
+    let db = app_state.db().await.map_err(|err| err.to_string())?;
+    let params = build_query_params(&db, &query).map_err(|err| err.to_string())?;
+    let docs: Vec<Document> = db.query_doc(params).await.map_err(|err| err.to_string())?;
+    let documents = docs
+        .into_iter()
+        .map(|doc| document_to_model(doc, &db))
+        .collect::<Result<Vec<_>>>()
+        .map_err(|err| err.to_string())?;
+    Ok(DocumentPage {
+        documents,
+        next_page_token: None,
+    })
+}
+
+fn build_query_params(db: &FirestoreDb, query: &QuerySpec) -> Result<FirestoreQueryParams> {
+    let (collection_id, parent) = parse_collection_path(db, &query.collection_path)?;
+    let mut params =
+        FirestoreQueryParams::new(FirestoreQueryCollection::Single(collection_id))
+            .opt_parent(parent);
+
+    if let Some(limit) = query.limit {
+        params = params.with_limit(limit);
     }
 
-    Ok(copied)
+    if !query.order_by.is_empty() {
+        let orders: Vec<FirestoreQueryOrder> = query
+            .order_by
+            .iter()
+            .map(|o| {
+                let direction = match o.direction {
+                    SortDirection::Desc => FirestoreQueryDirection::Descending,
+                    SortDirection::Asc => FirestoreQueryDirection::Ascending,
+                };
+                FirestoreQueryOrder::new(o.field.clone(), direction)
+            })
+            .collect();
+        params = params.with_order_by(orders);
+    }
+
+    if !query.filters.is_empty() {
+        let comparisons: Vec<FirestoreQueryFilterCompare> = query
+            .filters
+            .iter()
+            .map(|f| build_filter_compare(db, f))
+            .collect::<Result<Vec<_>>>()?;
+
+        let filter = if comparisons.len() == 1 {
+            FirestoreQueryFilter::Compare(Some(comparisons.into_iter().next().unwrap()))
+        } else {
+            FirestoreQueryFilter::Composite(FirestoreQueryFilterComposite::new(
+                comparisons
+                    .into_iter()
+                    .map(|c| FirestoreQueryFilter::Compare(Some(c)))
+                    .collect(),
+                firestore::FirestoreQueryFilterCompositeOperator::And,
+            ))
+        };
+        params = params.with_filter(filter);
+    }
+
+    Ok(params)
+}
+
+fn build_filter_compare(
+    db: &FirestoreDb,
+    filter: &crate::models::QueryFilter,
+) -> Result<FirestoreQueryFilterCompare> {
+    let field = filter.field.clone();
+    let value = FirestoreValue::from(json_to_value(db, &filter.value)?);
+    Ok(match filter.operator {
+        FilterOperator::Equal => FirestoreQueryFilterCompare::Equal(field, value),
+        FilterOperator::NotEqual => FirestoreQueryFilterCompare::NotEqual(field, value),
+        FilterOperator::LessThan => FirestoreQueryFilterCompare::LessThan(field, value),
+        FilterOperator::LessThanOrEqual => FirestoreQueryFilterCompare::LessThanOrEqual(field, value),
+        FilterOperator::GreaterThan => FirestoreQueryFilterCompare::GreaterThan(field, value),
+        FilterOperator::GreaterThanOrEqual => FirestoreQueryFilterCompare::GreaterThanOrEqual(field, value),
+        FilterOperator::ArrayContains => FirestoreQueryFilterCompare::ArrayContains(field, value),
+        FilterOperator::In => FirestoreQueryFilterCompare::In(field, value),
+        FilterOperator::ArrayContainsAny => FirestoreQueryFilterCompare::ArrayContainsAny(field, value),
+        FilterOperator::NotIn => FirestoreQueryFilterCompare::NotIn(field, value),
+    })
+}
+
+#[tauri::command]
+pub async fn export_collection(
+    app_state: State<'_, AppState>,
+    collection_path: String,
+    file_path: String,
+) -> CmdResult<u32> {
+    let db = app_state.db().await.map_err(|err| err.to_string())?;
+    let (collection_id, parent) =
+        parse_collection_path(&db, &collection_path).map_err(|err| err.to_string())?;
+
+    let (docs, count) =
+        export_collection_recursive(&db, &collection_id, &parent).await?;
+
+    let json_str =
+        serde_json::to_string_pretty(&docs).map_err(|err| err.to_string())?;
+    let path = file_path.clone();
+    tokio::task::spawn_blocking(move || std::fs::write(&path, json_str))
+        .await
+        .map_err(|err| err.to_string())?
+        .map_err(|err| err.to_string())?;
+
+    Ok(count)
+}
+
+#[tauri::command]
+pub async fn import_collection(
+    app_state: State<'_, AppState>,
+    collection_path: String,
+    file_path: String,
+    mode: ImportMode,
+) -> CmdResult<ImportResult> {
+    let db = app_state.db().await.map_err(|err| err.to_string())?;
+    let (collection_id, parent) =
+        parse_collection_path(&db, &collection_path).map_err(|err| err.to_string())?;
+    let parent_path = parent_or_root(&db, &parent);
+
+    let path = file_path.clone();
+    let raw = tokio::task::spawn_blocking(move || std::fs::read_to_string(&path))
+        .await
+        .map_err(|err| err.to_string())?
+        .map_err(|err| err.to_string())?;
+
+    let entries: Vec<JsonValue> =
+        serde_json::from_str(&raw).map_err(|err| err.to_string())?;
+
+    let mut imported = 0u32;
+    let mut skipped = 0u32;
+
+    for entry in entries {
+        let obj = entry
+            .as_object()
+            .ok_or_else(|| "Each entry must be a JSON object".to_string())?;
+
+        let doc_id = obj
+            .get("__id__")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| "Each entry must have a string \"__id__\" field".to_string())?
+            .to_string();
+
+        let mut data_map = obj.clone();
+        data_map.remove("__id__");
+        let data = JsonValue::Object(data_map);
+
+        let full_name = format!("{}/{}/{}", parent_path, collection_id, doc_id);
+        let doc = json_to_document(&db, &data, Some(full_name.clone()))
+            .map_err(|err| err.to_string())?;
+
+        let exists = db
+            .get_doc_at(&parent_path, &collection_id, &doc_id, None)
+            .await;
+
+        match exists {
+            Ok(_) if matches!(mode, ImportMode::CreateOnly) => {
+                skipped += 1;
+                continue;
+            }
+            Ok(_) => {
+                db.update_doc(&collection_id, doc, None, None, None)
+                    .await
+                    .map_err(|err| err.to_string())?;
+            }
+            Err(FirestoreError::DataNotFoundError(_)) => {
+                let mut new_doc = doc;
+                new_doc.name.clear();
+                db.create_doc_at(
+                    &parent_path,
+                    &collection_id,
+                    Some(doc_id),
+                    new_doc,
+                    None,
+                )
+                .await
+                .map_err(|err| err.to_string())?;
+            }
+            Err(err) => return Err(err.to_string()),
+        }
+        imported += 1;
+    }
+
+    Ok(ImportResult { imported, skipped })
+}
+
+#[tauri::command]
+pub async fn connect_emulator(
+    app_state: State<'_, AppState>,
+    project_id: String,
+    emulator_url: String,
+) -> CmdResult<ConnectionInfo> {
+    let options = FirestoreDbOptions::new(project_id.clone())
+        .opt_firebase_api_url(Some(emulator_url.clone()));
+
+    let db = FirestoreDb::with_options_token_source(
+        options,
+        gcloud_sdk::GCP_DEFAULT_SCOPES.clone(),
+        TokenSourceType::ExternalSource(Box::new(EmulatorTokenSource)),
+    )
+    .await
+    .map_err(|err| err.to_string())?;
+
+    app_state
+        .set_db(
+            db,
+            ConnectionMode::Emulator {
+                url: emulator_url.clone(),
+                project_id: project_id.clone(),
+            },
+        )
+        .await;
+
+    Ok(ConnectionInfo {
+        mode: "emulator".to_string(),
+        project_id,
+        emulator_url: Some(emulator_url),
+    })
+}
+
+#[tauri::command]
+pub async fn disconnect_emulator(app_state: State<'_, AppState>) -> CmdResult<()> {
+    app_state.clear_db().await;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn get_connection_info(app_state: State<'_, AppState>) -> CmdResult<Option<ConnectionInfo>> {
+    let mode = app_state.connection_mode().await;
+    Ok(mode.map(|m| match m {
+        ConnectionMode::Production => ConnectionInfo {
+            mode: "production".to_string(),
+            project_id: String::new(),
+            emulator_url: None,
+        },
+        ConnectionMode::Emulator { url, project_id } => ConnectionInfo {
+            mode: "emulator".to_string(),
+            project_id,
+            emulator_url: Some(url),
+        },
+    }))
+}
+
+#[tauri::command]
+pub async fn list_connections(
+    app_state: State<'_, AppState>,
+) -> CmdResult<Vec<ConnectionEntry>> {
+    Ok(app_state.list_connections().await)
+}
+
+#[tauri::command]
+pub async fn remove_connection(
+    app_state: State<'_, AppState>,
+    connection_id: String,
+) -> CmdResult<()> {
+    app_state.remove_connection(&connection_id).await;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn set_active_connection(
+    app_state: State<'_, AppState>,
+    connection_id: String,
+) -> CmdResult<()> {
+    app_state
+        .set_active(&connection_id)
+        .await
+        .map_err(|err| err.to_string())
+}
+
+#[tauri::command]
+pub async fn transfer_documents(
+    app_state: State<'_, AppState>,
+    source_connection_id: String,
+    dest_connection_id: String,
+    source_collection_path: String,
+    dest_collection_path: String,
+    overwrite: Option<bool>,
+) -> CmdResult<TransferResult> {
+    let overwrite = overwrite.unwrap_or(false);
+    let source_db = app_state
+        .db_for(&source_connection_id)
+        .await
+        .map_err(|err| err.to_string())?;
+    let dest_db = app_state
+        .db_for(&dest_connection_id)
+        .await
+        .map_err(|err| err.to_string())?;
+
+    let (source_collection, source_parent) =
+        parse_collection_path(&source_db, &source_collection_path)
+            .map_err(|err| err.to_string())?;
+    let (dest_collection, dest_parent) =
+        parse_collection_path(&dest_db, &dest_collection_path)
+            .map_err(|err| err.to_string())?;
+    let dest_parent_path = parent_or_root(&dest_db, &dest_parent);
+
+    let skipped = std::sync::Arc::new(std::sync::atomic::AtomicU32::new(0));
+
+    let transferred = for_each_doc_in_collection(&source_db, &source_collection, &source_parent, |doc| {
+        let source_db = source_db.clone();
+        let dest_db = dest_db.clone();
+        let dest_parent_path = dest_parent_path.clone();
+        let dest_collection = dest_collection.clone();
+        let skipped = skipped.clone();
+        async move {
+            let model =
+                document_to_model(doc, &source_db).map_err(|err| err.to_string())?;
+            let doc_id = model.id.clone();
+            let full_name = format!("{}/{}/{}", dest_parent_path, dest_collection, doc_id);
+            let dest_doc = json_to_document(&dest_db, &model.data, Some(full_name))
+                .map_err(|err| err.to_string())?;
+
+            let exists = dest_db
+                .get_doc_at(&dest_parent_path, &dest_collection, &doc_id, None)
+                .await;
+
+            match exists {
+                Ok(_) if overwrite => {
+                    dest_db
+                        .update_doc(&dest_collection, dest_doc, None, None, None)
+                        .await
+                        .map_err(|err| err.to_string())?;
+                    Ok(true)
+                }
+                Ok(_) => {
+                    skipped.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    Ok(false)
+                }
+                Err(FirestoreError::DataNotFoundError(_)) => {
+                    let mut new_doc = dest_doc;
+                    new_doc.name.clear();
+                    dest_db
+                        .create_doc_at(
+                            &dest_parent_path,
+                            &dest_collection,
+                            Some(doc_id),
+                            new_doc,
+                            None,
+                        )
+                        .await
+                        .map_err(|err| err.to_string())?;
+                    Ok(true)
+                }
+                Err(err) => Err(err.to_string()),
+            }
+        }
+    })
+    .await?;
+
+    Ok(TransferResult {
+        transferred,
+        skipped: skipped.load(std::sync::atomic::Ordering::Relaxed),
+    })
 }
 
 async fn run_blocking<F, T>(func: F) -> CmdResult<T>
@@ -323,7 +708,117 @@ where
     let join_result = tauri::async_runtime::spawn_blocking(func)
         .await
         .map_err(|err| err.to_string())?;
-    join_result.map_err(|err| err.to_command_err())
+    join_result.map_err(|err| err.to_string())
+}
+
+fn extract_doc_id(name: &str) -> std::result::Result<String, String> {
+    name.rsplit('/')
+        .next()
+        .ok_or_else(|| "Invalid Firestore document name".to_string())
+        .map(String::from)
+}
+
+async fn export_collection_recursive(
+    db: &FirestoreDb,
+    collection_id: &str,
+    parent: &Option<String>,
+) -> std::result::Result<(Vec<JsonValue>, u32), String> {
+    // Collect all raw documents first
+    let raw_docs = std::sync::Arc::new(std::sync::Mutex::new(Vec::<(String, String, serde_json::Map<String, JsonValue>)>::new()));
+
+    for_each_doc_in_collection(db, collection_id, parent, |doc| {
+        let db = db.clone();
+        let raw_docs = raw_docs.clone();
+        async move {
+            let full_name = doc.name.clone();
+            let model = document_to_model(doc, &db).map_err(|err| err.to_string())?;
+            let mut obj = match model.data {
+                JsonValue::Object(map) => map,
+                _ => serde_json::Map::new(),
+            };
+            obj.insert("__id__".to_string(), JsonValue::String(model.id));
+            raw_docs.lock().unwrap().push((full_name, model.path, obj));
+            Ok(true)
+        }
+    })
+    .await?;
+
+    let raw_docs = std::sync::Arc::try_unwrap(raw_docs).unwrap().into_inner().unwrap();
+    let mut all_docs = Vec::<JsonValue>::new();
+    let mut total_count = raw_docs.len() as u32;
+
+    for (full_name, doc_path, mut obj) in raw_docs {
+        // Check for subcollections under this document
+        let sub_params = FirestoreListCollectionIdsParams {
+            parent: Some(full_name.clone()),
+            page_size: 100,
+            page_token: None,
+        };
+        let sub_result = db
+            .list_collection_ids(sub_params)
+            .await
+            .map_err(|err| err.to_string())?;
+
+        if !sub_result.collection_ids.is_empty() {
+            let mut subcollections = serde_json::Map::new();
+            let doc_parent = Some(full_name);
+            for sub_col_id in &sub_result.collection_ids {
+                let (sub_docs, sub_count) =
+                    Box::pin(export_collection_recursive(db, sub_col_id, &doc_parent))
+                        .await?;
+                subcollections.insert(sub_col_id.clone(), JsonValue::Array(sub_docs));
+                total_count += sub_count;
+            }
+            obj.insert(
+                "__subcollections__".to_string(),
+                JsonValue::Object(subcollections),
+            );
+        }
+
+        all_docs.push(JsonValue::Object(obj));
+    }
+
+    Ok((all_docs, total_count))
+}
+
+async fn for_each_doc_in_collection<F, Fut>(
+    db: &FirestoreDb,
+    collection_id: &str,
+    parent: &Option<String>,
+    mut handler: F,
+) -> std::result::Result<u32, String>
+where
+    F: FnMut(Document) -> Fut,
+    Fut: std::future::Future<Output = std::result::Result<bool, String>>,
+{
+    let mut count = 0u32;
+    let mut page_token: Option<String> = None;
+
+    loop {
+        let params = FirestoreListDocParams {
+            collection_id: collection_id.to_string(),
+            parent: parent.clone(),
+            page_size: 200,
+            page_token: page_token.clone(),
+            order_by: None,
+            return_only_fields: None,
+        };
+        let page = db.list_doc(params).await.map_err(|err| err.to_string())?;
+        let next_token = page.page_token.clone();
+
+        for doc in page.documents.into_iter() {
+            if handler(doc).await? {
+                count += 1;
+            }
+        }
+
+        if next_token.is_none() {
+            break;
+        }
+        page_token = next_token;
+    }
+
+    Ok(count)
 }
 
 fn normalize_parent_path(db: &FirestoreDb, parent: Option<String>) -> Result<Option<String>> {
@@ -536,4 +1031,65 @@ fn json_to_value(db: &FirestoreDb, value: &JsonValue) -> Result<Value> {
     Ok(Value {
         value_type: Some(value_type),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_split_segments_normal() {
+        assert_eq!(split_segments("users/doc1"), vec!["users", "doc1"]);
+    }
+
+    #[test]
+    fn test_split_segments_empty() {
+        assert_eq!(split_segments(""), Vec::<&str>::new());
+    }
+
+    #[test]
+    fn test_split_segments_leading_trailing_slashes() {
+        assert_eq!(split_segments("/users/doc1/"), vec!["users", "doc1"]);
+    }
+
+    #[test]
+    fn test_split_segments_double_slashes() {
+        assert_eq!(split_segments("users//doc1"), vec!["users", "doc1"]);
+    }
+
+    #[test]
+    fn test_split_segments_deep_path() {
+        assert_eq!(
+            split_segments("users/123/posts/456/comments"),
+            vec!["users", "123", "posts", "456", "comments"]
+        );
+    }
+
+    #[test]
+    fn test_timestamp_to_string() {
+        let ts = Timestamp { seconds: 0, nanos: 0 };
+        assert_eq!(timestamp_to_string(&ts), "1970-01-01T00:00:00+00:00");
+    }
+
+    #[test]
+    fn test_timestamp_to_string_with_date() {
+        let ts = Timestamp { seconds: 1709913600, nanos: 0 };
+        let result = timestamp_to_string(&ts);
+        assert!(result.starts_with("2024-03-08"));
+    }
+
+    #[test]
+    fn test_extract_doc_id_normal() {
+        assert_eq!(extract_doc_id("projects/p/databases/d/documents/users/abc123").unwrap(), "abc123");
+    }
+
+    #[test]
+    fn test_extract_doc_id_simple() {
+        assert_eq!(extract_doc_id("users/doc1").unwrap(), "doc1");
+    }
+
+    #[test]
+    fn test_extract_doc_id_single_segment() {
+        assert_eq!(extract_doc_id("doc1").unwrap(), "doc1");
+    }
 }

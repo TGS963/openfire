@@ -54,13 +54,13 @@ impl CredentialManager {
 
         for entry in fs::read_dir(self.base_dir())? {
             let entry = entry?;
-            if entry
+            let is_json = entry
                 .path()
                 .extension()
                 .and_then(|ext| ext.to_str())
-                .map(|ext| ext != CREDENTIAL_EXTENSION)
-                .unwrap_or(true)
-            {
+                .map(|ext| ext == CREDENTIAL_EXTENSION)
+                .unwrap_or(false);
+            if !is_json {
                 continue;
             }
             let content = fs::read_to_string(entry.path())?;

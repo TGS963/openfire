@@ -1,5 +1,16 @@
 <svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" fill="none">
-  <rect width="128" height="128" rx="24" fill="#020817"/>
-  <path d="M42 98c6-18 22-27 22-46 0-9-4-16-10-22 19 7 32 23 32 42 0 19-13 32-30 32-6 0-11-2-14-6z" fill="#38bdf8"/>
-  <path d="M70 30c6 7 10 16 10 26 0 18-10 33-26 40 4-11 2-22-4-32-4-6-6-13-6-20 0-11 10-18 20-14 2 1 4 2 6 4z" fill="#f472b6"/>
+  <defs>
+    <linearGradient id="flame" x1="50%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" stop-color="#ea580c"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+    <linearGradient id="inner" x1="50%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#fde68a"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="24" fill="#1a1410"/>
+  <path d="M64 18c0 0-28 24-28 52 0 22 12.5 40 28 40s28-18 28-40c0-28-28-52-28-52z" fill="url(#flame)"/>
+  <path d="M64 50c0 0-14 14-14 30 0 12 6.3 20 14 20s14-8 14-20c0-16-14-30-14-30z" fill="url(#inner)"/>
 </svg>

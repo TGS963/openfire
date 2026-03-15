@@ -1,12 +1,18 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { getErrorMessage } from '@/lib/error-utils';
 import {
+  connectEmulator,
+  disconnectEmulator,
   importServiceAccount,
   listServiceAccounts,
   setActiveAccount,
 } from '@/lib/tauri';
+import { useConnectionStore } from '@/stores/connection-store';
 import type { ServiceAccountSummary } from '@/types/firestore';
+
+type ConnectionMode = 'production' | 'emulator' | null;
 
 type AuthStore = {
   accounts: ServiceAccountSummary[];
@@ -14,9 +20,14 @@ type AuthStore = {
   isLoading: boolean;
   initialized: boolean;
   error: string | null;
+  connectionMode: ConnectionMode;
+  emulatorUrl: string | null;
+  emulatorProjectId: string | null;
   loadAccounts: () => Promise<void>;
   importAccount: (filePath: string) => Promise<void>;
   selectAccount: (id: string) => Promise<void>;
+  connectToEmulator: (projectId: string, url: string) => Promise<void>;
+  disconnectFromEmulator: () => Promise<void>;
   clearError: () => void;
 };
 
@@ -28,6 +39,9 @@ export const useAuthStore = create<AuthStore>()(
       isLoading: false,
       initialized: false,
       error: null,
+      connectionMode: null,
+      emulatorUrl: null,
+      emulatorProjectId: null,
       async loadAccounts() {
         set((state) => ({ isLoading: state.accounts.length === 0, error: null }));
         try {
@@ -35,7 +49,7 @@ export const useAuthStore = create<AuthStore>()(
           set({ accounts, activeAccountId: null, initialized: true, isLoading: false });
         } catch (error) {
           set({
-            error: (error as Error)?.message ?? 'Unable to load accounts',
+            error: getErrorMessage(error, 'Unable to load accounts'),
             initialized: true,
             isLoading: false,
           });
@@ -52,7 +66,7 @@ export const useAuthStore = create<AuthStore>()(
           await get().selectAccount(summary.id);
         } catch (error) {
           set({
-            error: (error as Error)?.message ?? 'Unable to import account',
+            error: getErrorMessage(error, 'Unable to import account'),
             isLoading: false,
           });
         }
@@ -61,14 +75,59 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null });
         try {
           await setActiveAccount(id);
-          set({ activeAccountId: id, isLoading: false });
+          set({
+            activeAccountId: id,
+            connectionMode: 'production',
+            emulatorUrl: null,
+            emulatorProjectId: null,
+            isLoading: false,
+          });
+          useConnectionStore.getState().loadConnections();
         } catch (error) {
           set({
-            error: (error as Error)?.message ?? 'Unable to switch account',
+            error: getErrorMessage(error, 'Unable to switch account'),
             activeAccountId: null,
             isLoading: false,
           });
           throw error;
+        }
+      },
+      async connectToEmulator(projectId: string, url: string) {
+        set({ isLoading: true, error: null });
+        try {
+          await connectEmulator(projectId, url);
+          set({
+            connectionMode: 'emulator',
+            emulatorUrl: url,
+            emulatorProjectId: projectId,
+            activeAccountId: null,
+            isLoading: false,
+          });
+          useConnectionStore.getState().loadConnections();
+        } catch (error) {
+          set({
+            error: getErrorMessage(error, 'Unable to connect to emulator'),
+            isLoading: false,
+          });
+          throw error;
+        }
+      },
+      async disconnectFromEmulator() {
+        set({ isLoading: true, error: null });
+        try {
+          await disconnectEmulator();
+          set({
+            connectionMode: null,
+            emulatorUrl: null,
+            emulatorProjectId: null,
+            isLoading: false,
+          });
+          useConnectionStore.getState().loadConnections();
+        } catch (error) {
+          set({
+            error: getErrorMessage(error, 'Unable to disconnect'),
+            isLoading: false,
+          });
         }
       },
       clearError() {

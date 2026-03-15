@@ -1,38 +1,94 @@
-import Editor from '@monaco-editor/react';
-import { invoke } from '@tauri-apps/api/core';
-import { open as openDialogPlugin } from '@tauri-apps/plugin-dialog';
-import { Loader2, MoreHorizontal } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import { Virtuoso } from 'react-virtuoso';
+import { save as saveDialogPlugin } from '@tauri-apps/plugin-dialog';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Group, Panel, Separator, useDefaultLayout } from 'react-resizable-panels';
 
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/components/ui/use-toast';
-import { useCollections, useDocument, useDocuments } from '@/hooks/firestore';
-import { duplicateCollection, duplicateDocument, saveDocument } from '@/lib/tauri';
+import { useDeleteCollection, useDeleteDocument, useDocument, useDocuments, useQueryDocuments } from '@/hooks/firestore';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
+import { duplicateCollection, duplicateDocument, exportCollection, importCollection, saveDocument, transferDocuments } from '@/lib/tauri';
+import { openFileDialog } from '@/lib/dialog-utils';
+import { normalizeFirestorePath, collectionFromDocPath } from '@/lib/firestore-utils';
+import { toastError } from '@/lib/toast-utils';
 import { useAuthStore } from '@/stores/auth-store';
+import { useConnectionStore } from '@/stores/connection-store';
+import { useDialogStore, type DialogName } from '@/stores/dialog-store';
 import { useNavStore } from '@/stores/nav-store';
-import type { DocumentPage, FirestoreDocument, ServiceAccountSummary } from '@/types/firestore';
+import type { DocumentPage, FirestoreDocument, ImportMode, QuerySpec } from '@/types/firestore';
 
-const normalizeFirestorePath = (value: string) =>
-  value
-    .split('/')
-    .map((segment) => segment.trim())
-    .filter(Boolean)
-    .join('/');
+import { Sidebar } from '@/components/layout/Sidebar';
+import { Header } from '@/components/layout/Header';
+import { ResizableLayout } from '@/components/layout/ResizableLayout';
+import { ContentSplit } from '@/components/layout/ContentSplit';
+import { BackgroundBlobs } from '@/components/layout/BackgroundBlobs';
+import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
+import { DocumentListSection } from '@/components/documents/DocumentListSection';
+import { DocumentPreviewSection } from '@/components/documents/DocumentPreviewSection';
+import { AboutDialog } from '@/components/dialogs/AboutDialog';
+import { CreateDocumentDialog } from '@/components/dialogs/CreateDocumentDialog';
+import { DuplicateDocumentDialog } from '@/components/dialogs/DuplicateDocumentDialog';
+import { DuplicateCollectionDialog } from '@/components/dialogs/DuplicateCollectionDialog';
+import { DeleteConfirmDialog } from '@/components/dialogs/DeleteConfirmDialog';
+import { ImportCollectionDialog } from '@/components/dialogs/ImportCollectionDialog';
+import { EmulatorConnectDialog } from '@/components/dialogs/EmulatorConnectDialog';
+import { SaveQueryDialog } from '@/components/dialogs/SaveQueryDialog';
+import { SaveScriptDialog } from '@/components/dialogs/SaveScriptDialog';
+import { ShortcutsHelpDialog } from '@/components/dialogs/ShortcutsHelpDialog';
+import { ConnectionManagerDialog } from '@/components/dialogs/ConnectionManagerDialog';
+import { TransferDialog } from '@/components/dialogs/TransferDialog';
+import { ScriptPanel } from '@/components/shell/ScriptPanel';
+import { QueryBar } from '@/components/query/QueryBar';
+import { OnboardingState } from '@/components/onboarding/OnboardingState';
+import { useQueryStore } from '@/stores/query-store';
+import { useScriptStore } from '@/stores/script-store';
+import { useViewStore } from '@/stores/view-store';
 
-const collectionFromDocPath = (path: string) => {
-  const normalized = normalizeFirestorePath(path);
-  if (!normalized) return '';
-  const parts = normalized.split('/');
-  return parts.slice(0, -1).join('/');
+type ShellSplitProps = {
+  shellOpen: boolean;
+  children: React.ReactNode;
+  onSaveRequest: () => void;
+  runScriptRef: React.MutableRefObject<(() => void) | null>;
 };
+
+function ShellSplitInner({ children, onSaveRequest }: { children: React.ReactNode; onSaveRequest: () => void }) {
+  const { defaultLayout, onLayoutChanged } = useDefaultLayout({ id: 'shell-split' });
+
+  return (
+    <div className="flex-1 min-h-0 overflow-hidden">
+      <Group
+        orientation="vertical"
+        defaultLayout={defaultLayout}
+        onLayoutChanged={onLayoutChanged}
+      >
+        <Panel id="main-content" defaultSize={65} minSize={30} className="flex flex-col">
+          {children}
+        </Panel>
+        <Separator className="h-px dark:bg-white/[0.06] bg-black/[0.06] hover:bg-primary/30 transition-all duration-300 hover:shadow-[0_0_8px_rgba(245,158,11,0.15)]" />
+        <Panel id="shell" defaultSize={35} minSize={15} className="flex flex-col">
+          <ScriptPanel onSaveRequest={onSaveRequest} />
+        </Panel>
+      </Group>
+    </div>
+  );
+}
+
+function ShellSplit({ shellOpen, children, onSaveRequest, runScriptRef }: ShellSplitProps) {
+  useEffect(() => {
+    runScriptRef.current = shellOpen
+      ? () => document.querySelector<HTMLButtonElement>('[aria-label="Run"]')?.click()
+      : null;
+    return () => { runScriptRef.current = null; };
+  }, [shellOpen, runScriptRef]);
+
+  if (!shellOpen) return <>{children}</>;
+
+  return (
+    <ShellSplitInner onSaveRequest={onSaveRequest}>
+      {children}
+    </ShellSplitInner>
+  );
+}
 
 export function App() {
   const { toast } = useToast();
@@ -46,6 +102,10 @@ export function App() {
   const importAccount = useAuthStore((state) => state.importAccount);
   const selectAccount = useAuthStore((state) => state.selectAccount);
   const clearError = useAuthStore((state) => state.clearError);
+  const connectionMode = useAuthStore((state) => state.connectionMode);
+  const emulatorProjectId = useAuthStore((state) => state.emulatorProjectId);
+  const connectToEmulator = useAuthStore((state) => state.connectToEmulator);
+  const disconnectFromEmulator = useAuthStore((state) => state.disconnectFromEmulator);
 
   const collectionPath = useNavStore((state) => state.collectionPath);
   const documentPath = useNavStore((state) => state.documentPath);
@@ -54,9 +114,34 @@ export function App() {
   const resetNav = useNavStore((state) => state.reset);
 
   const [search, setSearch] = useState('');
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [duplicateDoc, setDuplicateDoc] = useState<FirestoreDocument | null>(null);
-  const [duplicateCollectionOpen, setDuplicateCollectionOpen] = useState(false);
+  const [deleteDocPath, setDeleteDocPath] = useState<string | null>(null);
+  const [deleteCollectionPath, setDeleteCollectionPath] = useState<string | null>(null);
+  const [activeQuery, setActiveQuery] = useState<QuerySpec | null>(null);
+  const [isTransferring, setIsTransferring] = useState(false);
+  const [shellOpen, setShellOpen] = useState(false);
+  const saveQueryToStore = useQueryStore((state) => state.saveQuery);
+  const saveScriptToStore = useScriptStore((s) => s.saveScript);
+  const scriptStoreScript = useScriptStore((s) => s.script);
+
+  const connections = useConnectionStore((state) => state.connections);
+  const activeConnectionId = useConnectionStore((state) => state.activeConnectionId);
+  const loadConnections = useConnectionStore((state) => state.loadConnections);
+  const switchConnection = useConnectionStore((state) => state.switchConnection);
+  const removeConnectionFromStore = useConnectionStore((state) => state.removeConnection);
+
+  const openDialog = useDialogStore((s) => s.open);
+  const closeDialog = useDialogStore((s) => s.close);
+  const dialogStack = useDialogStore((s) => s.stack);
+  const isDialogOpen = (name: DialogName) => dialogStack.includes(name);
+  const closeTopDialog = useDialogStore((s) => s.closeTop);
+  const theme = useViewStore((s) => s.theme);
+
+  const saveRequestedRef = useRef<(() => void) | null>(null);
+  const runScriptRef = useRef<(() => void) | null>(null);
+
+  const deleteDocumentMutation = useDeleteDocument();
+  const deleteCollectionMutation = useDeleteCollection();
 
   const saveDocumentMutation = useMutation({
     mutationFn: ({ path, data }: { path: string; data: Record<string, unknown> }) =>
@@ -87,13 +172,25 @@ export function App() {
     }) => duplicateCollection(sourcePath, targetPath, overwrite ?? false),
   });
 
+  const importCollectionMutation = useMutation({
+    mutationFn: ({
+      collectionPath: cp,
+      filePath,
+      mode,
+    }: {
+      collectionPath: string;
+      filePath: string;
+      mode: ImportMode;
+    }) => importCollection(cp, filePath, mode),
+  });
+
   const updateDocumentCaches = (doc: FirestoreDocument) => {
     if (!activeAccountId) return;
     queryClient.setQueryData<FirestoreDocument>(['document', activeAccountId, doc.path], doc);
-    const collectionPath = collectionFromDocPath(doc.path);
-    if (!collectionPath) return;
+    const collection = collectionFromDocPath(doc.path);
+    if (!collection) return;
     queryClient.setQueryData<DocumentPage | undefined>(
-      ['documents', activeAccountId, collectionPath],
+      ['documents', activeAccountId, collection],
       (existing) => {
         if (!existing) return existing;
         const nextDocuments = existing.documents.some((entry) => entry.path === doc.path)
@@ -131,11 +228,7 @@ export function App() {
       });
       return doc;
     } catch (err) {
-      toast({
-        title: 'Failed to save document',
-        description: err instanceof Error ? err.message : 'Unexpected error',
-        variant: 'destructive',
-      });
+      toastError(toast, 'Failed to save document', err);
       throw err;
     }
   };
@@ -177,11 +270,7 @@ export function App() {
       setDocumentPath(doc.path);
       setDuplicateDoc(null);
     } catch (err) {
-      toast({
-        title: 'Unable to duplicate document',
-        description: err instanceof Error ? err.message : 'Unexpected error',
-        variant: 'destructive',
-      });
+      toastError(toast, 'Unable to duplicate document', err);
       throw err;
     }
   };
@@ -227,13 +316,9 @@ export function App() {
       });
       setCollectionPath(normalizedTarget);
       setDocumentPath(null);
-      setDuplicateCollectionOpen(false);
+      closeDialog('duplicateCollection');
     } catch (err) {
-      toast({
-        title: 'Unable to duplicate collection',
-        description: err instanceof Error ? err.message : 'Unexpected error',
-        variant: 'destructive',
-      });
+      toastError(toast, 'Unable to duplicate collection', err);
       throw err;
     }
   };
@@ -269,16 +354,176 @@ export function App() {
       successMessage: 'Document created',
     });
     setDocumentPath(doc.path);
-    setCreateDialogOpen(false);
+    closeDialog('createDocument');
   };
 
   const handleSaveDocument = async (path: string, data: Record<string, unknown>) => {
     await persistDocument({ path, data, successMessage: 'Document saved' });
   };
 
+  const handleDeleteDocument = async () => {
+    if (!deleteDocPath) return;
+    try {
+      await deleteDocumentMutation.mutateAsync(deleteDocPath);
+      toast({ title: 'Document deleted', description: deleteDocPath });
+      if (documentPath === deleteDocPath) {
+        setDocumentPath(null);
+      }
+      setDeleteDocPath(null);
+    } catch (err) {
+      toastError(toast, 'Failed to delete document', err);
+    }
+  };
+
+  const handleDeleteCollection = async () => {
+    if (!deleteCollectionPath) return;
+    try {
+      const count = await deleteCollectionMutation.mutateAsync(deleteCollectionPath);
+      toast({
+        title: 'Collection deleted',
+        description: `Deleted ${count} documents from ${deleteCollectionPath}.`,
+      });
+      if (collectionPath === deleteCollectionPath) {
+        setCollectionPath(null);
+      }
+      setDeleteCollectionPath(null);
+    } catch (err) {
+      toastError(toast, 'Failed to delete collection', err);
+    }
+  };
+
+  const handleExportCollection = async () => {
+    if (!collectionPath) return;
+    try {
+      const collectionName = collectionPath.split('/').pop() ?? collectionPath;
+      const filePath = await saveDialogPlugin({
+        filters: [{ name: 'JSON', extensions: ['json'] }],
+        defaultPath: `${collectionName}.json`,
+      });
+      if (!filePath) return;
+      const count = await exportCollection(collectionPath, filePath);
+      toast({
+        title: 'Collection exported',
+        description: `Exported ${count} documents to ${filePath.split('/').pop()}.`,
+      });
+    } catch (err) {
+      toastError(toast, 'Export failed', err);
+    }
+  };
+
+  const handleImportCollection = async ({
+    filePath,
+    mode,
+  }: {
+    filePath: string;
+    mode: ImportMode;
+  }) => {
+    if (!collectionPath) return;
+    try {
+      const result = await importCollectionMutation.mutateAsync({
+        collectionPath,
+        filePath,
+        mode,
+      });
+      toast({
+        title: 'Import complete',
+        description: `Imported ${result.imported} documents${result.skipped > 0 ? `, skipped ${result.skipped}` : ''}.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['documents', activeAccountId, collectionPath] });
+      queryClient.invalidateQueries({ queryKey: ['collections'], exact: false });
+      closeDialog('importCollection');
+    } catch (err) {
+      toastError(toast, 'Import failed', err);
+      throw err;
+    }
+  };
+
+  const handleConnectEmulator = async ({
+    projectId,
+    emulatorUrl,
+  }: {
+    projectId: string;
+    emulatorUrl: string;
+  }) => {
+    try {
+      await connectToEmulator(projectId, emulatorUrl);
+      queryClient.clear();
+      resetNav();
+      closeDialog('emulatorConnect');
+      toast({ title: 'Connected to emulator', description: `Project: ${projectId}` });
+    } catch (err) {
+      toastError(toast, 'Failed to connect to emulator', err);
+      throw err;
+    }
+  };
+
+  const handleDisconnectEmulator = async () => {
+    try {
+      await disconnectFromEmulator();
+      queryClient.clear();
+      resetNav();
+      toast({ title: 'Disconnected from emulator' });
+    } catch (err) {
+      toastError(toast, 'Failed to disconnect', err);
+    }
+  };
+
+  const handleTransfer = async (params: {
+    sourceConnectionId: string;
+    destConnectionId: string;
+    sourceCollectionPath: string;
+    destCollectionPath: string;
+    overwrite: boolean;
+  }) => {
+    setIsTransferring(true);
+    try {
+      const result = await transferDocuments(
+        params.sourceConnectionId,
+        params.destConnectionId,
+        params.sourceCollectionPath,
+        params.destCollectionPath,
+        params.overwrite,
+      );
+      toast({
+        title: 'Transfer complete',
+        description: `Transferred ${result.transferred} documents${result.skipped > 0 ? `, skipped ${result.skipped}` : ''}.`,
+      });
+      closeDialog('transfer');
+      queryClient.invalidateQueries({ queryKey: ['collections'], exact: false });
+    } catch (err) {
+      toastError(toast, 'Transfer failed', err);
+    } finally {
+      setIsTransferring(false);
+    }
+  };
+
+  const handleSwitchConnection = async (id: string) => {
+    await switchConnection(id);
+    queryClient.clear();
+    resetNav();
+    closeDialog('connectionManager');
+  };
+
+  const handleRemoveConnection = async (id: string) => {
+    await removeConnectionFromStore(id);
+    if (id === activeConnectionId) {
+      queryClient.clear();
+      resetNav();
+    }
+  };
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
   useEffect(() => {
     loadAccounts();
-  }, [loadAccounts]);
+    loadConnections();
+  }, [loadAccounts, loadConnections]);
 
   useEffect(() => {
     if (error) {
@@ -293,13 +538,17 @@ export function App() {
 
   useEffect(() => {
     resetNav();
+    setActiveQuery(null);
   }, [activeAccountId, resetNav]);
 
-  const collectionsQuery = useCollections();
   const documentsQuery = useDocuments(collectionPath);
+  const queryDocumentsResult = useQueryDocuments(activeQuery);
   const documentQuery = useDocument(documentPath);
 
-  const documents: FirestoreDocument[] = documentsQuery.data?.documents ?? [];
+  const isQueryActive = activeQuery !== null;
+  const documents: FirestoreDocument[] = isQueryActive
+    ? (queryDocumentsResult.data?.documents ?? [])
+    : (documentsQuery.data?.documents ?? []);
   const filteredDocuments = useMemo(() => {
     if (!search.trim()) return documents;
     return documents.filter((doc) => doc.id.toLowerCase().includes(search.toLowerCase()));
@@ -315,33 +564,34 @@ export function App() {
     }
   }, [documentPath, documents, setDocumentPath]);
 
+  useKeyboardShortcuts({
+    'save-document': () => saveRequestedRef.current?.(),
+    'run-query': () => {
+      if (activeQuery && collectionPath) {
+        setActiveQuery({ ...activeQuery });
+      }
+    },
+    // toggle-query not wired — QueryBar manages its own expanded state
+    escape: () => {
+      if (useDialogStore.getState().stack.length > 0) {
+        closeTopDialog();
+      } else if (shellOpen) {
+        setShellOpen(false);
+      }
+    },
+    'show-shortcuts': () => openDialog('shortcutsHelp'),
+    'toggle-shell': () => setShellOpen((prev) => !prev),
+    'run-script': () => runScriptRef.current?.(),
+  });
+
   const handleImport = async () => {
     try {
-      const options = {
+      const file = await openFileDialog({
         filters: [{ name: 'Service Account', extensions: ['json'] }],
         multiple: false,
-      };
+      });
 
-      let file: string | string[] | null = null;
-      try {
-        file = await openDialogPlugin(options);
-      } catch (pluginError) {
-        console.warn('Dialog plugin failed, falling back to invoke:', pluginError);
-        try {
-          file = await invoke<string | string[] | null>('plugin:dialog|open', {
-            options,
-            windowLabel: 'main',
-          });
-        } catch (invokeError) {
-          console.warn('Invoke dialog fallback also failed:', invokeError);
-        }
-      }
-
-      if (Array.isArray(file)) {
-        file = file[0] ?? null;
-      }
-
-      if (typeof file === 'string') {
+      if (file) {
         await importAccount(file);
         return;
       }
@@ -361,11 +611,7 @@ export function App() {
         variant: 'destructive',
       });
     } catch (err) {
-      toast({
-        title: 'Unable to open file dialog',
-        description: err instanceof Error ? err.message : 'Unexpected error',
-        variant: 'destructive',
-      });
+      toastError(toast, 'Unable to open file dialog', err);
     }
   };
 
@@ -378,62 +624,111 @@ export function App() {
     }
   };
 
-  const showOnboarding = initialized && accounts.length === 0;
+  const showOnboarding = initialized && accounts.length === 0 && connectionMode !== 'emulator';
 
   return (
-    <>
-      <div className="flex min-h-screen bg-background text-foreground">
-        <Sidebar
-          accounts={accounts}
-          activeAccountId={activeAccountId}
-          isLoading={isAuthLoading}
-          onImport={handleImport}
-          onSelectAccount={handleSelectAccount}
-          collections={collectionsQuery.data?.collectionIds ?? []}
-          isLoadingCollections={collectionsQuery.isLoading}
-          collectionPath={collectionPath}
-          onSelectCollection={(path) => setCollectionPath(path)}
-        />
-        <main className="flex flex-1 flex-col">
-          {showOnboarding ? (
-            <OnboardingState onImport={handleImport} />
-          ) : (
-            <>
-              <Header
-                collectionPath={collectionPath}
-                isLoading={documentsQuery.isLoading && !documentsQuery.data}
-                onClearSelection={() => setCollectionPath(null)}
-                canClear={Boolean(collectionPath)}
-                onDuplicateCollection={() => setDuplicateCollectionOpen(true)}
-              />
-              <div className="flex flex-1 divide-x">
-                <DocumentListSection
-                  documents={filteredDocuments}
-                  isLoading={documentsQuery.isLoading}
-                  error={documentsQuery.error as Error | undefined}
-                  selectedPath={documentPath}
-                  onSelect={setDocumentPath}
-                  hasCollection={Boolean(collectionPath)}
-                  search={search}
-                  onSearchChange={setSearch}
-                onCreateDocument={() => setCreateDialogOpen(true)}
-                onDuplicateDocument={setDuplicateDoc}
+    <ErrorBoundary>
+      <BackgroundBlobs />
+      <ResizableLayout
+        sidebarContent={
+          <Sidebar
+            accounts={accounts}
+            activeAccountId={activeAccountId}
+            isLoading={isAuthLoading}
+            onImport={handleImport}
+            onSelectAccount={handleSelectAccount}
+            collectionPath={collectionPath}
+            documentPath={documentPath}
+            onSelectCollection={(path) => setCollectionPath(path)}
+            connectionMode={connectionMode}
+            emulatorProjectId={emulatorProjectId}
+            onConnectEmulator={() => openDialog('emulatorConnect')}
+            onDisconnectEmulator={handleDisconnectEmulator}
+            connectionCount={connections.length}
+            onManageConnections={() => openDialog('connectionManager')}
+            onDeleteCollection={(path) => setDeleteCollectionPath(path)}
+            onAbout={() => openDialog('about')}
+          />
+        }
+        mainContent={
+          <main className="flex flex-1 flex-col min-h-0 bg-background text-foreground">
+            {showOnboarding ? (
+              <OnboardingState onImport={handleImport} />
+            ) : (
+              <>
+                <Header
+                  collectionPath={collectionPath}
+                  isLoading={
+                    isQueryActive
+                      ? queryDocumentsResult.isLoading
+                      : documentsQuery.isLoading && !documentsQuery.data
+                  }
+                  onClearSelection={() => {
+                    setCollectionPath(null);
+                    setActiveQuery(null);
+                  }}
+                  canClear={Boolean(collectionPath)}
+                  onDuplicateCollection={() => openDialog('duplicateCollection')}
+                  onDeleteCollection={collectionPath ? () => setDeleteCollectionPath(collectionPath) : undefined}
+                  onExportCollection={collectionPath ? handleExportCollection : undefined}
+                  onImportCollection={collectionPath ? () => openDialog('importCollection') : undefined}
+                  onTransferCollection={collectionPath ? () => openDialog('transfer') : undefined}
+                  connectionCount={connections.length}
+                  shellOpen={shellOpen}
+                  onToggleShell={() => setShellOpen((prev) => !prev)}
                 />
-                <DocumentPreviewSection
-                  document={previewDocument}
-                  isLoading={documentQuery.isLoading}
-                onSave={handleSaveDocument}
-                isSaving={saveDocumentMutation.isPending}
-                onDuplicate={(doc) => setDuplicateDoc(doc)}
-                />
-              </div>
-            </>
-          )}
-        </main>
-      </div>
+                {collectionPath && (
+                  <QueryBar
+                    collectionPath={collectionPath}
+                    activeQuery={activeQuery}
+                    onRunQuery={setActiveQuery}
+                    onClearQuery={() => setActiveQuery(null)}
+                    isQuerying={queryDocumentsResult.isLoading}
+                    onSaveQuery={() => openDialog('saveQuery')}
+                    onLoadQuery={(spec) => setActiveQuery(spec)}
+                  />
+                )}
+                <ShellSplit
+                  shellOpen={shellOpen}
+                  onSaveRequest={() => openDialog('saveScript')}
+                  runScriptRef={runScriptRef}
+                >
+                  <ContentSplit
+                    left={
+                      <DocumentListSection
+                        documents={filteredDocuments}
+                        isLoading={documentsQuery.isLoading}
+                        error={documentsQuery.error as Error | undefined}
+                        selectedPath={documentPath}
+                        onSelect={setDocumentPath}
+                        hasCollection={Boolean(collectionPath)}
+                        search={search}
+                        onSearchChange={setSearch}
+                        onCreateDocument={() => openDialog('createDocument')}
+                        onDuplicateDocument={setDuplicateDoc}
+                        onDeleteDocument={setDeleteDocPath}
+                      />
+                    }
+                    right={
+                      <DocumentPreviewSection
+                        document={previewDocument}
+                        isLoading={documentQuery.isLoading}
+                        onSave={handleSaveDocument}
+                        isSaving={saveDocumentMutation.isPending}
+                        onDuplicate={(doc) => setDuplicateDoc(doc)}
+                        saveRef={saveRequestedRef}
+                      />
+                    }
+                  />
+                </ShellSplit>
+              </>
+            )}
+          </main>
+        }
+      />
       <CreateDocumentDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
+        open={isDialogOpen('createDocument')}
+        onOpenChange={(next) => { if (!next) closeDialog('createDocument'); }}
         collectionPath={collectionPath}
         onSubmit={handleCreateDocument}
         isSubmitting={saveDocumentMutation.isPending}
@@ -450,704 +745,91 @@ export function App() {
         isSubmitting={duplicateDocumentMutation.isPending}
       />
       <DuplicateCollectionDialog
-        open={duplicateCollectionOpen}
-        onOpenChange={setDuplicateCollectionOpen}
+        open={isDialogOpen('duplicateCollection')}
+        onOpenChange={(next) => { if (!next) closeDialog('duplicateCollection'); }}
         sourceCollectionPath={collectionPath}
         onSubmit={handleDuplicateCollection}
         isSubmitting={duplicateCollectionMutation.isPending}
       />
+      <ImportCollectionDialog
+        open={isDialogOpen('importCollection')}
+        onOpenChange={(next) => { if (!next) closeDialog('importCollection'); }}
+        collectionPath={collectionPath}
+        onSubmit={handleImportCollection}
+        isSubmitting={importCollectionMutation.isPending}
+      />
+      <SaveQueryDialog
+        open={isDialogOpen('saveQuery')}
+        onOpenChange={(next) => { if (!next) closeDialog('saveQuery'); }}
+        onSave={(name) => {
+          if (activeQuery) {
+            saveQueryToStore(name, activeQuery);
+            toast({ title: 'Query saved', description: name });
+          } else if (collectionPath) {
+            saveQueryToStore(name, { collectionPath, filters: [], orderBy: [] });
+            toast({ title: 'Query saved', description: name });
+          }
+        }}
+      />
+      <EmulatorConnectDialog
+        open={isDialogOpen('emulatorConnect')}
+        onOpenChange={(next) => { if (!next) closeDialog('emulatorConnect'); }}
+        onSubmit={handleConnectEmulator}
+        isSubmitting={isAuthLoading}
+      />
+      <DeleteConfirmDialog
+        open={Boolean(deleteDocPath)}
+        onOpenChange={(next) => {
+          if (!next) setDeleteDocPath(null);
+        }}
+        onConfirm={handleDeleteDocument}
+        isDeleting={deleteDocumentMutation.isPending}
+        mode="document"
+        targetPath={deleteDocPath ?? ''}
+      />
+      <DeleteConfirmDialog
+        open={Boolean(deleteCollectionPath)}
+        onOpenChange={(next) => {
+          if (!next) setDeleteCollectionPath(null);
+        }}
+        onConfirm={handleDeleteCollection}
+        isDeleting={deleteCollectionMutation.isPending}
+        mode="collection"
+        targetPath={deleteCollectionPath ?? ''}
+      />
+      <ShortcutsHelpDialog
+        open={isDialogOpen('shortcutsHelp')}
+        onOpenChange={(next) => { if (!next) closeDialog('shortcutsHelp'); }}
+      />
+      <ConnectionManagerDialog
+        open={isDialogOpen('connectionManager')}
+        onOpenChange={(next) => { if (!next) closeDialog('connectionManager'); }}
+        connections={connections}
+        onSwitch={handleSwitchConnection}
+        onRemove={handleRemoveConnection}
+      />
+      <TransferDialog
+        open={isDialogOpen('transfer')}
+        onOpenChange={(next) => { if (!next) closeDialog('transfer'); }}
+        connections={connections}
+        sourceConnectionId={activeConnectionId ?? ''}
+        sourceCollectionPath={collectionPath ?? ''}
+        onTransfer={handleTransfer}
+        isTransferring={isTransferring}
+      />
+      <SaveScriptDialog
+        open={isDialogOpen('saveScript')}
+        onOpenChange={(next) => { if (!next) closeDialog('saveScript'); }}
+        onSave={(name) => {
+          saveScriptToStore(name, scriptStoreScript);
+          toast({ title: 'Script saved', description: name });
+        }}
+      />
+      <AboutDialog
+        open={isDialogOpen('about')}
+        onOpenChange={(next) => { if (!next) closeDialog('about'); }}
+      />
       <Toaster />
-    </>
+    </ErrorBoundary>
   );
 }
-
-type SidebarProps = {
-  accounts: ServiceAccountSummary[];
-  activeAccountId: string | null;
-  isLoading: boolean;
-  onImport: () => Promise<void>;
-  onSelectAccount: (id: string) => Promise<void>;
-  collections: string[];
-  isLoadingCollections: boolean;
-  collectionPath: string | null;
-  onSelectCollection: (path: string) => void;
-};
-
-function Sidebar({
-  accounts,
-  activeAccountId,
-  isLoading,
-  onImport,
-  onSelectAccount,
-  collections,
-  isLoadingCollections,
-  collectionPath,
-  onSelectCollection,
-}: SidebarProps) {
-  return (
-    <aside className="flex w-72 flex-col border-r">
-      <div className="space-y-3 border-b px-4 py-4">
-        <div>
-          <p className="text-xs uppercase text-muted-foreground">Active project</p>
-          <select
-            className="mt-1 w-full rounded-md border bg-transparent px-3 py-2 text-sm"
-            value={activeAccountId ?? ''}
-            onChange={(event) => onSelectAccount(event.target.value)}
-            disabled={!accounts.length || isLoading}
-          >
-            {!accounts.length && <option value="">No accounts yet</option>}
-            {accounts.map((account) => (
-              <option key={account.id} value={account.id}>
-                {account.projectId}
-              </option>
-            ))}
-          </select>
-        </div>
-        <Button onClick={onImport} variant="outline" size="sm" className="w-full">
-          Import service account
-        </Button>
-      </div>
-      <ScrollArea className="flex-1">
-        <div className="px-4 py-4">
-          <p className="mb-2 text-xs uppercase text-muted-foreground">Collections</p>
-          {isLoadingCollections ? (
-            <p className="text-sm text-muted-foreground">Loading collections…</p>
-          ) : (
-            <div className="space-y-1">
-              {collections.map((collectionId) => {
-                const isActive = collectionPath === collectionId;
-                return (
-                  <button
-                    key={collectionId}
-                    className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                      isActive ? 'bg-primary/10 text-primary-foreground' : 'hover:bg-accent'
-                    }`}
-                    onClick={() => onSelectCollection(collectionId)}
-                  >
-                    {collectionId}
-                  </button>
-                );
-              })}
-              {!collections.length && (
-                <p className="text-sm text-muted-foreground">No collections found.</p>
-              )}
-            </div>
-          )}
-        </div>
-      </ScrollArea>
-    </aside>
-  );
-}
-
-type HeaderProps = {
-  collectionPath: string | null;
-  isLoading: boolean;
-  canClear: boolean;
-  onClearSelection: () => void;
-  onDuplicateCollection: () => void;
-};
-
-function Header({
-  collectionPath,
-  isLoading,
-  canClear,
-  onClearSelection,
-  onDuplicateCollection,
-}: HeaderProps) {
-  return (
-    <header className="flex items-center justify-between border-b px-6 py-4">
-      <div>
-        <p className="text-xs uppercase text-muted-foreground">Collection</p>
-        <h1 className="text-2xl font-semibold">
-          {collectionPath ? collectionPath : 'Select a collection'}
-        </h1>
-      </div>
-      <div className="flex items-center gap-3">
-        {collectionPath && (
-          <Button variant="outline" size="sm" onClick={onDuplicateCollection}>
-            Duplicate
-          </Button>
-        )}
-        {canClear && (
-          <Button variant="ghost" size="sm" onClick={onClearSelection}>
-            Clear
-          </Button>
-        )}
-        {isLoading && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Fetching documents…
-          </div>
-        )}
-      </div>
-    </header>
-  );
-}
-
-type DocumentListSectionProps = {
-  documents: FirestoreDocument[];
-  isLoading: boolean;
-  error?: Error;
-  selectedPath: string | null;
-  onSelect: (path: string) => void;
-  hasCollection: boolean;
-  search: string;
-  onSearchChange: (value: string) => void;
-  onCreateDocument: () => void;
-  onDuplicateDocument: (doc: FirestoreDocument) => void;
-};
-
-function DocumentListSection({
-  documents,
-  isLoading,
-  error,
-  selectedPath,
-  onSelect,
-  hasCollection,
-  search,
-  onSearchChange,
-  onCreateDocument,
-  onDuplicateDocument,
-}: DocumentListSectionProps) {
-  if (!hasCollection) {
-    return (
-      <div className="flex w-1/2 items-center justify-center text-sm text-muted-foreground">
-        Choose a collection to load documents.
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex w-1/2 items-center justify-center text-sm text-destructive">
-        {error.message}
-      </div>
-    );
-  }
-
-  return (
-    <section className="flex w-1/2 flex-col">
-      <div className="flex items-center gap-3 border-b px-4 py-3">
-        <div className="flex flex-1 items-center gap-2 rounded-md border px-3">
-          <Input
-            value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Filter by document ID"
-            className="border-none p-0 focus-visible:ring-0"
-          />
-        </div>
-        <Button size="sm" onClick={onCreateDocument} disabled={!hasCollection}>
-          New
-        </Button>
-      </div>
-      <div className="flex-1">
-        {isLoading && !documents.length ? (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-            Loading documents…
-          </div>
-        ) : !documents.length ? (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-            No documents found.
-          </div>
-        ) : (
-          <Virtuoso
-            data={documents}
-            style={{ height: '100%' }}
-            itemContent={(_, doc) => (
-              <DocumentRow
-                doc={doc}
-                selectedPath={selectedPath}
-                onSelect={onSelect}
-                onDuplicate={onDuplicateDocument}
-              />
-            )}
-          />
-        )}
-      </div>
-    </section>
-  );
-}
-
-type DocumentRowProps = {
-  doc: FirestoreDocument;
-  selectedPath: string | null;
-  onSelect: (path: string) => void;
-  onDuplicate: (doc: FirestoreDocument) => void;
-};
-
-function DocumentRow({ doc, selectedPath, onSelect, onDuplicate }: DocumentRowProps) {
-  const isSelected = selectedPath === doc.path;
-  return (
-    <div
-      className={`flex items-center justify-between border-b px-4 py-3 text-sm transition-colors ${
-        isSelected ? 'bg-accent/60' : 'hover:bg-accent/30'
-      }`}
-    >
-      <button className="flex flex-1 flex-col text-left" onClick={() => onSelect(doc.path)}>
-        <span className="font-medium">{doc.id}</span>
-        <span className="text-xs text-muted-foreground truncate">{doc.path}</span>
-      </button>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button size="icon" variant="ghost">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => navigator.clipboard.writeText(doc.path)}>
-            Copy path
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => onDuplicate(doc)}>Duplicate</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
-}
-
-type DocumentPreviewSectionProps = {
-  document: FirestoreDocument | null;
-  isLoading: boolean;
-  onSave: (path: string, data: Record<string, unknown>) => Promise<void>;
-  isSaving: boolean;
-  onDuplicate: (doc: FirestoreDocument) => void;
-};
-
-function DocumentPreviewSection({
-  document,
-  isLoading,
-  onSave,
-  isSaving,
-  onDuplicate,
-}: DocumentPreviewSectionProps) {
-  const { toast } = useToast();
-  const [editorValue, setEditorValue] = useState('');
-  const [lastSynced, setLastSynced] = useState('');
-
-  useEffect(() => {
-    if (document) {
-      const pretty = JSON.stringify(document.data ?? {}, null, 2);
-      setEditorValue(pretty);
-      setLastSynced(pretty);
-    } else {
-      setEditorValue('');
-      setLastSynced('');
-    }
-  }, [document?.path, document?.updateTime]);
-
-  const isDirty = Boolean(document && editorValue !== lastSynced);
-
-  const handleSave = async () => {
-    if (!document) return;
-    let parsed: Record<string, unknown>;
-    try {
-      parsed = editorValue.trim() ? JSON.parse(editorValue) : {};
-    } catch {
-      toast({
-        title: 'Invalid JSON',
-        description: 'Fix the JSON before saving.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    try {
-      await onSave(document.path, parsed);
-    } catch {
-      return;
-    }
-    const pretty = JSON.stringify(parsed, null, 2);
-    setLastSynced(pretty);
-    setEditorValue(pretty);
-  };
-
-  return (
-    <section className="flex flex-1 flex-col">
-      <div className="flex items-center justify-between border-b px-4 py-2">
-        <div>
-          <p className="text-xs uppercase text-muted-foreground">Document</p>
-          <p className="text-sm font-semibold">
-            {isLoading ? 'Loading…' : document?.path ?? 'Nothing selected'}
-          </p>
-          {isDirty && (
-            <p className="text-xs text-amber-500">You have unsaved changes.</p>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {document && (
-            <Button variant="outline" size="sm" onClick={() => onDuplicate(document)}>
-              Duplicate
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setEditorValue(lastSynced)}
-            disabled={!document || !isDirty || isSaving}
-          >
-            Reset
-          </Button>
-          <Button size="sm" onClick={handleSave} disabled={!document || !isDirty || isSaving}>
-            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
-          </Button>
-        </div>
-      </div>
-      {document && (
-        <div className="border-b px-4 py-2">
-          <Table>
-            <TableBody>
-              <TableRow>
-                <TableCell className="w-32 text-xs uppercase text-muted-foreground">
-                  Created
-                </TableCell>
-                <TableCell className="text-sm">
-                  {document.createTime?.replace('T', ' ').replace('Z', '') ?? '—'}
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="text-xs uppercase text-muted-foreground">
-                  Updated
-                </TableCell>
-                <TableCell className="text-sm">
-                  {document.updateTime?.replace('T', ' ').replace('Z', '') ?? '—'}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </div>
-      )}
-      <div className="flex flex-1">
-        {document ? (
-          <Editor
-            key={document.path}
-            defaultLanguage="json"
-            value={editorValue}
-            onChange={(value) => setEditorValue(value ?? '')}
-            theme="vs-dark"
-            options={{ minimap: { enabled: false }, fontSize: 13 }}
-          />
-        ) : (
-          <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-            Select a document to preview and edit its JSON payload.
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-type CreateDocumentDialogProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  collectionPath: string | null;
-  onSubmit: (input: { documentId: string; data: Record<string, unknown> }) => Promise<void>;
-  isSubmitting: boolean;
-};
-
-function CreateDocumentDialog({
-  open,
-  onOpenChange,
-  collectionPath,
-  onSubmit,
-  isSubmitting,
-}: CreateDocumentDialogProps) {
-  const { toast } = useToast();
-  const [documentId, setDocumentId] = useState('');
-  const [jsonPayload, setJsonPayload] = useState('{\n  \n}');
-
-  useEffect(() => {
-    if (!open) {
-      setDocumentId('');
-      setJsonPayload('{\n  \n}');
-    }
-  }, [open]);
-
-  const handleSubmit = async () => {
-    if (!collectionPath) {
-      toast({
-        title: 'Select a collection first',
-        description: 'Choose a destination collection before creating a document.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    const trimmedId = documentId.trim();
-    if (!trimmedId) {
-      toast({
-        title: 'Missing document ID',
-        description: 'Provide a document ID before saving.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    let parsed: Record<string, unknown>;
-    try {
-      parsed = jsonPayload.trim() ? JSON.parse(jsonPayload) : {};
-    } catch {
-      toast({
-        title: 'Invalid JSON',
-        description: 'Fix the JSON before creating the document.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    try {
-      await onSubmit({ documentId: trimmedId, data: parsed });
-    } catch {
-      // errors surfaced upstream
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
-        <DialogHeader>
-          <DialogTitle>New document</DialogTitle>
-          <DialogDescription>
-            Documents are saved under {collectionPath ?? 'the selected collection'}.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-3">
-          <div>
-            <label className="text-sm text-muted-foreground">Document ID</label>
-            <Input
-              value={documentId}
-              onChange={(event) => setDocumentId(event.target.value)}
-              placeholder="e.g. doc-123"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm text-muted-foreground">JSON payload</label>
-            <textarea
-              value={jsonPayload}
-              onChange={(event) => setJsonPayload(event.target.value)}
-              className="min-h-[180px] w-full rounded-md border bg-background p-3 font-mono text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting || !collectionPath}>
-            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-type DuplicateDocumentDialogProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  sourceDocument: FirestoreDocument | null;
-  onSubmit: (input: {
-    targetCollectionPath: string;
-    targetDocumentId: string;
-    overwrite: boolean;
-  }) => Promise<void>;
-  isSubmitting: boolean;
-};
-
-function DuplicateDocumentDialog({
-  open,
-  onOpenChange,
-  sourceDocument,
-  onSubmit,
-  isSubmitting,
-}: DuplicateDocumentDialogProps) {
-  const { toast } = useToast();
-  const [collectionInput, setCollectionInput] = useState('');
-  const [documentId, setDocumentId] = useState('');
-  const [overwrite, setOverwrite] = useState(false);
-
-  useEffect(() => {
-    if (sourceDocument) {
-      setCollectionInput(collectionFromDocPath(sourceDocument.path) || '');
-      setDocumentId(`${sourceDocument.id}-copy`);
-    } else {
-      setCollectionInput('');
-      setDocumentId('');
-      setOverwrite(false);
-    }
-  }, [sourceDocument, open]);
-
-  const handleSubmit = async () => {
-    if (!sourceDocument) return;
-    const trimmedCollection = collectionInput.trim();
-    const trimmedId = documentId.trim();
-    if (!trimmedCollection || !trimmedId) {
-      toast({
-        title: 'Missing destination',
-        description: 'Provide both the collection path and document ID.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    try {
-      await onSubmit({
-        targetCollectionPath: trimmedCollection,
-        targetDocumentId: trimmedId,
-        overwrite,
-      });
-    } catch {
-      // handled upstream
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Duplicate document</DialogTitle>
-          <DialogDescription>
-            Copy {sourceDocument?.id ?? 'the selected document'} into another collection.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-3">
-          <div>
-            <label className="text-sm text-muted-foreground">Target collection path</label>
-            <Input
-              value={collectionInput}
-              onChange={(event) => setCollectionInput(event.target.value)}
-              placeholder="e.g. users/123/posts"
-            />
-          </div>
-          <div>
-            <label className="text-sm text-muted-foreground">Document ID</label>
-            <Input value={documentId} onChange={(event) => setDocumentId(event.target.value)} />
-          </div>
-          <label className="flex items-center gap-2 text-sm text-muted-foreground">
-            <input
-              type="checkbox"
-              checked={overwrite}
-              onChange={(event) => setOverwrite(event.target.checked)}
-            />
-            Overwrite if the document already exists
-          </label>
-        </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting || !sourceDocument}>
-            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Duplicate'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-type DuplicateCollectionDialogProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  sourceCollectionPath: string | null;
-  onSubmit: (input: { targetCollectionPath: string; overwrite: boolean }) => Promise<void>;
-  isSubmitting: boolean;
-};
-
-function DuplicateCollectionDialog({
-  open,
-  onOpenChange,
-  sourceCollectionPath,
-  onSubmit,
-  isSubmitting,
-}: DuplicateCollectionDialogProps) {
-  const { toast } = useToast();
-  const [targetPath, setTargetPath] = useState('');
-  const [overwrite, setOverwrite] = useState(false);
-
-  useEffect(() => {
-    if (open && sourceCollectionPath) {
-      setTargetPath(`${sourceCollectionPath}-copy`);
-      setOverwrite(false);
-    } else if (!open) {
-      setTargetPath('');
-      setOverwrite(false);
-    }
-  }, [open, sourceCollectionPath]);
-
-  const handleSubmit = async () => {
-    if (!sourceCollectionPath) {
-      toast({
-        title: 'Select a collection first',
-        description: 'Choose a source collection before duplicating.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    const trimmed = targetPath.trim();
-    if (!trimmed) {
-      toast({
-        title: 'Missing target name',
-        description: 'Provide the destination collection path.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    try {
-      await onSubmit({ targetCollectionPath: trimmed, overwrite });
-    } catch {
-      // handled upstream
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Duplicate collection</DialogTitle>
-          <DialogDescription>
-            Copy documents from {sourceCollectionPath ?? 'the selected collection'} into a new or
-            existing path.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-3">
-          <div>
-            <label className="text-sm text-muted-foreground">Destination collection path</label>
-            <Input
-              value={targetPath}
-              onChange={(event) => setTargetPath(event.target.value)}
-              placeholder="e.g. users_copy"
-            />
-          </div>
-          <label className="flex items-center gap-2 text-sm text-muted-foreground">
-            <input
-              type="checkbox"
-              checked={overwrite}
-              onChange={(event) => setOverwrite(event.target.checked)}
-            />
-            Overwrite matching documents
-          </label>
-        </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting || !sourceCollectionPath}>
-            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Duplicate'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-type OnboardingProps = {
-  onImport: () => Promise<void>;
-};
-
-function OnboardingState({ onImport }: OnboardingProps) {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4">
-      <h2 className="text-2xl font-semibold">Connect your first Firebase project</h2>
-      <p className="max-w-md text-center text-muted-foreground">
-        Import a Google Service Account JSON to start browsing Firestore data locally. The key is stored
-        on your device and never leaves this machine.
-      </p>
-      <Button onClick={onImport}>Import service account</Button>
-    </div>
-  );
-}
-
-
-

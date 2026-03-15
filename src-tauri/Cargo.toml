@@ -1,8 +1,8 @@
 [package]
 name = "app"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "Desktop GUI for managing Firestore databases"
+authors = []
 license = ""
 repository = ""
 edition = "2021"
@@ -36,5 +36,9 @@ chrono = { version = "0.4", default-features = false, features = ["std", "serde"
 gcloud-sdk = "0.28.3"
 prost-types = "0.14"
 tauri-plugin-dialog = "2"
+tauri-plugin-clipboard-manager = "2"
+tauri-plugin-store = "2"
 rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"] }
 base64 = "0.22"
+secret-vault-value = "1.0"
+async-trait = "0.1"

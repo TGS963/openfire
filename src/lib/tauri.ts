@@ -2,9 +2,15 @@ import { invoke } from '@tauri-apps/api/core';
 
 import type {
   CollectionList,
+  ConnectionEntry,
+  ConnectionInfo,
   DocumentPage,
   FirestoreDocument,
+  ImportMode,
+  ImportResult,
+  QuerySpec,
   ServiceAccountSummary,
+  TransferResult,
 } from '@/types/firestore';
 
 export async function importServiceAccount(filePath: string) {
@@ -62,5 +68,67 @@ export async function duplicateCollection(
   });
 }
 
+export async function deleteDocument(documentPath: string) {
+  return invoke<void>('delete_document', { documentPath });
+}
 
+export async function deleteCollection(collectionPath: string) {
+  return invoke<number>('delete_collection', { collectionPath });
+}
+
+export async function queryDocuments(query: QuerySpec) {
+  return invoke<DocumentPage>('query_documents', { query });
+}
+
+export async function exportCollection(collectionPath: string, filePath: string) {
+  return invoke<number>('export_collection', { collectionPath, filePath });
+}
+
+export async function importCollection(
+  collectionPath: string,
+  filePath: string,
+  mode: ImportMode,
+) {
+  return invoke<ImportResult>('import_collection', { collectionPath, filePath, mode });
+}
+
+export async function connectEmulator(projectId: string, emulatorUrl: string) {
+  return invoke<ConnectionInfo>('connect_emulator', { projectId, emulatorUrl });
+}
+
+export async function disconnectEmulator() {
+  return invoke<void>('disconnect_emulator');
+}
+
+export async function getConnectionInfo() {
+  return invoke<ConnectionInfo | null>('get_connection_info');
+}
+
+export async function listConnections() {
+  return invoke<ConnectionEntry[]>('list_connections');
+}
+
+export async function removeConnection(connectionId: string) {
+  return invoke<void>('remove_connection', { connectionId });
+}
+
+export async function setActiveConnection(connectionId: string) {
+  return invoke<void>('set_active_connection', { connectionId });
+}
+
+export async function transferDocuments(
+  sourceConnectionId: string,
+  destConnectionId: string,
+  sourceCollectionPath: string,
+  destCollectionPath: string,
+  overwrite = false,
+) {
+  return invoke<TransferResult>('transfer_documents', {
+    sourceConnectionId,
+    destConnectionId,
+    sourceCollectionPath,
+    destCollectionPath,
+    overwrite,
+  });
+}
 
