@@ -47,7 +47,7 @@ describe('FieldsView', () => {
 
   it('renders empty state when data has no fields', () => {
     render(<FieldsView data={{}} onChange={vi.fn()} />);
-    expect(screen.getByText('No fields')).toBeInTheDocument();
+    expect(screen.getByText(/No fields yet/i)).toBeInTheDocument();
   });
 
   it('renders add field button', () => {

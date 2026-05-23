@@ -137,7 +137,10 @@ export function DocumentPreviewSection({
       <div className="flex min-h-10 shrink-0 items-center gap-2 border-b border-border-soft px-3">
         <div className="min-w-0 flex-1 truncate font-mono text-[11.5px] text-text-muted">
           {isLoading ? (
-            'Loading…'
+            <span className="inline-flex items-center gap-1.5">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Loading…
+            </span>
           ) : document ? (
             pathParts.map((seg, i) => {
               const last = i === pathParts.length - 1;
@@ -187,7 +190,12 @@ export function DocumentPreviewSection({
           </Button>
         )}
         {document && isDirty && (
-          <Button size="default" onClick={handleSave} disabled={isSaving} className="gap-1.5">
+          <Button
+            size="default"
+            onClick={handleSave}
+            disabled={isSaving}
+            className={`gap-1.5 ${isSaving ? 'opacity-60' : ''}`}
+          >
             {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save'}
             {!isSaving && (
               <Kbd className="border-[var(--kbd-tip-border)] bg-[var(--kbd-tip-bg)] text-ember-fg">

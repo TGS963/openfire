@@ -1,4 +1,5 @@
 import { useCallback, useRef } from 'react';
+import { Loader2 } from 'lucide-react';
 import { Virtuoso } from 'react-virtuoso';
 
 import { Button } from '@/components/ui/button';
@@ -94,14 +95,15 @@ export function DocumentListSection({
           New
         </Button>
       </div>
-      <div className="flex-1 min-h-0">
+      <div className="relative flex-1 min-h-0">
         {isLoading && !documents.length ? (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-            Loading documents…
+          <div className="flex h-full flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Loading documents…</span>
           </div>
         ) : !documents.length ? (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-            No documents found.
+            {search.trim() ? 'No matching documents.' : 'No documents in this collection.'}
           </div>
         ) : listMode === 'table' ? (
           <TableView
@@ -140,6 +142,12 @@ export function DocumentListSection({
               />
             )}
           />
+        )}
+        {isLoading && documents.length > 0 && (
+          <div className="pointer-events-none absolute right-2 top-2 flex items-center gap-1.5 rounded-md bg-surface/90 px-2 py-1 text-[11px] text-text-muted shadow-sm">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            <span>Refreshing…</span>
+          </div>
         )}
       </div>
     </section>

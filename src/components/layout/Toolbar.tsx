@@ -53,7 +53,8 @@ export function Toolbar({
                 <button
                   type="button"
                   onClick={() => onCrumbClick(i)}
-                  className={`truncate rounded-sm px-1 py-0.5 hover:bg-surface-2 hover:text-text ${
+                  disabled={isLoading}
+                  className={`truncate rounded-sm px-1 py-0.5 hover:bg-surface-2 hover:text-text disabled:opacity-60 disabled:hover:bg-transparent ${
                     last ? 'font-medium text-text' : 'text-text-mid'
                   }`}
                 >
@@ -96,7 +97,7 @@ export function Toolbar({
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="More" disabled={!hasCollection}>
+            <Button variant="ghost" size="icon" aria-label="More" disabled={!hasCollection || isLoading}>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

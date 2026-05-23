@@ -1,4 +1,4 @@
-import { ChevronRight, Folder } from 'lucide-react';
+import { ChevronRight, Folder, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
 import { DocumentNode } from '@/components/collections/DocumentNode';
@@ -110,7 +110,14 @@ export function CollectionTreeItem({
                   disabled={documentsQuery.isFetchingNextPage}
                   className="flex h-6 w-full items-center gap-1.5 rounded-sm px-2 text-left text-[11px] text-text-muted hover:bg-surface-2 hover:text-text disabled:opacity-50"
                 >
-                  {documentsQuery.isFetchingNextPage ? 'Loading…' : 'Load more'}
+                  {documentsQuery.isFetchingNextPage ? (
+                    <>
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      <span>Loading…</span>
+                    </>
+                  ) : (
+                    'Load more'
+                  )}
                 </button>
               )}
             </div>

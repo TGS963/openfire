@@ -277,7 +277,7 @@ export function TableView({
                       }
                       setEditing({ path: doc.path, col });
                     }}
-                    title={text}
+                    title={hasPending ? `Unsaved — ⌘S to save\n${text}` : text}
                   >
                     {text}
                   </td>

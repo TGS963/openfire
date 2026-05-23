@@ -113,9 +113,10 @@ function ScalarEditor({ value, type, onCommit, onCancel, onAdvance }: CellEditor
         }}
         onKeyDown={handleKey}
         onBlur={() => {
-          // Commit-on-blur (click outside). For invalid number input, cancel
-          // rather than leaving the editor open without focus.
-          if (!tryCommit()) onCancel();
+          // Commit-on-blur (click outside). Invalid input keeps the editor
+          // open with the error ring so the user can fix it; pressing Escape
+          // cancels explicitly.
+          tryCommit();
         }}
         aria-invalid={invalid}
         className={`h-full w-full bg-transparent px-[10px] py-[6px] font-mono text-[12.5px] outline-none caret-ember ${synColor(

@@ -35,7 +35,7 @@ export function FieldsView({ data, onChange, readonly }: FieldsViewProps) {
   if (keys.length === 0 && !readonly) {
     return (
       <div className="flex flex-col items-center justify-center flex-1 gap-3 py-8">
-        <p className="text-sm text-muted-foreground">No fields</p>
+        <p className="text-sm text-muted-foreground">No fields yet. Add one to get started.</p>
         <Button variant="outline" size="sm" onClick={handleAddField}>
           <Plus className="mr-1 h-3 w-3" />
           Add field
