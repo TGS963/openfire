@@ -749,7 +749,7 @@ async fn export_collection_recursive(
     let mut all_docs = Vec::<JsonValue>::new();
     let mut total_count = raw_docs.len() as u32;
 
-    for (full_name, doc_path, mut obj) in raw_docs {
+    for (full_name, _doc_path, mut obj) in raw_docs {
         // Check for subcollections under this document
         let sub_params = FirestoreListCollectionIdsParams {
             parent: Some(full_name.clone()),

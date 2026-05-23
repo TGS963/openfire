@@ -19,12 +19,6 @@ impl ConnectionMode {
         }
     }
 
-    pub fn project_id_label(&self) -> String {
-        match self {
-            ConnectionMode::Production => String::new(),
-            ConnectionMode::Emulator { project_id, .. } => project_id.clone(),
-        }
-    }
 }
 
 pub struct AppState {
@@ -107,10 +101,6 @@ impl AppState {
             .get(id)
             .map(|(db, _)| db.clone())
             .ok_or_else(|| AppError::ConnectionNotFound(id.to_string()))
-    }
-
-    pub async fn active_connection_id(&self) -> Option<String> {
-        self.active_connection_id.read().await.clone()
     }
 
     pub async fn list_connections(&self) -> Vec<ConnectionEntry> {
