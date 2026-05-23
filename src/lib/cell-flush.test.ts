@@ -19,15 +19,16 @@ describe('flushTablePending', () => {
     useCellEditsStore.getState().setPending('users/a', 'age', 37);
     useCellEditsStore.getState().setPending('users/b', 'name', 'Robert');
 
-    await flushTablePending(docs, save);
+    const result = await flushTablePending(docs, save);
 
     expect(save).toHaveBeenCalledTimes(2);
     expect(save).toHaveBeenCalledWith('users/a', { name: 'Ada', age: 37 });
     expect(save).toHaveBeenCalledWith('users/b', { name: 'Robert' });
     expect(useCellEditsStore.getState().pendingCount()).toBe(0);
+    expect(result).toEqual({ saved: 2, failures: [] });
   });
 
-  it('keeps pending for a doc whose save fails', async () => {
+  it('keeps pending for a doc whose save fails and reports failure', async () => {
     const save = vi
       .fn<CellFlushSave>()
       .mockResolvedValueOnce(undefined)
@@ -35,10 +36,12 @@ describe('flushTablePending', () => {
     useCellEditsStore.getState().setPending('users/a', 'age', 37);
     useCellEditsStore.getState().setPending('users/b', 'name', 'Robert');
 
-    await flushTablePending(docs, save);
+    const result = await flushTablePending(docs, save);
 
     expect(useCellEditsStore.getState().pendingForDoc('users/a')).toEqual({});
     expect(useCellEditsStore.getState().pendingForDoc('users/b')).toEqual({ name: 'Robert' });
+    expect(result.saved).toBe(1);
+    expect(result.failures).toEqual([{ path: 'users/b', fields: ['name'] }]);
   });
 
   it('skips pending entries for unknown doc paths', async () => {

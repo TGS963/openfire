@@ -28,6 +28,7 @@ type AuthStore = {
   selectAccount: (id: string) => Promise<void>;
   connectToEmulator: (projectId: string, url: string) => Promise<void>;
   disconnectFromEmulator: () => Promise<void>;
+  validateActiveAccount: () => Promise<void>;
   clearError: () => void;
 };
 
@@ -147,6 +148,21 @@ export const useAuthStore = create<AuthStore>()(
           set({
             error: getErrorMessage(error, 'Unable to disconnect'),
             isLoading: false,
+          });
+        }
+      },
+      async validateActiveAccount() {
+        // Cheap auth-liveness probe: re-invoke set_active_account on the
+        // active id. Refreshes the access token server-side; if creds were
+        // revoked or rotated, this surfaces an error without clearing the
+        // active account so the UI can prompt re-import.
+        const state = get();
+        if (state.connectionMode !== 'production' || !state.activeAccountId) return;
+        try {
+          await setActiveAccount(state.activeAccountId);
+        } catch (error) {
+          set({
+            error: getErrorMessage(error, 'Service account invalid — please re-import.'),
           });
         }
       },

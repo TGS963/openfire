@@ -12,6 +12,7 @@ export type DocumentListSectionProps = {
   documents: FirestoreDocument[];
   isLoading: boolean;
   error?: Error;
+  onRetry?: () => void;
   selectedPath: string | null;
   onSelect: (path: string) => void;
   onEditComplex?: (path: string) => void;
@@ -30,6 +31,7 @@ export function DocumentListSection({
   documents,
   isLoading,
   error,
+  onRetry,
   selectedPath,
   onSelect,
   onEditComplex,
@@ -53,8 +55,13 @@ export function DocumentListSection({
 
   if (error) {
     return (
-      <div className="flex flex-1 items-center justify-center text-sm text-destructive">
-        {error.message}
+      <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 text-center text-sm text-destructive">
+        <span className="max-w-md break-words">{error.message}</span>
+        {onRetry && (
+          <Button size="sm" variant="outline" onClick={onRetry}>
+            Retry
+          </Button>
+        )}
       </div>
     );
   }

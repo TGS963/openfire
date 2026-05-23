@@ -10,6 +10,7 @@ import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { duplicateCollection, duplicateDocument, exportCollection, importCollection, saveDocument, transferDocuments } from '@/lib/tauri';
 import { openFileDialog } from '@/lib/dialog-utils';
 import { normalizeFirestorePath, collectionFromDocPath } from '@/lib/firestore-utils';
+import { getErrorMessage } from '@/lib/error-utils';
 import { toastError } from '@/lib/toast-utils';
 import { useAuthStore } from '@/stores/auth-store';
 import { useConnectionStore } from '@/stores/connection-store';
@@ -119,6 +120,7 @@ export function App() {
   const emulatorProjectId = useAuthStore((state) => state.emulatorProjectId);
   const connectToEmulator = useAuthStore((state) => state.connectToEmulator);
   const disconnectFromEmulator = useAuthStore((state) => state.disconnectFromEmulator);
+  const validateActiveAccount = useAuthStore((state) => state.validateActiveAccount);
 
   const collectionPath = useNavStore((state) => state.collectionPath);
   const documentPath = useNavStore((state) => state.documentPath);
@@ -292,8 +294,13 @@ export function App() {
       });
       return doc;
     } catch (err) {
-      pending.dismiss();
-      toastError(toast, 'Failed to save document', err);
+      pending.update({
+        id: pending.id,
+        title: 'Failed to save document',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+        duration: 6000,
+      });
       throw err;
     }
   };
@@ -616,6 +623,20 @@ export function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Probe active account on window focus to detect mid-session credential
+  // revocation. Throttled so rapid focus toggling doesn't hammer the backend.
+  useEffect(() => {
+    let last = 0;
+    const onFocus = () => {
+      const now = Date.now();
+      if (now - last < 60_000) return;
+      last = now;
+      void validateActiveAccount();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [validateActiveAccount]);
+
   // Tabs are tagged with the account they belong to. When the active account
   // changes (login / switch), ensureAccount clears stale tabs; matching account
   // (cold start with persisted tabs) is a no-op.
@@ -678,7 +699,22 @@ export function App() {
         listMode === 'table' &&
         useCellEditsStore.getState().pendingCount() > 0
       ) {
-        void flushTablePending(documents, handleSaveDocument);
+        void (async () => {
+          // Per-doc failures already surface as destructive toasts via
+          // persistDocument; this summary fires only when at least one
+          // doc failed in the batch.
+          const r = await flushTablePending(documents, handleSaveDocument);
+          if (r.failures.length > 0) {
+            toast({
+              title: `Saved ${r.saved}, failed ${r.failures.length}`,
+              description: r.failures
+                .map((f) => `${f.path}: ${f.fields.join(', ')}`)
+                .join('\n'),
+              variant: 'destructive',
+              duration: 6000,
+            });
+          }
+        })();
         return;
       }
       saveRequestedRef.current?.();
@@ -869,7 +905,15 @@ export function App() {
                       <DocumentListSection
                         documents={filteredDocuments}
                         isLoading={documentsQuery.isLoading}
-                        error={documentsQuery.error as Error | undefined}
+                        error={
+                          (isQueryActive
+                            ? (queryDocumentsResult.error as Error | undefined)
+                            : (documentsQuery.error as Error | undefined))
+                        }
+                        onRetry={() => {
+                          if (isQueryActive) void queryDocumentsResult.refetch();
+                          else void documentsQuery.refetch();
+                        }}
                         selectedPath={documentPath}
                         onSelect={setDocumentPath}
                         onEditComplex={(path) => {

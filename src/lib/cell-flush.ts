@@ -16,11 +16,17 @@ export type CellFlushSave = (
  *   doc's edits for retry.
  * - Skips pending entries for docs not present in `documents` (e.g. deleted).
  */
+export type CellFlushResult = {
+  saved: number;
+  failures: { path: string; fields: string[] }[];
+};
+
 export async function flushTablePending(
   documents: FirestoreDocument[],
   save: CellFlushSave,
-): Promise<void> {
+): Promise<CellFlushResult> {
   const entries = Object.entries(useCellEditsStore.getState().pending);
+  const result: CellFlushResult = { saved: 0, failures: [] };
   for (const [path, edits] of entries) {
     const doc = documents.find((d) => d.path === path);
     if (!doc) continue;
@@ -31,8 +37,11 @@ export async function flushTablePending(
     try {
       await save(path, merged);
       useCellEditsStore.getState().clearDoc(path);
+      result.saved += 1;
     } catch {
       // keep this doc's pending edits so the user can retry
+      result.failures.push({ path, fields: Object.keys(edits) });
     }
   }
+  return result;
 }
