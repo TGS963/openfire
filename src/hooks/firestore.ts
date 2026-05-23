@@ -13,7 +13,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { useConnectionStore } from '@/stores/connection-store';
 import type { CollectionList, DocumentPage, FirestoreDocument, QuerySpec } from '@/types/firestore';
 
-function useConnectionKey() {
+export function useConnectionKey() {
   const activeConnectionId = useConnectionStore((state) => state.activeConnectionId);
   const activeAccountId = useAuthStore((state) => state.activeAccountId);
   const connectionMode = useAuthStore((state) => state.connectionMode);
@@ -69,6 +69,10 @@ export function useDeleteDocument() {
           exact: false,
         });
       }
+      queryClient.invalidateQueries({
+        queryKey: ['queryDocuments', key],
+        exact: false,
+      });
       queryClient.removeQueries({
         queryKey: ['document', key, documentPath],
       });

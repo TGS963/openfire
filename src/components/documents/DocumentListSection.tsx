@@ -1,3 +1,4 @@
+import { useCallback, useRef } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 
 import { Button } from '@/components/ui/button';
@@ -60,6 +61,17 @@ export function DocumentListSection({
 
   const listMode = useViewStore((state) => state.listMode);
 
+  // Virtuoso can fire endReached multiple times within a single tick before
+  // isFetchingMore flips. Guard with a ref so we only enqueue one fetch per
+  // boundary crossing; the ref clears once the fetched page arrives.
+  const fetchLockRef = useRef(false);
+  if (!isFetchingMore) fetchLockRef.current = false;
+  const handleEndReached = useCallback(() => {
+    if (!hasMore || isFetchingMore || fetchLockRef.current) return;
+    fetchLockRef.current = true;
+    onEndReached?.();
+  }, [hasMore, isFetchingMore, onEndReached]);
+
   return (
     <section className="flex flex-1 flex-col min-h-0">
       <div className="flex items-center gap-2 border-b border-border-soft px-2.5 py-[7px]">
@@ -90,7 +102,7 @@ export function DocumentListSection({
             selectedPath={selectedPath}
             onSelect={onSelect}
             onEditComplex={onEditComplex}
-            onEndReached={onEndReached}
+            onEndReached={handleEndReached}
             hasMore={hasMore}
             isFetchingMore={isFetchingMore}
           />
@@ -99,9 +111,7 @@ export function DocumentListSection({
             data={documents}
             defaultItemHeight={64}
             style={{ height: '100%', scrollbarGutter: 'stable' }}
-            endReached={() => {
-              if (hasMore && !isFetchingMore) onEndReached?.();
-            }}
+            endReached={handleEndReached}
             components={
               isFetchingMore || hasMore
                 ? {

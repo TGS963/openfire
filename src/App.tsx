@@ -5,7 +5,7 @@ import { Group, Panel, Separator, useDefaultLayout } from 'react-resizable-panel
 
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/components/ui/use-toast';
-import { useDeleteCollection, useDeleteDocument, useDocument, useDocumentsInfinite, useQueryDocuments } from '@/hooks/firestore';
+import { useConnectionKey, useDeleteCollection, useDeleteDocument, useDocument, useDocumentsInfinite, useQueryDocuments } from '@/hooks/firestore';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { duplicateCollection, duplicateDocument, exportCollection, importCollection, saveDocument, transferDocuments } from '@/lib/tauri';
 import { openFileDialog } from '@/lib/dialog-utils';
@@ -105,6 +105,7 @@ function ShellSplit({ shellOpen, children, onSaveRequest, runScriptRef }: ShellS
 export function App() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { key: connectionKey } = useConnectionKey();
   const accounts = useAuthStore((state) => state.accounts);
   const activeAccountId = useAuthStore((state) => state.activeAccountId);
   const isAuthLoading = useAuthStore((state) => state.isLoading);
@@ -219,14 +220,14 @@ export function App() {
     }) => importCollection(cp, filePath, mode),
   });
 
-  const updateDocumentCaches = (doc: FirestoreDocument) => {
-    if (!activeAccountId) return;
-    queryClient.setQueryData<FirestoreDocument>(['document', activeAccountId, doc.path], doc);
+  const updateDocumentCaches = (doc: FirestoreDocument, key: string | null) => {
+    if (!key) return;
+    queryClient.setQueryData<FirestoreDocument>(['document', key, doc.path], doc);
     const collection = collectionFromDocPath(doc.path);
     if (!collection) return;
     // Infinite (shared list/tree) cache — match all pageSize variants for this collection.
     queryClient.setQueriesData<{ pages: DocumentPage[]; pageParams: unknown[] } | undefined>(
-      { queryKey: ['documentsInf', activeAccountId, collection], exact: false },
+      { queryKey: ['documentsInf', key, collection], exact: false },
       (existing) => {
         if (!existing) return existing;
         let inserted = false;
@@ -269,6 +270,9 @@ export function App() {
       });
       throw new Error('Invalid path');
     }
+    // Snapshot key at mutation start so a mid-flight account/connection switch
+    // can't poison the new connection's cache with this doc's data.
+    const keyAtStart = connectionKey;
     const pending = toast({
       title: 'Saving…',
       description: normalizedPath,
@@ -276,9 +280,9 @@ export function App() {
     });
     try {
       const doc = await saveDocumentMutation.mutateAsync({ path: normalizedPath, data });
-      updateDocumentCaches(doc);
+      updateDocumentCaches(doc, keyAtStart);
       // Query-mode list reads from a separate cache key — invalidate so it refetches.
-      queryClient.invalidateQueries({ queryKey: ['queryDocuments', activeAccountId], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['queryDocuments', keyAtStart], exact: false });
       pending.update({
         id: pending.id,
         title: successMessage,
@@ -317,13 +321,14 @@ export function App() {
       throw new Error('Missing target');
     }
     const targetPath = `${normalizedCollection}/${trimmedId}`;
+    const keyAtStart = connectionKey;
     try {
       const doc = await duplicateDocumentMutation.mutateAsync({
         sourcePath: duplicateDoc.path,
         targetPath,
         overwrite,
       });
-      updateDocumentCaches(doc);
+      updateDocumentCaches(doc, keyAtStart);
       toast({
         title: 'Document duplicated',
         description: `${doc.id} saved under ${collectionFromDocPath(doc.path) || 'collection'}.`,
@@ -373,7 +378,7 @@ export function App() {
       });
       queryClient.invalidateQueries({ queryKey: ['collections'], exact: false });
       queryClient.invalidateQueries({
-        queryKey: ['documentsInf', activeAccountId, normalizedTarget],
+        queryKey: ['documentsInf', connectionKey, normalizedTarget],
         exact: false,
       });
       openCollectionTab(normalizedTarget);
@@ -491,7 +496,7 @@ export function App() {
         title: 'Import complete',
         description: `Imported ${result.imported} documents${result.skipped > 0 ? `, skipped ${result.skipped}` : ''}.`,
       });
-      queryClient.invalidateQueries({ queryKey: ['documentsInf', activeAccountId, collectionPath], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['documentsInf', connectionKey, collectionPath], exact: false });
       queryClient.invalidateQueries({ queryKey: ['collections'], exact: false });
       closeDialog('importCollection');
     } catch (err) {
@@ -509,6 +514,7 @@ export function App() {
   }) => {
     try {
       await connectToEmulator(projectId, emulatorUrl);
+      await queryClient.cancelQueries();
       queryClient.clear();
       resetNav();
       resetTabs();
@@ -523,6 +529,7 @@ export function App() {
   const handleDisconnectEmulator = async () => {
     try {
       await disconnectFromEmulator();
+      await queryClient.cancelQueries();
       queryClient.clear();
       resetNav();
       resetTabs();
@@ -563,6 +570,7 @@ export function App() {
 
   const handleSwitchConnection = async (id: string) => {
     await switchConnection(id);
+    await queryClient.cancelQueries();
     queryClient.clear();
     resetNav();
     resetTabs();
@@ -572,6 +580,7 @@ export function App() {
   const handleRemoveConnection = async (id: string) => {
     await removeConnectionFromStore(id);
     if (id === activeConnectionId) {
+      await queryClient.cancelQueries();
       queryClient.clear();
       resetNav();
       resetTabs();
