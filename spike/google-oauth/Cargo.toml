@@ -1,0 +1,13 @@
+[package]
+name = "google-oauth-spike"
+version = "0.0.1"
+edition = "2021"
+publish = false
+
+[dependencies]
+oauth2 = "4.4"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "io-util", "time"] }
+tiny_http = "0.12"
+url = "2.5"
+webbrowser = "1.0"
+anyhow = "1"
