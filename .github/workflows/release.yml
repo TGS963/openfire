@@ -18,17 +18,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-14'        # Apple Silicon
-            target: 'aarch64-apple-darwin'
-            label: 'macos-arm64'
-          - platform: 'macos-13'        # Intel
-            target: 'x86_64-apple-darwin'
-            label: 'macos-x64'
+          - platform: 'macos-14'        # Universal (arm64 + x86_64) built on Apple Silicon
+            target: 'universal-apple-darwin'
+            extra-targets: 'aarch64-apple-darwin,x86_64-apple-darwin'
+            label: 'macos-universal'
           - platform: 'ubuntu-22.04'    # Linux AppImage + deb
             target: 'x86_64-unknown-linux-gnu'
+            extra-targets: 'x86_64-unknown-linux-gnu'
             label: 'linux-x64'
           - platform: 'windows-latest'  # Windows MSI + NSIS
             target: 'x86_64-pc-windows-msvc'
+            extra-targets: 'x86_64-pc-windows-msvc'
             label: 'windows-x64'
 
     runs-on: ${{ matrix.platform }}
@@ -51,7 +51,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          targets: ${{ matrix.extra-targets }}
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
