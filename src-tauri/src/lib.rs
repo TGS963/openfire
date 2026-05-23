@@ -60,7 +60,8 @@ pub fn run() {
             list_connections,
             remove_connection,
             set_active_connection,
-            transfer_documents
+            transfer_documents,
+            open_external
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

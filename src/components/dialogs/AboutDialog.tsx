@@ -1,4 +1,5 @@
-import { Github } from 'lucide-react';
+import { Copy, Github } from 'lucide-react';
+import { invoke } from '@tauri-apps/api/core';
 
 import {
   Dialog,
@@ -24,7 +25,14 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
       await navigator.clipboard.writeText(REPO_URL);
       toast({ title: 'Copied repo URL', description: REPO_URL });
     } catch {
-      // ignore — anchor still navigates
+      // ignore
+    }
+  };
+  const openRepo = async () => {
+    try {
+      await invoke('open_external', { url: REPO_URL });
+    } catch (e) {
+      toast({ title: 'Failed to open browser', description: String(e), variant: 'destructive' });
     }
   };
 
@@ -48,17 +56,26 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
               v0.1.0
             </Badge>
             <p className="text-xs">Built with Tauri, React, and Rust.</p>
-            <a
-              href={REPO_URL}
-              target="_blank"
-              rel="noreferrer"
-              onClick={copyRepoUrl}
-              className="inline-flex items-center gap-1.5 rounded-md border border-border-soft px-2.5 py-1 text-xs text-text hover:bg-surface-2"
-              aria-label="OpenFire on GitHub (click to copy URL)"
-            >
-              <Github className="h-3.5 w-3.5" />
-              <span className="font-mono">github.com/TGS963/openfire</span>
-            </a>
+            <div className="inline-flex items-stretch overflow-hidden rounded-md border border-border-soft text-xs text-text">
+              <button
+                type="button"
+                onClick={openRepo}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 hover:bg-surface-2"
+                aria-label="Open OpenFire on GitHub in browser"
+              >
+                <Github className="h-3.5 w-3.5" />
+                <span className="font-mono">github.com/TGS963/openfire</span>
+              </button>
+              <button
+                type="button"
+                onClick={copyRepoUrl}
+                className="inline-flex items-center border-l border-border-soft px-2 hover:bg-surface-2"
+                aria-label="Copy repo URL"
+                title="Copy URL"
+              >
+                <Copy className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       </DialogContent>

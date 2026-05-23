@@ -22,11 +22,11 @@ export function CollectionTree({
   const collections = data?.collectionIds ?? [];
 
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground">Loading collections…</p>;
+    return <p className="px-1 py-1 text-[13px] text-text-muted">Loading collections…</p>;
   }
 
   if (!collections.length) {
-    return <p className="text-sm text-muted-foreground">No collections found.</p>;
+    return <p className="px-1 py-1 text-[13px] text-text-muted">No collections found.</p>;
   }
 
   return (

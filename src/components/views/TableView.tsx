@@ -210,7 +210,7 @@ export function TableView({
             <>
               <td
                 style={{ width: ID_COL_WIDTH, minWidth: ID_COL_WIDTH }}
-                className={`cursor-pointer truncate border-b border-r px-3 py-2 text-sm font-medium ${rowBg}`}
+                className={`cursor-pointer truncate border-b border-r px-3 py-2 text-[13px] font-medium ${rowBg}`}
                 onClick={() => onSelect(doc.path)}
                 title={doc.id}
               >
@@ -237,6 +237,12 @@ export function TableView({
                         value={value}
                         type={type}
                         onCommit={(next) => {
+                          const unchanged =
+                            JSON.stringify(next) === JSON.stringify(baseValue);
+                          if (unchanged) {
+                            setEditing(null);
+                            return;
+                          }
                           setPending(doc.path, col, next);
                           setEditing(null);
                           flashSuccess(doc.path, col);
@@ -268,7 +274,7 @@ export function TableView({
                   <td
                     key={col}
                     style={{ width: DATA_COL_WIDTH, minWidth: DATA_COL_WIDTH }}
-                    className={`cursor-pointer truncate border-b border-r border-border-soft px-3 py-2 text-sm ${rowBg} ${colorClass} ${pendingClass} ${flashClass}`}
+                    className={`cursor-pointer truncate border-b border-r border-border-soft px-3 py-2 text-[13px] ${rowBg} ${colorClass} ${pendingClass} ${flashClass}`}
                     onClick={() => onSelect(doc.path)}
                     onDoubleClick={() => {
                       if (!editable) {

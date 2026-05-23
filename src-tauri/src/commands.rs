@@ -30,6 +30,24 @@ use tauri::State;
 type CmdResult<T> = std::result::Result<T, String>;
 
 #[tauri::command]
+pub fn open_external(url: String) -> CmdResult<()> {
+    if !(url.starts_with("http://") || url.starts_with("https://")) {
+        return Err("only http(s) URLs allowed".into());
+    }
+    #[cfg(target_os = "linux")]
+    let cmd = "xdg-open";
+    #[cfg(target_os = "macos")]
+    let cmd = "open";
+    #[cfg(target_os = "windows")]
+    let cmd = "explorer";
+    std::process::Command::new(cmd)
+        .arg(&url)
+        .spawn()
+        .map(|_| ())
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub async fn import_service_account(
     credential_manager: State<'_, CredentialManager>,
     file_path: String,
