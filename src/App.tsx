@@ -51,8 +51,19 @@ type ShellSplitProps = {
   runScriptRef: React.MutableRefObject<(() => void) | null>;
 };
 
-function ShellSplitInner({ children, onSaveRequest }: { children: React.ReactNode; onSaveRequest: () => void }) {
-  const { defaultLayout, onLayoutChanged } = useDefaultLayout({ id: 'shell-split' });
+const SEPARATOR_H =
+  'group relative h-2 cursor-row-resize select-none focus:outline-none before:absolute before:inset-x-0 before:top-1/2 before:h-px before:-translate-y-1/2 before:bg-black/[0.06] dark:before:bg-white/[0.06] before:transition-all hover:before:h-0.5 hover:before:bg-primary/50 focus:before:h-0.5 focus:before:bg-primary active:before:h-0.5 active:before:bg-primary';
+
+function ShellSplitInner({
+  children,
+  onSaveRequest,
+  runScriptRef,
+}: {
+  children: React.ReactNode;
+  onSaveRequest: () => void;
+  runScriptRef: React.MutableRefObject<(() => void) | null>;
+}) {
+  const { defaultLayout, onLayoutChanged } = useDefaultLayout({ id: 'shell-split-v2' });
 
   return (
     <div className="flex-1 min-h-0 overflow-hidden">
@@ -60,13 +71,14 @@ function ShellSplitInner({ children, onSaveRequest }: { children: React.ReactNod
         orientation="vertical"
         defaultLayout={defaultLayout}
         onLayoutChanged={onLayoutChanged}
+        resizeTargetMinimumSize={{ coarse: 28, fine: 16 }}
       >
         <Panel id="main-content" defaultSize={65} minSize={30} className="flex flex-col">
           {children}
         </Panel>
-        <Separator className="h-px dark:bg-white/[0.06] bg-black/[0.06] hover:bg-primary/30 transition-all duration-300 hover:shadow-[0_0_8px_rgba(245,158,11,0.15)]" />
+        <Separator className={SEPARATOR_H} />
         <Panel id="shell" defaultSize={35} minSize={15} className="flex flex-col">
-          <ScriptPanel onSaveRequest={onSaveRequest} />
+          <ScriptPanel onSaveRequest={onSaveRequest} runRef={runScriptRef} />
         </Panel>
       </Group>
     </div>
@@ -74,17 +86,10 @@ function ShellSplitInner({ children, onSaveRequest }: { children: React.ReactNod
 }
 
 function ShellSplit({ shellOpen, children, onSaveRequest, runScriptRef }: ShellSplitProps) {
-  useEffect(() => {
-    runScriptRef.current = shellOpen
-      ? () => document.querySelector<HTMLButtonElement>('[aria-label="Run"]')?.click()
-      : null;
-    return () => { runScriptRef.current = null; };
-  }, [shellOpen, runScriptRef]);
-
   if (!shellOpen) return <>{children}</>;
 
   return (
-    <ShellSplitInner onSaveRequest={onSaveRequest}>
+    <ShellSplitInner onSaveRequest={onSaveRequest} runScriptRef={runScriptRef}>
       {children}
     </ShellSplitInner>
   );
@@ -585,33 +590,25 @@ export function App() {
   });
 
   const handleImport = async () => {
+    let file: string | null = null;
     try {
-      const file = await openFileDialog({
+      file = await openFileDialog({
         filters: [{ name: 'Service Account', extensions: ['json'] }],
         multiple: false,
       });
-
-      if (file) {
-        await importAccount(file);
-        return;
-      }
-
-      const manualPath = window
-        .prompt('Enter the full path to your Service Account JSON file:')
-        ?.trim();
-      if (manualPath) {
-        await importAccount(manualPath);
-        toast({ title: 'Imported', description: 'Service account added from manual path.' });
-        return;
-      }
-
-      toast({
-        title: 'No file selected',
-        description: 'Please choose a Service Account JSON to continue.',
-        variant: 'destructive',
-      });
     } catch (err) {
       toastError(toast, 'Unable to open file dialog', err);
+      return;
+    }
+    if (!file) return;
+    try {
+      await importAccount(file);
+      toast({
+        title: 'Service account imported',
+        description: 'Connected to the project.',
+      });
+    } catch (err) {
+      toastError(toast, 'Unable to import service account', err);
     }
   };
 
@@ -640,6 +637,11 @@ export function App() {
             collectionPath={collectionPath}
             documentPath={documentPath}
             onSelectCollection={(path) => setCollectionPath(path)}
+            onSelectDocument={(path) => {
+              const collection = collectionFromDocPath(path);
+              if (collection) setCollectionPath(collection);
+              setDocumentPath(path);
+            }}
             connectionMode={connectionMode}
             emulatorProjectId={emulatorProjectId}
             onConnectEmulator={() => openDialog('emulatorConnect')}

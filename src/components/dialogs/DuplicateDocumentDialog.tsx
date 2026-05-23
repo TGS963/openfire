@@ -39,16 +39,23 @@ export function DuplicateDocumentDialog({
   const [documentId, setDocumentId] = useState('');
   const [overwrite, setOverwrite] = useState(false);
 
+  const sourceKey = sourceDocument?.path ?? null;
   useEffect(() => {
-    if (sourceDocument) {
-      setCollectionInput(collectionFromDocPath(sourceDocument.path) || '');
-      setDocumentId(`${sourceDocument.id}-copy`);
-    } else {
+    if (!open) {
       setCollectionInput('');
       setDocumentId('');
       setOverwrite(false);
+      return;
     }
-  }, [sourceDocument, open]);
+    if (sourceDocument) {
+      setCollectionInput(collectionFromDocPath(sourceDocument.path) || '');
+      setDocumentId(`${sourceDocument.id}-copy`);
+      setOverwrite(false);
+    }
+    // sourceDocument intentionally excluded — keyed by stable path to avoid resetting
+    // user edits on unrelated parent re-renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, sourceKey]);
 
   const handleSubmit = async () => {
     if (!sourceDocument) return;

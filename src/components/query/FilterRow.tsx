@@ -26,6 +26,7 @@ export const FILTER_OPERATORS = [
 import type { FilterOperator } from '@/types/firestore';
 
 export type FilterRowData = {
+  id: string;
   field: string;
   operator: FilterOperator;
   value: string;

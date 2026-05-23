@@ -46,7 +46,26 @@ export const useAuthStore = create<AuthStore>()(
         set((state) => ({ isLoading: state.accounts.length === 0, error: null }));
         try {
           const accounts = await listServiceAccounts();
-          set({ accounts, activeAccountId: null, initialized: true, isLoading: false });
+          const persistedId = get().activeAccountId;
+          const autoSelectId =
+            persistedId && accounts.some((acc) => acc.id === persistedId)
+              ? persistedId
+              : accounts.length === 1
+                ? accounts[0].id
+                : null;
+          set({
+            accounts,
+            activeAccountId: autoSelectId,
+            initialized: true,
+            isLoading: false,
+          });
+          if (autoSelectId && get().connectionMode !== 'emulator') {
+            try {
+              await get().selectAccount(autoSelectId);
+            } catch {
+              // selectAccount sets its own error; loadAccounts already initialized.
+            }
+          }
         } catch (error) {
           set({
             error: getErrorMessage(error, 'Unable to load accounts'),
@@ -69,6 +88,7 @@ export const useAuthStore = create<AuthStore>()(
             error: getErrorMessage(error, 'Unable to import account'),
             isLoading: false,
           });
+          throw error;
         }
       },
       async selectAccount(id: string) {
@@ -136,7 +156,7 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: 'auth-store',
-      partialize: () => ({}),
+      partialize: (state) => ({ activeAccountId: state.activeAccountId }),
     },
   ),
 );

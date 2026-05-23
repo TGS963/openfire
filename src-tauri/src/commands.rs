@@ -446,8 +446,8 @@ pub async fn export_collection(
     let path = file_path.clone();
     tokio::task::spawn_blocking(move || std::fs::write(&path, json_str))
         .await
-        .map_err(|err| err.to_string())?
-        .map_err(|err| err.to_string())?;
+        .map_err(|err| format!("export task join failed: {err}"))?
+        .map_err(|err| format!("export file write failed ({file_path}): {err}"))?;
 
     Ok(count)
 }
@@ -467,8 +467,8 @@ pub async fn import_collection(
     let path = file_path.clone();
     let raw = tokio::task::spawn_blocking(move || std::fs::read_to_string(&path))
         .await
-        .map_err(|err| err.to_string())?
-        .map_err(|err| err.to_string())?;
+        .map_err(|err| format!("import task join failed: {err}"))?
+        .map_err(|err| format!("import file read failed ({file_path}): {err}"))?;
 
     let entries: Vec<JsonValue> =
         serde_json::from_str(&raw).map_err(|err| err.to_string())?;
@@ -724,7 +724,7 @@ async fn export_collection_recursive(
     parent: &Option<String>,
 ) -> std::result::Result<(Vec<JsonValue>, u32), String> {
     // Collect all raw documents first
-    let raw_docs = std::sync::Arc::new(std::sync::Mutex::new(Vec::<(String, String, serde_json::Map<String, JsonValue>)>::new()));
+    let raw_docs = std::sync::Arc::new(tokio::sync::Mutex::new(Vec::<(String, String, serde_json::Map<String, JsonValue>)>::new()));
 
     for_each_doc_in_collection(db, collection_id, parent, |doc| {
         let db = db.clone();
@@ -737,13 +737,15 @@ async fn export_collection_recursive(
                 _ => serde_json::Map::new(),
             };
             obj.insert("__id__".to_string(), JsonValue::String(model.id));
-            raw_docs.lock().unwrap().push((full_name, model.path, obj));
+            raw_docs.lock().await.push((full_name, model.path, obj));
             Ok(true)
         }
     })
     .await?;
 
-    let raw_docs = std::sync::Arc::try_unwrap(raw_docs).unwrap().into_inner().unwrap();
+    let raw_docs = std::sync::Arc::try_unwrap(raw_docs)
+        .map_err(|_| "internal error: export buffer still shared after collection".to_string())?
+        .into_inner();
     let mut all_docs = Vec::<JsonValue>::new();
     let mut total_count = raw_docs.len() as u32;
 
@@ -812,7 +814,7 @@ where
             }
         }
 
-        if next_token.is_none() {
+        if is_pagination_exhausted(next_token.as_deref()) {
             break;
         }
         page_token = next_token;
@@ -843,7 +845,10 @@ fn parse_collection_path(db: &FirestoreDb, path: &str) -> Result<(String, Option
     if segments.len() % 2 == 0 {
         return Err(AppError::InvalidPath(path.to_string()));
     }
-    let collection_id = segments.last().unwrap().to_string();
+    let collection_id = segments
+        .last()
+        .ok_or_else(|| AppError::InvalidPath(path.to_string()))?
+        .to_string();
     let parent = if segments.len() == 1 {
         None
     } else {
@@ -861,7 +866,10 @@ fn parse_document_path(db: &FirestoreDb, path: &str) -> Result<(String, String, 
     if segments.len() < 2 || segments.len() % 2 != 0 {
         return Err(AppError::InvalidPath(path.to_string()));
     }
-    let document_id = segments.last().unwrap().to_string();
+    let document_id = segments
+        .last()
+        .ok_or_else(|| AppError::InvalidPath(path.to_string()))?
+        .to_string();
     let collection_id = segments[segments.len() - 2].to_string();
     let parent = if segments.len() == 2 {
         db.get_documents_path().clone()
@@ -873,6 +881,10 @@ fn parse_document_path(db: &FirestoreDb, path: &str) -> Result<(String, String, 
         )
     };
     Ok((collection_id, document_id, parent))
+}
+
+fn is_pagination_exhausted(token: Option<&str>) -> bool {
+    token.map(|t| t.is_empty()).unwrap_or(true)
 }
 
 fn split_segments(path: &str) -> Vec<&str> {
@@ -901,7 +913,7 @@ fn relative_document_path(db: &FirestoreDb, name: &str) -> String {
 
 fn timestamp_to_string(ts: &Timestamp) -> String {
     DateTime::<Utc>::from_timestamp(ts.seconds, ts.nanos as u32)
-        .unwrap_or_else(|| DateTime::<Utc>::from_timestamp(0, 0).unwrap())
+        .unwrap_or(DateTime::<Utc>::UNIX_EPOCH)
         .to_rfc3339()
 }
 

@@ -49,6 +49,7 @@ export function QueryBuilder({
     if (initialQuery) {
       setFilters(
         initialQuery.filters.map((f) => ({
+          id: crypto.randomUUID(),
           field: f.field,
           operator: f.operator,
           value: typeof f.value === 'string' ? f.value : JSON.stringify(f.value),
@@ -56,6 +57,7 @@ export function QueryBuilder({
       );
       setOrderBys(
         initialQuery.orderBy.map((o) => ({
+          id: crypto.randomUUID(),
           field: o.field,
           direction: o.direction,
         })),
@@ -65,27 +67,27 @@ export function QueryBuilder({
   }, [initialQuery]);
 
   const addFilter = () => {
-    setFilters([...filters, { field: '', operator: '==', value: '' }]);
+    setFilters([...filters, { id: crypto.randomUUID(), field: '', operator: '==', value: '' }]);
   };
 
   const addOrderBy = () => {
-    setOrderBys([...orderBys, { field: '', direction: 'asc' }]);
+    setOrderBys([...orderBys, { id: crypto.randomUUID(), field: '', direction: 'asc' }]);
   };
 
-  const updateFilter = (index: number, updated: FilterRowData) => {
-    setFilters(filters.map((f, i) => (i === index ? updated : f)));
+  const updateFilter = (id: string, updated: FilterRowData) => {
+    setFilters(filters.map((f) => (f.id === id ? updated : f)));
   };
 
-  const removeFilter = (index: number) => {
-    setFilters(filters.filter((_, i) => i !== index));
+  const removeFilter = (id: string) => {
+    setFilters(filters.filter((f) => f.id !== id));
   };
 
-  const updateOrderBy = (index: number, updated: OrderByRowData) => {
-    setOrderBys(orderBys.map((o, i) => (i === index ? updated : o)));
+  const updateOrderBy = (id: string, updated: OrderByRowData) => {
+    setOrderBys(orderBys.map((o) => (o.id === id ? updated : o)));
   };
 
-  const removeOrderBy = (index: number) => {
-    setOrderBys(orderBys.filter((_, i) => i !== index));
+  const removeOrderBy = (id: string) => {
+    setOrderBys(orderBys.filter((o) => o.id !== id));
   };
 
   const handleRun = () => {
@@ -130,12 +132,12 @@ export function QueryBuilder({
               <ListFilter className="h-3 w-3" />
               Filters
             </p>
-            {filters.map((filter, index) => (
+            {filters.map((filter) => (
               <FilterRow
-                key={index}
+                key={filter.id}
                 filter={filter}
-                onChange={(updated) => updateFilter(index, updated)}
-                onRemove={() => removeFilter(index)}
+                onChange={(updated) => updateFilter(filter.id, updated)}
+                onRemove={() => removeFilter(filter.id)}
               />
             ))}
           </div>
@@ -147,12 +149,12 @@ export function QueryBuilder({
               <ArrowUpDown className="h-3 w-3" />
               Order By
             </p>
-            {orderBys.map((orderBy, index) => (
+            {orderBys.map((orderBy) => (
               <OrderByRow
-                key={index}
+                key={orderBy.id}
                 orderBy={orderBy}
-                onChange={(updated) => updateOrderBy(index, updated)}
-                onRemove={() => removeOrderBy(index)}
+                onChange={(updated) => updateOrderBy(orderBy.id, updated)}
+                onRemove={() => removeOrderBy(orderBy.id)}
               />
             ))}
           </div>

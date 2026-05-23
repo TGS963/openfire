@@ -1,7 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type OutputLine = { type: 'log' | 'error' | 'result'; content: string; timestamp: number };
+export type OutputLine = {
+  id: string;
+  type: 'log' | 'error' | 'result';
+  content: string;
+  timestamp: number;
+};
 export type SavedScript = { id: string; name: string; script: string };
 
 type ScriptStore = {
@@ -10,7 +15,7 @@ type ScriptStore = {
   savedScripts: SavedScript[];
   isRunning: boolean;
   setScript: (s: string) => void;
-  addOutput: (line: OutputLine) => void;
+  addOutput: (line: Omit<OutputLine, 'id'>) => void;
   clearOutput: () => void;
   setRunning: (r: boolean) => void;
   saveScript: (name: string, script: string) => void;
@@ -25,7 +30,10 @@ export const useScriptStore = create<ScriptStore>()(
       savedScripts: [],
       isRunning: false,
       setScript: (script) => set({ script }),
-      addOutput: (line) => set((state) => ({ output: [...state.output, line] })),
+      addOutput: (line) =>
+        set((state) => ({
+          output: [...state.output, { id: crypto.randomUUID(), ...line }],
+        })),
       clearOutput: () => set({ output: [] }),
       setRunning: (isRunning) => set({ isRunning }),
       saveScript(name, script) {

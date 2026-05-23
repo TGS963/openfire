@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export type OrderByRowData = {
+  id: string;
   field: string;
   direction: 'asc' | 'desc';
 };

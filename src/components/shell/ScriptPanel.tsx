@@ -9,9 +9,10 @@ import { useViewStore } from '@/stores/view-store';
 
 export type ScriptPanelProps = {
   onSaveRequest?: () => void;
+  runRef?: React.MutableRefObject<(() => void) | null>;
 };
 
-export function ScriptPanel({ onSaveRequest }: ScriptPanelProps) {
+export function ScriptPanel({ onSaveRequest, runRef }: ScriptPanelProps) {
   const script = useScriptStore((s) => s.script);
   const output = useScriptStore((s) => s.output);
   const isRunning = useScriptStore((s) => s.isRunning);
@@ -22,6 +23,7 @@ export function ScriptPanel({ onSaveRequest }: ScriptPanelProps) {
   const theme = useViewStore((s) => s.theme);
 
   const outputRef = useRef<HTMLDivElement>(null);
+  const handleRunRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     if (outputRef.current) {
@@ -51,6 +53,16 @@ export function ScriptPanel({ onSaveRequest }: ScriptPanelProps) {
       setRunning(false);
     }
   };
+
+  handleRunRef.current = handleRun;
+
+  useEffect(() => {
+    if (!runRef) return;
+    runRef.current = () => handleRunRef.current();
+    return () => {
+      runRef.current = null;
+    };
+  }, [runRef]);
 
   return (
     <div className="flex h-full flex-col bg-background">
@@ -99,9 +111,9 @@ export function ScriptPanel({ onSaveRequest }: ScriptPanelProps) {
             Output
           </div>
           <div ref={outputRef} className="flex-1 overflow-auto p-3 font-mono text-xs">
-            {output.map((line, i) => (
+            {output.map((line) => (
               <div
-                key={i}
+                key={line.id}
                 className={
                   line.type === 'error'
                     ? 'text-red-400'

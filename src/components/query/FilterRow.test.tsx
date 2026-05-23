@@ -5,7 +5,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { FilterRow, type FilterRowData } from '@/components/query/FilterRow';
 
 describe('FilterRow', () => {
-  const defaultFilter: FilterRowData = { field: 'age', operator: '==', value: '25' };
+  const defaultFilter: FilterRowData = { id: 'f1', field: 'age', operator: '==', value: '25' };
 
   it('renders field, operator, and value inputs', () => {
     render(<FilterRow filter={defaultFilter} onChange={vi.fn()} onRemove={vi.fn()} />);
@@ -16,7 +16,7 @@ describe('FilterRow', () => {
   it('calls onChange when field input changes', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
-    render(<FilterRow filter={{ field: '', operator: '==', value: '' }} onChange={onChange} onRemove={vi.fn()} />);
+    render(<FilterRow filter={{ id: 'f', field: '', operator: '==', value: '' }} onChange={onChange} onRemove={vi.fn()} />);
     await user.type(screen.getByPlaceholderText('Field path'), 'n');
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({ field: 'n', operator: '==', value: '' }),
@@ -26,7 +26,7 @@ describe('FilterRow', () => {
   it('calls onChange when value input changes', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
-    render(<FilterRow filter={{ field: 'age', operator: '==', value: '' }} onChange={onChange} onRemove={vi.fn()} />);
+    render(<FilterRow filter={{ id: 'f3', field: 'age', operator: '==', value: '' }} onChange={onChange} onRemove={vi.fn()} />);
     await user.type(screen.getByPlaceholderText('Value'), '30');
     expect(onChange).toHaveBeenCalled();
   });

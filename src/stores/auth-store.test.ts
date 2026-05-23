@@ -89,7 +89,9 @@ describe('useAuthStore', () => {
     it('sets error on failure', async () => {
       mockedInvoke.mockRejectedValueOnce(new Error('Invalid file'));
 
-      await useAuthStore.getState().importAccount('/bad/path.json');
+      await expect(
+        useAuthStore.getState().importAccount('/bad/path.json'),
+      ).rejects.toThrow('Invalid file');
 
       expect(useAuthStore.getState().error).toBe('Invalid file');
     });

@@ -18,6 +18,7 @@ export type CollectionTreeItemProps = {
   collectionPath: string | null;
   documentPath?: string | null;
   onSelectCollection: (path: string) => void;
+  onSelectDocument?: (path: string) => void;
   onDeleteCollection?: (path: string) => void;
 };
 
@@ -29,6 +30,7 @@ export function CollectionTreeItem({
   collectionPath,
   documentPath,
   onSelectCollection,
+  onSelectDocument,
   onDeleteCollection,
 }: CollectionTreeItemProps) {
   const [expanded, setExpanded] = useState(false);
@@ -93,6 +95,7 @@ export function CollectionTreeItem({
                   selectedDocumentPath={documentPath}
                   collectionPath={collectionPath}
                   onSelectCollection={onSelectCollection}
+                  onSelectDocument={onSelectDocument}
                 />
               ))}
             </div>

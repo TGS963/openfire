@@ -31,7 +31,6 @@ tonic = "0.14"
 prost = "0.14"
 anyhow = "1"
 thiserror = "1"
-uuid = { version = "1", features = ["v4"] }
 chrono = { version = "0.4", default-features = false, features = ["std", "serde"] }
 gcloud-sdk = "0.28.3"
 prost-types = "0.14"

@@ -67,7 +67,7 @@ export function DocumentListSection({
           New
         </Button>
       </div>
-      <div className="flex-1 min-h-0 overflow-auto">
+      <div className="flex-1 min-h-0">
         {isLoading && !documents.length ? (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             Loading documents…
@@ -81,7 +81,8 @@ export function DocumentListSection({
         ) : (
           <Virtuoso
             data={documents}
-            style={{ height: '100%' }}
+            defaultItemHeight={64}
+            style={{ height: '100%', scrollbarGutter: 'stable' }}
             itemContent={(_, doc) => (
               <DocumentRow
                 doc={doc}

@@ -103,7 +103,6 @@ dependencies = [
  "thiserror 1.0.69",
  "tokio",
  "tonic 0.14.2",
- "uuid",
 ]
 
 [[package]]

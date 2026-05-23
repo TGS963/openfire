@@ -9,6 +9,7 @@ export type DocumentNodeProps = {
   selectedDocumentPath?: string | null;
   collectionPath: string | null;
   onSelectCollection: (path: string) => void;
+  onSelectDocument?: (path: string) => void;
 };
 
 export function DocumentNode({
@@ -17,6 +18,7 @@ export function DocumentNode({
   selectedDocumentPath,
   collectionPath,
   onSelectCollection,
+  onSelectDocument,
 }: DocumentNodeProps) {
   const [expanded, setExpanded] = useState(false);
   const isActive = documentPath === selectedDocumentPath;
@@ -36,14 +38,19 @@ export function DocumentNode({
             className={`h-3.5 w-3.5 transition-transform ${expanded ? 'rotate-90' : ''}`}
           />
         </button>
-        <span
-          className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors ${
-            isActive ? 'bg-primary/10 font-medium text-foreground' : 'text-muted-foreground'
+        <button
+          type="button"
+          onClick={() => onSelectDocument?.(documentPath)}
+          aria-pressed={isActive}
+          className={`flex flex-1 items-center gap-1.5 rounded-md px-2 py-1 text-left text-xs transition-colors ${
+            isActive
+              ? 'bg-primary/10 font-medium text-foreground'
+              : 'text-muted-foreground hover:bg-white/[0.06]'
           }`}
         >
           <FileText className="h-3 w-3 shrink-0" />
-          {documentId}
-        </span>
+          <span className="truncate">{documentId}</span>
+        </button>
       </div>
       {expanded && (
         <div className="ml-4 mt-0.5">
@@ -52,6 +59,7 @@ export function DocumentNode({
             collectionPath={collectionPath}
             documentPath={selectedDocumentPath}
             onSelectCollection={onSelectCollection}
+            onSelectDocument={onSelectDocument}
           />
         </div>
       )}

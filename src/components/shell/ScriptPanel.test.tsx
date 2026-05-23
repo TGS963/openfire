@@ -60,7 +60,7 @@ describe('ScriptPanel', () => {
   it('clears output on Clear click', async () => {
     const user = userEvent.setup();
     useScriptStore.setState({
-      output: [{ type: 'log', content: 'hello', timestamp: 1 }],
+      output: [{ id: '1', type: 'log', content: 'hello', timestamp: 1 }],
     });
     render(<ScriptPanel />);
     expect(screen.getByText('hello')).toBeInTheDocument();
@@ -71,9 +71,9 @@ describe('ScriptPanel', () => {
   it('renders output lines with correct styling', () => {
     useScriptStore.setState({
       output: [
-        { type: 'log', content: 'info message', timestamp: 1 },
-        { type: 'error', content: 'error message', timestamp: 2 },
-        { type: 'result', content: '42', timestamp: 3 },
+        { id: '1', type: 'log', content: 'info message', timestamp: 1 },
+        { id: '2', type: 'error', content: 'error message', timestamp: 2 },
+        { id: '3', type: 'result', content: '42', timestamp: 3 },
       ],
     });
     render(<ScriptPanel />);

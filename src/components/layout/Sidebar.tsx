@@ -16,6 +16,7 @@ export type SidebarProps = {
   collectionPath: string | null;
   documentPath: string | null;
   onSelectCollection: (path: string) => void;
+  onSelectDocument?: (path: string) => void;
   connectionMode: 'production' | 'emulator' | null;
   emulatorProjectId: string | null;
   onConnectEmulator: () => void;
@@ -35,6 +36,7 @@ export function Sidebar({
   collectionPath,
   documentPath,
   onSelectCollection,
+  onSelectDocument,
   connectionMode,
   emulatorProjectId,
   onConnectEmulator,
@@ -81,11 +83,20 @@ export function Sidebar({
               disabled={!accounts.length || isLoading}
             >
               {!accounts.length && <option value="">No accounts yet</option>}
-              {accounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.projectId}
-                </option>
-              ))}
+              {accounts.map((account) => {
+                const projectCount = accounts.filter(
+                  (a) => a.projectId === account.projectId,
+                ).length;
+                const label =
+                  projectCount > 1
+                    ? `${account.projectId} (${account.clientEmail.split('@')[0]})`
+                    : account.projectId;
+                return (
+                  <option key={account.id} value={account.id}>
+                    {label}
+                  </option>
+                );
+              })}
             </select>
           </div>
         )}
@@ -112,6 +123,7 @@ export function Sidebar({
             collectionPath={collectionPath}
             documentPath={documentPath}
             onSelectCollection={onSelectCollection}
+            onSelectDocument={onSelectDocument}
             onDeleteCollection={onDeleteCollection}
           />
         </div>

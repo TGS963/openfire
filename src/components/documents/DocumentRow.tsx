@@ -21,21 +21,22 @@ export function DocumentRow({ doc, selectedPath, onSelect, onDuplicate, onDelete
   const isSelected = selectedPath === doc.path;
   return (
     <div
-      role="button"
-      tabIndex={0}
-      className={`flex cursor-pointer items-center justify-between border-b border-white/[0.04] px-4 py-3 text-sm transition-all duration-200 ${
-        isSelected ? 'bg-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_12px_rgba(245,158,11,0.08)]' : 'hover:bg-white/[0.06] hover:-translate-y-[0.5px]'
+      className={`flex w-full min-w-0 items-center justify-between border-b border-white/[0.04] text-sm transition-colors ${
+        isSelected ? 'bg-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_12px_rgba(245,158,11,0.08)]' : 'hover:bg-white/[0.06]'
       }`}
-      onClick={() => onSelect(doc.path)}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(doc.path); }}
     >
-      <div className="flex flex-1 flex-col text-left">
-        <span className="font-medium">{doc.id}</span>
-        <span className="text-xs text-muted-foreground truncate">{doc.path}</span>
-      </div>
+      <button
+        type="button"
+        aria-pressed={isSelected}
+        onClick={() => onSelect(doc.path)}
+        className="flex min-w-0 flex-1 flex-col items-start overflow-hidden px-4 py-3 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+      >
+        <span className="font-medium truncate w-full block">{doc.id}</span>
+        <span className="text-xs text-muted-foreground truncate w-full block">{doc.path}</span>
+      </button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size="icon" variant="ghost">
+          <Button size="icon" variant="ghost" className="mr-2" aria-label="Document actions">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>

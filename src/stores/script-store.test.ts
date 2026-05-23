@@ -28,7 +28,10 @@ describe('script-store', () => {
   it('adds output lines', () => {
     const line = { type: 'log' as const, content: 'hello', timestamp: 1000 };
     useScriptStore.getState().addOutput(line);
-    expect(useScriptStore.getState().output).toEqual([line]);
+    const stored = useScriptStore.getState().output;
+    expect(stored).toHaveLength(1);
+    expect(stored[0]).toMatchObject(line);
+    expect(stored[0].id).toBeTruthy();
   });
 
   it('appends multiple output lines', () => {

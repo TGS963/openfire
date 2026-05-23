@@ -1,7 +1,22 @@
-import { useMemo } from 'react';
+import { forwardRef, useMemo } from 'react';
 import { TableVirtuoso } from 'react-virtuoso';
 
 import type { FirestoreDocument } from '@/types/firestore';
+
+const ID_COL_WIDTH = 220;
+const DATA_COL_WIDTH = 180;
+
+const FixedTable = forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
+  function FixedTable(props, ref) {
+    return (
+      <table
+        {...props}
+        ref={ref}
+        style={{ ...props.style, tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}
+      />
+    );
+  },
+);
 
 export type TableViewProps = {
   documents: FirestoreDocument[];
@@ -62,46 +77,63 @@ export function TableView({ documents, selectedPath, onSelect }: TableViewProps)
   return (
     <div className="h-full w-full">
       <TableVirtuoso
-        style={{ height: '100%', width: '100%' }}
+        style={{ height: '100%', width: '100%', scrollbarGutter: 'stable' }}
         data={documents}
+        components={{ Table: FixedTable }}
         fixedHeaderContent={() => (
           <tr className="bg-muted">
-            <th className="sticky top-0 border-b border-r dark:border-white/[0.06] border-black/[0.06] bg-muted px-3 py-2 text-left text-xs font-medium text-muted-foreground">
+            <th
+              style={{ width: ID_COL_WIDTH, minWidth: ID_COL_WIDTH }}
+              className="sticky top-0 z-10 border-b border-r dark:border-white/[0.06] border-black/[0.06] bg-muted px-3 py-2 text-left text-xs font-medium text-muted-foreground"
+            >
               ID
             </th>
             {columns.map((col) => (
               <th
                 key={col}
-                className="sticky top-0 border-b border-r dark:border-white/[0.06] border-black/[0.06] bg-muted px-3 py-2 text-left text-xs font-medium text-muted-foreground"
+                style={{ width: DATA_COL_WIDTH, minWidth: DATA_COL_WIDTH }}
+                className="sticky top-0 z-10 truncate border-b border-r dark:border-white/[0.06] border-black/[0.06] bg-muted px-3 py-2 text-left text-xs font-medium text-muted-foreground"
+                title={col}
               >
                 {col}
               </th>
             ))}
+            {/* Spacer so the last column edge doesn't stretch when total width < container */}
+            <th aria-hidden style={{ width: 'auto' }} className="bg-muted" />
           </tr>
         )}
-        itemContent={(_, doc) => (
-          <>
-            <td
-              className={`cursor-pointer border-b border-r px-3 py-2 text-sm font-medium ${
-                selectedPath === doc.path ? 'bg-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]' : 'bg-background hover:bg-white/[0.06]'
-              }`}
-              onClick={() => onSelect(doc.path)}
-            >
-              {doc.id}
-            </td>
-            {columns.map((col) => (
+        itemContent={(_, doc) => {
+          const rowBg = selectedPath === doc.path
+            ? 'bg-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+            : 'bg-background hover:bg-white/[0.06]';
+          return (
+            <>
               <td
-                key={col}
-                className={`cursor-pointer border-b border-r px-3 py-2 text-sm ${
-                  selectedPath === doc.path ? 'bg-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]' : 'bg-background hover:bg-white/[0.06]'
-                }`}
+                style={{ width: ID_COL_WIDTH, minWidth: ID_COL_WIDTH }}
+                className={`cursor-pointer truncate border-b border-r px-3 py-2 text-sm font-medium ${rowBg}`}
                 onClick={() => onSelect(doc.path)}
+                title={doc.id}
               >
-                {formatCellValue(doc.data?.[col])}
+                {doc.id}
               </td>
-            ))}
-          </>
-        )}
+              {columns.map((col) => {
+                const text = formatCellValue(doc.data?.[col]);
+                return (
+                  <td
+                    key={col}
+                    style={{ width: DATA_COL_WIDTH, minWidth: DATA_COL_WIDTH }}
+                    className={`cursor-pointer truncate border-b border-r px-3 py-2 text-sm ${rowBg}`}
+                    onClick={() => onSelect(doc.path)}
+                    title={text}
+                  >
+                    {text}
+                  </td>
+                );
+              })}
+              <td aria-hidden style={{ width: 'auto' }} className={rowBg} />
+            </>
+          );
+        }}
       />
     </div>
   );

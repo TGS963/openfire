@@ -1,10 +1,11 @@
 use crate::error::{AppError, Result};
 use crate::models::{ServiceAccountMetadata, ServiceAccountSummary};
 use serde::Deserialize;
+use std::collections::hash_map::DefaultHasher;
 use std::fs;
+use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use uuid::Uuid;
 
 const CREDENTIAL_EXTENSION: &str = "json";
 
@@ -30,7 +31,9 @@ impl CredentialManager {
     pub fn save_from_path<P: AsRef<Path>>(&self, source: P) -> Result<ServiceAccountSummary> {
         let content = fs::read_to_string(source.as_ref())?;
         let metadata = Self::parse_metadata(&content)?;
-        let id = format!("{}-{}", metadata.project_id, Uuid::new_v4());
+        // Deterministic ID per (project_id, client_email) so re-importing the same
+        // service account upserts instead of creating duplicate entries.
+        let id = Self::account_id(&metadata.project_id, &metadata.client_email);
         let destination = self.path_for(&id);
         fs::write(&destination, content)?;
         #[cfg(unix)]
@@ -99,6 +102,17 @@ impl CredentialManager {
 
     fn path_for(&self, id: &str) -> PathBuf {
         self.base_dir().join(format!("{id}.{CREDENTIAL_EXTENSION}"))
+    }
+
+    fn account_id(project_id: &str, client_email: &str) -> String {
+        let mut hasher = DefaultHasher::new();
+        client_email.hash(&mut hasher);
+        let suffix = hasher.finish();
+        let sanitized_project = project_id
+            .chars()
+            .map(|c| if c.is_alphanumeric() || c == '-' || c == '_' { c } else { '-' })
+            .collect::<String>();
+        format!("{sanitized_project}-{suffix:016x}")
     }
 
     fn parse_metadata(content: &str) -> Result<ServiceAccountMetadata> {

@@ -5,7 +5,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { OrderByRow, type OrderByRowData } from '@/components/query/OrderByRow';
 
 describe('OrderByRow', () => {
-  const defaultOrderBy: OrderByRowData = { field: 'createdAt', direction: 'asc' };
+  const defaultOrderBy: OrderByRowData = { id: 'o1', field: 'createdAt', direction: 'asc' };
 
   it('renders field input and direction button', () => {
     render(<OrderByRow orderBy={defaultOrderBy} onChange={vi.fn()} onRemove={vi.fn()} />);
@@ -18,17 +18,17 @@ describe('OrderByRow', () => {
     const user = userEvent.setup();
     render(<OrderByRow orderBy={defaultOrderBy} onChange={onChange} onRemove={vi.fn()} />);
     await user.click(screen.getByRole('button', { name: /sort/i }));
-    expect(onChange).toHaveBeenCalledWith({ field: 'createdAt', direction: 'desc' });
+    expect(onChange).toHaveBeenCalledWith({ id: 'o1', field: 'createdAt', direction: 'desc' });
   });
 
   it('toggles direction from desc to asc', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
     render(
-      <OrderByRow orderBy={{ field: 'name', direction: 'desc' }} onChange={onChange} onRemove={vi.fn()} />,
+      <OrderByRow orderBy={{ id: 'o2', field: 'name', direction: 'desc' }} onChange={onChange} onRemove={vi.fn()} />,
     );
     await user.click(screen.getByRole('button', { name: /sort/i }));
-    expect(onChange).toHaveBeenCalledWith({ field: 'name', direction: 'asc' });
+    expect(onChange).toHaveBeenCalledWith({ id: 'o2', field: 'name', direction: 'asc' });
   });
 
   it('calls onRemove when remove button is clicked', async () => {
