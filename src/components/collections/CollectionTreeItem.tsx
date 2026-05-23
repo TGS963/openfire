@@ -8,17 +8,17 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
-import { useDocuments } from '@/hooks/firestore';
+import { useDocumentsInfinite } from '@/hooks/firestore';
 
 export type CollectionTreeItemProps = {
   collectionId: string;
   fullPath: string;
   isActive: boolean;
-  onSelect: () => void;
+  onSelect: (e: React.MouseEvent) => void;
   collectionPath: string | null;
   documentPath?: string | null;
-  onSelectCollection: (path: string) => void;
-  onSelectDocument?: (path: string) => void;
+  onSelectCollection: (path: string, opts?: { background?: boolean }) => void;
+  onSelectDocument?: (path: string, opts?: { background?: boolean }) => void;
   onDeleteCollection?: (path: string) => void;
 };
 
@@ -34,8 +34,8 @@ export function CollectionTreeItem({
   onDeleteCollection,
 }: CollectionTreeItemProps) {
   const [expanded, setExpanded] = useState(false);
-  const documentsQuery = useDocuments(expanded ? fullPath : null);
-  const documents = documentsQuery.data?.documents ?? [];
+  const documentsQuery = useDocumentsInfinite(expanded ? fullPath : null);
+  const documents = documentsQuery.data?.pages.flatMap((p) => p.documents) ?? [];
 
   return (
     <div>
@@ -43,7 +43,7 @@ export function CollectionTreeItem({
         <ContextMenuTrigger asChild>
           <div className="flex items-center">
             <button
-              className="flex h-6 w-6 items-center justify-center rounded-sm hover:bg-white/10"
+              className="flex h-6 w-6 items-center justify-center rounded-sm hover:bg-surface-2"
               onClick={(e) => {
                 e.stopPropagation();
                 setExpanded(!expanded);
@@ -56,7 +56,7 @@ export function CollectionTreeItem({
             </button>
             <button
               className={`flex flex-1 items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-sm transition-all duration-200 ${
-                isActive ? 'bg-primary/10 text-primary shadow-[0_0_8px_rgba(245,158,11,0.1)]' : 'hover:bg-white/[0.06]'
+                isActive ? 'bg-ember-bg text-ember-strong' : 'hover:bg-surface-2'
               }`}
               onClick={onSelect}
             >
@@ -98,6 +98,21 @@ export function CollectionTreeItem({
                   onSelectDocument={onSelectDocument}
                 />
               ))}
+              {documentsQuery.hasNextPage && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!documentsQuery.isFetchingNextPage) {
+                      void documentsQuery.fetchNextPage();
+                    }
+                  }}
+                  disabled={documentsQuery.isFetchingNextPage}
+                  className="flex h-6 w-full items-center gap-1.5 rounded-sm px-2 text-left text-[11px] text-text-muted hover:bg-surface-2 hover:text-text disabled:opacity-50"
+                >
+                  {documentsQuery.isFetchingNextPage ? 'Loading…' : 'Load more'}
+                </button>
+              )}
             </div>
           )}
         </div>

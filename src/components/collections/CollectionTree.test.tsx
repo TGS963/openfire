@@ -7,7 +7,13 @@ import { useCollections } from '@/hooks/firestore';
 
 vi.mock('@/hooks/firestore', () => ({
   useCollections: vi.fn(),
-  useDocuments: vi.fn().mockReturnValue({ data: undefined, isLoading: false }),
+  useDocumentsInfinite: vi.fn().mockReturnValue({
+    data: undefined,
+    isLoading: false,
+    hasNextPage: false,
+    isFetchingNextPage: false,
+    fetchNextPage: vi.fn(),
+  }),
 }));
 
 const mockedUseCollections = vi.mocked(useCollections);
@@ -64,7 +70,7 @@ describe('CollectionTree', () => {
 
     render(<CollectionTree {...defaultProps} />);
     await user.click(screen.getByRole('button', { name: 'posts' }));
-    expect(defaultProps.onSelectCollection).toHaveBeenCalledWith('posts');
+    expect(defaultProps.onSelectCollection).toHaveBeenCalledWith('posts', { background: false });
   });
 
   it('does not render subcollections initially (no recursive tree)', () => {

@@ -146,4 +146,15 @@ describe('SHORTCUTS', () => {
   it('includes run-query shortcut', () => {
     expect(SHORTCUTS.find((s) => s.id === 'run-query')).toBeDefined();
   });
+
+  it('binds toggle-query to ⌘F (not ⌘Q)', () => {
+    const def = SHORTCUTS.find((s) => s.id === 'toggle-query');
+    expect(def?.key).toBe('f');
+  });
+
+  it('includes palette and tab shortcuts', () => {
+    for (const id of ['open-palette', 'goto-path', 'new-tab', 'close-tab', 'prev-tab', 'next-tab']) {
+      expect(SHORTCUTS.find((s) => s.id === id)).toBeDefined();
+    }
+  });
 });

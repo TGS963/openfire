@@ -2,7 +2,18 @@ import { useEffect, useRef } from 'react';
 
 import { SHORTCUTS, matchesShortcut } from '@/lib/keyboard-shortcuts';
 
-const ALWAYS_ALLOW = new Set(['save-document', 'escape', 'toggle-shell', 'run-script']);
+const ALWAYS_ALLOW = new Set([
+  'save-document',
+  'escape',
+  'toggle-shell',
+  'run-script',
+  'open-palette',
+  'goto-path',
+  'new-tab',
+  'close-tab',
+  'prev-tab',
+  'next-tab',
+]);
 
 const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
 

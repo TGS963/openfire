@@ -114,7 +114,7 @@ function FieldRow({
   return (
     <div>
       <div
-        className="flex items-center gap-2 px-4 py-1.5 hover:bg-white/[0.04] transition-colors"
+        className="flex items-center gap-2 px-4 py-1.5 hover:bg-surface-1 transition-colors"
         style={{ paddingLeft: `${depth * 20 + 16}px` }}
       >
         {isExpandable ? (

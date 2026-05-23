@@ -8,7 +8,9 @@ type ToasterToast = {
   title?: React.ReactNode;
   description?: React.ReactNode;
   action?: React.ReactNode;
-  variant?: 'default' | 'destructive';
+  variant?: 'default' | 'destructive' | 'success';
+  /** Radix Toast duration in ms; use Number.POSITIVE_INFINITY to keep open. */
+  duration?: number;
 };
 
 type Toast = ToasterToast;

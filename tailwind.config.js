@@ -1,5 +1,3 @@
-import { fontFamily } from 'tailwindcss/defaultTheme';
-
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ['class'],
@@ -12,47 +10,89 @@ export default {
   theme: {
     extend: {
       colors: {
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
+        /* shadcn semantic tokens — alpha-aware via oklch inner-params */
+        border: 'oklch(var(--border) / <alpha-value>)',
+        input: 'oklch(var(--input) / <alpha-value>)',
+        ring: 'oklch(var(--ring) / <alpha-value>)',
+        background: 'oklch(var(--background) / <alpha-value>)',
+        foreground: 'oklch(var(--foreground) / <alpha-value>)',
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: 'oklch(var(--primary) / <alpha-value>)',
+          foreground: 'oklch(var(--primary-foreground) / <alpha-value>)',
         },
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
+          DEFAULT: 'oklch(var(--secondary) / <alpha-value>)',
+          foreground: 'oklch(var(--secondary-foreground) / <alpha-value>)',
         },
         destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
+          DEFAULT: 'oklch(var(--destructive) / <alpha-value>)',
+          foreground: 'oklch(var(--destructive-foreground) / <alpha-value>)',
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+          DEFAULT: 'oklch(var(--muted) / <alpha-value>)',
+          foreground: 'oklch(var(--muted-foreground) / <alpha-value>)',
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
+          DEFAULT: 'oklch(var(--accent) / <alpha-value>)',
+          foreground: 'oklch(var(--accent-foreground) / <alpha-value>)',
         },
         popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
+          DEFAULT: 'oklch(var(--popover) / <alpha-value>)',
+          foreground: 'oklch(var(--popover-foreground) / <alpha-value>)',
         },
         card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
+          DEFAULT: 'oklch(var(--card) / <alpha-value>)',
+          foreground: 'oklch(var(--card-foreground) / <alpha-value>)',
+        },
+        /* design literal tokens — full oklch (alpha baked where needed) */
+        surface: {
+          DEFAULT: 'var(--bg)',
+          1: 'var(--bg-elev-1)',
+          2: 'var(--bg-elev-2)',
+          3: 'var(--bg-elev-3)',
+        },
+        'border-soft': 'var(--border-soft)',
+        'border-strong': 'var(--border-strong)',
+        text: {
+          DEFAULT: 'var(--text)',
+          mid: 'var(--text-mid)',
+          muted: 'var(--text-muted)',
+          faint: 'var(--text-faint)',
+        },
+        ember: {
+          DEFAULT: 'var(--accent)',
+          strong: 'var(--accent-strong)',
+          bg: 'var(--accent-bg)',
+          border: 'var(--accent-border)',
+          fg: 'var(--accent-fg)',
+        },
+        danger: {
+          DEFAULT: 'var(--danger)',
+          bg: 'var(--danger-bg)',
+        },
+        warning: 'var(--warning)',
+        info: 'var(--info)',
+        success: 'var(--success)',
+        syn: {
+          string: 'var(--syn-string)',
+          number: 'var(--syn-number)',
+          bool: 'var(--syn-bool)',
+          key: 'var(--syn-key)',
+          timestamp: 'var(--syn-timestamp)',
         },
       },
       borderRadius: {
-        lg: `var(--radius)`,
-        md: `calc(var(--radius) - 2px)`,
-        sm: 'calc(var(--radius) - 4px)',
+        sm: 'var(--r-sm)',
+        md: 'var(--r-md)',
+        lg: 'var(--r-lg)',
+        xl: 'var(--r-xl)',
       },
       fontFamily: {
-        sans: ['Inter', ...fontFamily.sans],
+        sans: ['var(--font-sans)'],
+        mono: ['var(--font-mono)'],
+      },
+      boxShadow: {
+        pop: 'var(--shadow-pop)',
       },
       keyframes: {
         'accordion-down': {
@@ -63,38 +103,10 @@ export default {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' },
         },
-        blob: {
-          '0%': { transform: 'translate(0, 0) scale(1)' },
-          '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-          '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
-          '100%': { transform: 'translate(0, 0) scale(1)' },
-        },
-        float: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' },
-        },
-        shimmer: {
-          '0%': { backgroundPosition: '-200% 0' },
-          '100%': { backgroundPosition: '200% 0' },
-        },
-        'gradient-slow': {
-          '0%, 100%': { backgroundPosition: '0% 50%' },
-          '50%': { backgroundPosition: '100% 50%' },
-        },
-        'shine-pulse': {
-          '0%': { backgroundPosition: '0% 0%' },
-          '50%': { backgroundPosition: '100% 100%' },
-          '100%': { backgroundPosition: '0% 0%' },
-        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        blob: 'blob 7s ease-in-out infinite',
-        float: 'float 6s ease-in-out infinite',
-        shimmer: 'shimmer 2s linear infinite',
-        'gradient-slow': 'gradient-slow 15s ease infinite',
-        'shine-pulse': 'shine-pulse 3s ease-in-out infinite',
       },
     },
   },

@@ -1,6 +1,6 @@
-# OpenFire - Firebase GUI Desktop App
+# OpenFire — Firestore GUI Desktop App
 
-Desktop GUI for browsing, querying, and managing Firestore databases. Tauri v2 desktop app with React frontend and Rust backend.
+OpenFire is a desktop GUI for browsing, querying, and managing Firestore databases. Tauri v2 desktop app with React frontend and Rust backend.
 
 ## Architecture
 

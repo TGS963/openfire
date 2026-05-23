@@ -32,11 +32,15 @@ export async function listCollections(parentPath?: string | null, pageSize = 100
   });
 }
 
-export async function listDocuments(collectionPath: string, pageSize = 100) {
+export async function listDocuments(
+  collectionPath: string,
+  pageSize = 100,
+  pageToken: string | null = null,
+) {
   return invoke<DocumentPage>('list_documents', {
     collectionPath,
     pageSize,
-    pageToken: null,
+    pageToken,
   });
 }
 

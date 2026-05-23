@@ -15,6 +15,8 @@ export type ConnectionManagerDialogProps = {
   connections: ConnectionEntry[];
   onSwitch: (id: string) => void;
   onRemove: (id: string) => void;
+  onImport?: () => void;
+  onConnectEmulator?: () => void;
 };
 
 export function ConnectionManagerDialog({
@@ -23,6 +25,8 @@ export function ConnectionManagerDialog({
   connections,
   onSwitch,
   onRemove,
+  onImport,
+  onConnectEmulator,
 }: ConnectionManagerDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -65,6 +69,20 @@ export function ConnectionManagerDialog({
                 </div>
               </div>
             ))}
+          </div>
+        )}
+        {(onImport || onConnectEmulator) && (
+          <div className="mt-2 flex items-center justify-end gap-2 border-t border-border-soft pt-3">
+            {onImport && (
+              <Button variant="outline" size="sm" onClick={onImport}>
+                Import service account
+              </Button>
+            )}
+            {onConnectEmulator && (
+              <Button variant="outline" size="sm" onClick={onConnectEmulator}>
+                Connect emulator
+              </Button>
+            )}
           </div>
         )}
       </DialogContent>

@@ -21,18 +21,28 @@ export function DocumentRow({ doc, selectedPath, onSelect, onDuplicate, onDelete
   const isSelected = selectedPath === doc.path;
   return (
     <div
-      className={`flex w-full min-w-0 items-center justify-between border-b border-white/[0.04] text-sm transition-colors ${
-        isSelected ? 'bg-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_12px_rgba(245,158,11,0.08)]' : 'hover:bg-white/[0.06]'
+      className={`relative flex w-full min-w-0 items-center justify-between border-b border-border-soft transition-colors ${
+        isSelected
+          ? 'bg-ember-bg before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-ember before:content-[""]'
+          : 'hover:bg-surface-1'
       }`}
     >
       <button
         type="button"
         aria-pressed={isSelected}
         onClick={() => onSelect(doc.path)}
-        className="flex min-w-0 flex-1 flex-col items-start overflow-hidden px-4 py-3 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        className="flex min-w-0 flex-1 flex-col items-start overflow-hidden px-3 py-[7px] text-left cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
       >
-        <span className="font-medium truncate w-full block">{doc.id}</span>
-        <span className="text-xs text-muted-foreground truncate w-full block">{doc.path}</span>
+        <span
+          className={`block w-full truncate font-mono text-[12px] font-medium ${
+            isSelected ? 'text-ember-strong' : 'text-text'
+          }`}
+        >
+          {doc.id}
+        </span>
+        <span className="block w-full truncate font-mono text-[11px] text-text-muted">
+          {doc.path}
+        </span>
       </button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

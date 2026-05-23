@@ -3,6 +3,7 @@ import { Loader2, Play, Trash2, Save } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Kbd } from '@/components/ui/kbd';
 import { createDbApi, executeScript } from '@/lib/script-engine';
 import { useScriptStore } from '@/stores/script-store';
 import { useViewStore } from '@/stores/view-store';
@@ -65,27 +66,30 @@ export function ScriptPanel({ onSaveRequest, runRef }: ScriptPanelProps) {
   }, [runRef]);
 
   return (
-    <div className="flex h-full flex-col bg-background">
-      <div className="flex items-center justify-between border-b border-white/[0.06] dark:bg-white/[0.01] bg-white/30 backdrop-blur-sm px-3 py-1.5">
-        <span className="text-xs font-medium uppercase text-muted-foreground">Script Shell</span>
-        <div className="flex items-center gap-1.5">
+    <div className="flex h-full flex-col bg-surface">
+      <div className="flex h-8 items-center gap-2 border-b border-border-soft bg-surface-1 px-2.5 font-mono text-[11px] uppercase tracking-[0.06em] text-text-muted">
+        <span>shell</span>
+        <span className="h-3 w-px bg-border-soft" />
+        <span className="normal-case text-text-faint">script</span>
+        <div className="ml-auto flex items-center gap-0.5">
           {onSaveRequest && (
-            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={onSaveRequest} aria-label="Save">
-              <Save className="mr-1 h-3 w-3" />
-              Save
+            <Button variant="ghost" size="icon" onClick={onSaveRequest} aria-label="Save script">
+              <Save className="h-3.5 w-3.5" />
             </Button>
           )}
-          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={clearOutput} aria-label="Clear">
-            <Trash2 className="mr-1 h-3 w-3" />
-            Clear
+          <Button variant="ghost" size="icon" onClick={clearOutput} aria-label="Clear output">
+            <Trash2 className="h-3.5 w-3.5" />
           </Button>
-          <Button size="sm" className="h-7 text-xs" onClick={handleRun} disabled={isRunning} aria-label="Run">
+          <Button onClick={handleRun} disabled={isRunning} aria-label="Run" className="ml-1 gap-1.5">
             {isRunning ? (
-              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Play className="mr-1 h-3 w-3" />
+              <>
+                <Play className="h-3 w-3" />
+                Run
+                <Kbd className="border-[var(--kbd-tip-border)] bg-[var(--kbd-tip-bg)] text-ember-fg">⌘⏎</Kbd>
+              </>
             )}
-            Run
           </Button>
         </div>
       </div>
@@ -106,20 +110,20 @@ export function ScriptPanel({ onSaveRequest, runRef }: ScriptPanelProps) {
             }}
           />
         </div>
-        <div className="flex w-[40%] min-w-[200px] flex-col border-l border-white/[0.06] dark:bg-white/[0.01] bg-white/20">
-          <div className="border-b px-3 py-1 text-xs font-medium uppercase text-muted-foreground">
+        <div className="flex w-[36%] min-w-[200px] flex-col border-l border-border-soft bg-surface-1">
+          <div className="border-b border-border-soft px-3 py-1 font-mono text-[11px] uppercase tracking-[0.06em] text-text-muted">
             Output
           </div>
-          <div ref={outputRef} className="flex-1 overflow-auto p-3 font-mono text-xs">
+          <div ref={outputRef} className="flex-1 overflow-auto p-3 font-mono text-[12px]">
             {output.map((line) => (
               <div
                 key={line.id}
                 className={
                   line.type === 'error'
-                    ? 'text-red-400'
+                    ? 'text-danger'
                     : line.type === 'result'
-                      ? 'text-green-400'
-                      : 'text-foreground'
+                      ? 'text-success'
+                      : 'text-text-mid'
                 }
               >
                 {line.content}

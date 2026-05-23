@@ -13,6 +13,10 @@ export type DocumentListSectionProps = {
   error?: Error;
   selectedPath: string | null;
   onSelect: (path: string) => void;
+  onEditComplex?: (path: string) => void;
+  onEndReached?: () => void;
+  hasMore?: boolean;
+  isFetchingMore?: boolean;
   hasCollection: boolean;
   search: string;
   onSearchChange: (value: string) => void;
@@ -27,6 +31,10 @@ export function DocumentListSection({
   error,
   selectedPath,
   onSelect,
+  onEditComplex,
+  onEndReached,
+  hasMore,
+  isFetchingMore,
   hasCollection,
   search,
   onSearchChange,
@@ -54,13 +62,13 @@ export function DocumentListSection({
 
   return (
     <section className="flex flex-1 flex-col min-h-0">
-      <div className="flex items-center gap-3 border-b px-4 py-3">
-        <div className="flex flex-1 items-center gap-2 rounded-lg dark:bg-white/5 bg-white/60 border dark:border-white/10 border-black/[0.08] backdrop-blur-sm px-3">
+      <div className="flex items-center gap-2 border-b border-border-soft px-2.5 py-[7px]">
+        <div className="flex flex-1 items-center gap-1.5 rounded-md border border-border-soft bg-surface px-2">
           <Input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Filter by document ID"
-            className="border-none p-0 focus-visible:ring-0"
+            placeholder="Filter ids…"
+            className="h-7 border-none bg-transparent p-0 text-[12px] focus-visible:ring-0"
           />
         </div>
         <Button size="sm" onClick={onCreateDocument} disabled={!hasCollection}>
@@ -77,12 +85,34 @@ export function DocumentListSection({
             No documents found.
           </div>
         ) : listMode === 'table' ? (
-          <TableView documents={documents} selectedPath={selectedPath} onSelect={onSelect} />
+          <TableView
+            documents={documents}
+            selectedPath={selectedPath}
+            onSelect={onSelect}
+            onEditComplex={onEditComplex}
+            onEndReached={onEndReached}
+            hasMore={hasMore}
+            isFetchingMore={isFetchingMore}
+          />
         ) : (
           <Virtuoso
             data={documents}
             defaultItemHeight={64}
             style={{ height: '100%', scrollbarGutter: 'stable' }}
+            endReached={() => {
+              if (hasMore && !isFetchingMore) onEndReached?.();
+            }}
+            components={
+              isFetchingMore || hasMore
+                ? {
+                    Footer: () => (
+                      <div className="flex items-center justify-center px-3 py-2 text-[11px] text-text-muted">
+                        {isFetchingMore ? 'Loading more…' : 'Scroll for more'}
+                      </div>
+                    ),
+                  }
+                : undefined
+            }
             itemContent={(_, doc) => (
               <DocumentRow
                 doc={doc}

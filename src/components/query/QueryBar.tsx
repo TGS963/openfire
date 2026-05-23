@@ -1,12 +1,10 @@
-import { Bookmark, Search } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Bookmark, Plus, X } from 'lucide-react';
+import { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { QueryBuilder } from '@/components/query/QueryBuilder';
-import { SavedQueryList } from '@/components/query/SavedQueryList';
-import { useQueryStore } from '@/stores/query-store';
-import type { QuerySpec } from '@/types/firestore';
+import type { QueryFilter, QuerySpec } from '@/types/firestore';
 
 export type QueryBarProps = {
   collectionPath: string;
@@ -16,7 +14,12 @@ export type QueryBarProps = {
   isQuerying: boolean;
   onSaveQuery: () => void;
   onLoadQuery: (spec: QuerySpec) => void;
+  matchCount?: number;
 };
+
+function displayValue(value: unknown): string {
+  return typeof value === 'string' ? value : JSON.stringify(value);
+}
 
 export function QueryBar({
   collectionPath,
@@ -25,86 +28,81 @@ export function QueryBar({
   onClearQuery,
   isQuerying,
   onSaveQuery,
-  onLoadQuery,
+  matchCount,
 }: QueryBarProps) {
   const [expanded, setExpanded] = useState(false);
-  const [showSaved, setShowSaved] = useState(false);
-  const allQueries = useQueryStore((state) => state.queries);
-  const deleteQuery = useQueryStore((state) => state.deleteQuery);
-  const savedQueries = useMemo(
-    () => allQueries.filter((q) => q.collectionPath === collectionPath),
-    [allQueries, collectionPath],
-  );
-  const filterCount = activeQuery?.filters.length ?? 0;
-  const [loadedQuery, setLoadedQuery] = useState<QuerySpec | null>(null);
+  const filters = activeQuery?.filters ?? [];
 
-  const handleLoadQuery = (spec: QuerySpec) => {
-    setLoadedQuery(spec);
-    setShowSaved(false);
-    setExpanded(true);
-    onLoadQuery(spec);
+  const removeFilter = (index: number) => {
+    if (!activeQuery) return;
+    const next = activeQuery.filters.filter((_, i) => i !== index);
+    if (next.length === 0) {
+      onClearQuery();
+    } else {
+      onRunQuery({ ...activeQuery, filters: next });
+    }
   };
 
   return (
     <div>
-      <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-2">
-        <Button
-          variant={expanded ? 'secondary' : 'outline'}
-          size="sm"
-          className="h-7 gap-1.5 text-xs"
-          onClick={() => {
-            setExpanded(!expanded);
-            setShowSaved(false);
-          }}
-        >
-          <Search className="h-3 w-3" />
-          Query
-          {filterCount > 0 && (
-            <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
-              {filterCount}
-            </Badge>
-          )}
-        </Button>
-        <Button
-          variant={showSaved ? 'secondary' : 'outline'}
-          size="sm"
-          className="h-7 gap-1.5 text-xs"
-          onClick={() => {
-            setShowSaved(!showSaved);
-            setExpanded(false);
-          }}
-        >
-          <Bookmark className="h-3 w-3" />
-          Saved
-          {savedQueries.length > 0 && (
-            <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
-              {savedQueries.length}
-            </Badge>
-          )}
-        </Button>
-        {activeQuery && (
-          <span className="text-xs text-muted-foreground">
-            Query active
-            {activeQuery.filters.length > 0 &&
-              ` — ${activeQuery.filters.length} filter${activeQuery.filters.length > 1 ? 's' : ''}`}
-            {activeQuery.limit != null && ` — limit ${activeQuery.limit}`}
+      <div className="flex items-center gap-2 border-b border-border-soft bg-surface-1 px-2.5 py-[7px] text-[12px]">
+        {filters.map((f: QueryFilter, i) => (
+          <span
+            key={`${f.field}-${i}`}
+            className="inline-flex h-6 items-center gap-1.5 rounded-md border border-border-soft bg-surface-2 px-2 font-mono text-[11.5px] text-text"
+          >
+            <span>{f.field}</span>
+            <span className="font-medium text-ember-strong">{f.operator}</span>
+            <span className="text-syn-string">{displayValue(f.value)}</span>
+            <button
+              type="button"
+              aria-label={`Remove filter ${f.field}`}
+              onClick={() => removeFilter(i)}
+              className="pl-0.5 text-text-faint hover:text-text"
+            >
+              <X className="h-3 w-3" />
+            </button>
           </span>
+        ))}
+
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="inline-flex h-6 items-center gap-1 rounded-md border border-dashed border-border px-2 text-[11.5px] text-text-muted hover:border-border-strong hover:text-text"
+        >
+          <Plus className="h-3 w-3" />
+          Add filter
+        </button>
+
+        {matchCount != null && (
+          <Badge dot variant="accent" className="ml-1">
+            {matchCount} matches
+          </Badge>
         )}
+
+        <div className="ml-auto flex items-center gap-1">
+          <Button variant="outline" size="sm" onClick={onSaveQuery} disabled={!activeQuery}>
+            <Bookmark className="mr-1 h-3 w-3" />
+            Save
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onClearQuery} disabled={!activeQuery}>
+            Clear
+          </Button>
+        </div>
       </div>
+
       {expanded && (
         <QueryBuilder
           collectionPath={collectionPath}
-          onRunQuery={onRunQuery}
+          onRunQuery={(spec) => {
+            onRunQuery(spec);
+            setExpanded(false);
+          }}
           onClearQuery={onClearQuery}
           isQuerying={isQuerying}
           onSaveQuery={onSaveQuery}
-          initialQuery={loadedQuery}
+          initialQuery={activeQuery}
         />
-      )}
-      {showSaved && (
-        <div className="border-b border-white/[0.06] dark:bg-white/[0.02] bg-white/30 backdrop-blur-sm px-4 py-3">
-          <SavedQueryList queries={savedQueries} onLoad={handleLoadQuery} onDelete={deleteQuery} />
-        </div>
       )}
     </div>
   );

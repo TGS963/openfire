@@ -1,13 +1,14 @@
 import Editor from '@monaco-editor/react';
-import { Copy, Loader2 } from 'lucide-react';
+import { Copy, CopyPlus, Loader2, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
+import { Kbd } from '@/components/ui/kbd';
 import { useToast } from '@/components/ui/use-toast';
 import { PreviewModeToggle } from '@/components/views/ViewModeToggle';
 import { FieldsView } from '@/components/views/FieldsView';
 import { useViewStore } from '@/stores/view-store';
+import { useDocDraftsStore } from '@/stores/doc-drafts-store';
 import type { FirestoreDocument } from '@/types/firestore';
 
 export type DocumentPreviewSectionProps = {
@@ -16,8 +17,14 @@ export type DocumentPreviewSectionProps = {
   onSave: (path: string, data: Record<string, unknown>) => Promise<void>;
   isSaving: boolean;
   onDuplicate: (doc: FirestoreDocument) => void;
+  onDelete?: (path: string) => void;
+  onDirtyChange?: (dirty: boolean) => void;
   saveRef?: React.MutableRefObject<(() => void) | null>;
 };
+
+function fmtTime(t?: string | null) {
+  return t ? t.replace('T', ' ').replace('Z', '') : '—';
+}
 
 export function DocumentPreviewSection({
   document,
@@ -25,6 +32,8 @@ export function DocumentPreviewSection({
   onSave,
   isSaving,
   onDuplicate,
+  onDelete,
+  onDirtyChange,
   saveRef,
 }: DocumentPreviewSectionProps) {
   const { toast } = useToast();
@@ -38,10 +47,13 @@ export function DocumentPreviewSection({
   useEffect(() => {
     if (document) {
       const pretty = JSON.stringify(document.data ?? {}, null, 2);
-      setEditorValue(pretty);
+      // Baseline always tracks the saved document; the working buffer prefers a
+      // pending draft so switching docs/tabs never discards unsaved edits.
       setLastSynced(pretty);
-      setFieldsData(document.data ?? {});
       setFieldsLastSynced(document.data ?? {});
+      const draft = useDocDraftsStore.getState().getDraft(document.path);
+      setEditorValue(draft?.editorValue ?? pretty);
+      setFieldsData(draft?.fieldsData ?? document.data ?? {});
     } else {
       setEditorValue('');
       setLastSynced('');
@@ -50,11 +62,29 @@ export function DocumentPreviewSection({
     }
   }, [document?.path, document?.updateTime]);
 
+  const handleEditorChange = (value: string) => {
+    setEditorValue(value);
+    if (document) {
+      useDocDraftsStore.getState().setDraft(document.path, { editorValue: value, fieldsData });
+    }
+  };
+
+  const handleFieldsChange = (next: Record<string, unknown>) => {
+    setFieldsData(next);
+    if (document) {
+      useDocDraftsStore.getState().setDraft(document.path, { editorValue, fieldsData: next });
+    }
+  };
+
   const isJsonDirty = previewMode === 'json' && Boolean(document && editorValue !== lastSynced);
   const isFieldsDirty =
     previewMode === 'fields' &&
     Boolean(document && JSON.stringify(fieldsData) !== JSON.stringify(fieldsLastSynced));
   const isDirty = isJsonDirty || isFieldsDirty;
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
 
   useEffect(() => {
     if (saveRef) {
@@ -94,92 +124,116 @@ export function DocumentPreviewSection({
     setEditorValue(pretty);
     setFieldsData(parsed);
     setFieldsLastSynced(parsed);
+    useDocDraftsStore.getState().clearDraft(document.path);
   };
+
+  const pathParts = document?.path.split('/') ?? [];
+  const fieldCount = document ? Object.keys(document.data ?? {}).length : 0;
+  const changeCount = isDirty ? 1 : 0;
 
   return (
     <section className="flex flex-1 flex-col min-h-0">
-      <div className="flex items-center justify-between border-b border-white/[0.06] dark:bg-white/[0.005] bg-white/30 backdrop-blur-sm px-4 py-2 shrink-0">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="min-w-0">
-            <p className="text-xs uppercase text-muted-foreground">Document</p>
-            <p className="text-sm font-semibold truncate">
-              {isLoading ? 'Loading…' : document?.path ?? 'Nothing selected'}
-            </p>
-            {isDirty && (
-              <p className="text-xs text-amber-500">You have unsaved changes.</p>
+      {/* preview head */}
+      <div className="flex min-h-10 shrink-0 items-center gap-2 border-b border-border-soft px-3">
+        <div className="min-w-0 flex-1 truncate font-mono text-[11.5px] text-text-muted">
+          {isLoading ? (
+            'Loading…'
+          ) : document ? (
+            pathParts.map((seg, i) => {
+              const last = i === pathParts.length - 1;
+              return (
+                <span key={i} className={last ? 'font-medium text-text' : 'text-text-faint'}>
+                  {i > 0 && <span className="text-text-faint"> / </span>}
+                  {seg}
+                </span>
+              );
+            })
+          ) : (
+            'Nothing selected'
+          )}
+        </div>
+        {document && <PreviewModeToggle />}
+        {document && (
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Copy JSON"
+            onClick={() => {
+              navigator.clipboard.writeText(JSON.stringify(document.data, null, 2));
+              toast({ title: 'Copied', description: 'Document JSON copied to clipboard.' });
+            }}
+          >
+            <Copy className="h-4 w-4" />
+          </Button>
+        )}
+        {document && (
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Duplicate"
+            onClick={() => onDuplicate(document)}
+          >
+            <CopyPlus className="h-4 w-4" />
+          </Button>
+        )}
+        {document && onDelete && (
+          <Button
+            variant="danger"
+            size="icon"
+            aria-label="Delete"
+            onClick={() => onDelete(document.path)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
+        {document && isDirty && (
+          <Button size="default" onClick={handleSave} disabled={isSaving} className="gap-1.5">
+            {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Save'}
+            {!isSaving && (
+              <Kbd className="border-[var(--kbd-tip-border)] bg-[var(--kbd-tip-bg)] text-ember-fg">
+                ⌘S
+              </Kbd>
             )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <PreviewModeToggle />
-          {document && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                navigator.clipboard.writeText(JSON.stringify(document.data, null, 2));
-                toast({ title: 'Copied', description: 'Document JSON copied to clipboard.' });
-              }}
-            >
-              <Copy className="mr-1.5 h-3.5 w-3.5" />
-              Copy JSON
-            </Button>
-          )}
-          {previewMode === 'json' && document && (
-            <Button variant="outline" size="sm" onClick={() => onDuplicate(document)}>
-              Duplicate
-            </Button>
-          )}
-          {(previewMode === 'json' || previewMode === 'fields') && (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  if (previewMode === 'fields') {
-                    setFieldsData(fieldsLastSynced);
-                  } else {
-                    setEditorValue(lastSynced);
-                  }
-                }}
-                disabled={!document || !isDirty || isSaving}
-              >
-                Reset
-              </Button>
-              <Button size="sm" onClick={handleSave} disabled={!document || !isDirty || isSaving}>
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
-              </Button>
-            </>
-          )}
-        </div>
+          </Button>
+        )}
       </div>
-      {previewMode === 'json' && document && (
-        <div className="border-b px-4 py-2 shrink-0">
-          <Table>
-            <TableBody>
-              <TableRow>
-                <TableCell className="w-32 text-xs uppercase text-muted-foreground">
-                  Created
-                </TableCell>
-                <TableCell className="text-sm">
-                  {document.createTime?.replace('T', ' ').replace('Z', '') ?? '—'}
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="text-xs uppercase text-muted-foreground">
-                  Updated
-                </TableCell>
-                <TableCell className="text-sm">
-                  {document.updateTime?.replace('T', ' ').replace('Z', '') ?? '—'}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+      {/* meta strip */}
+      {document && (
+        <div className="flex shrink-0 gap-[18px] border-b border-border-soft px-3 py-1.5 font-mono text-[11px] text-text-muted">
+          <span>
+            <b className="mr-1 font-medium text-text-mid">created</b>
+            {fmtTime(document.createTime)}
+          </span>
+          <span>
+            <b className="mr-1 font-medium text-text-mid">updated</b>
+            {fmtTime(document.updateTime)}
+          </span>
+          <span>
+            <b className="mr-1 font-medium text-text-mid">{fieldCount} fields</b>
+          </span>
+          {isDirty && (
+            <button
+              type="button"
+              onClick={() => {
+                setFieldsData(fieldsLastSynced);
+                setEditorValue(lastSynced);
+                if (document) useDocDraftsStore.getState().clearDraft(document.path);
+              }}
+              className="ml-auto text-text-faint hover:text-text"
+            >
+              reset
+            </button>
+          )}
+          <span
+            className={isDirty ? 'text-warning' : 'ml-auto text-success'}
+          >
+            ● {isDirty ? `unsaved · ${changeCount} change${changeCount === 1 ? '' : 's'}` : 'saved'}
+          </span>
         </div>
       )}
       {previewMode === 'fields' ? (
         document ? (
-          <FieldsView data={fieldsData} onChange={setFieldsData} />
+          <FieldsView data={fieldsData} onChange={handleFieldsChange} />
         ) : (
           <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
             Select a document to edit its fields.
@@ -192,7 +246,7 @@ export function DocumentPreviewSection({
               key={document.path}
               defaultLanguage="json"
               value={editorValue}
-              onChange={(value) => setEditorValue(value ?? '')}
+              onChange={(value) => handleEditorChange(value ?? '')}
               theme={theme === 'dark' ? 'vs-dark' : 'vs'}
               options={{ minimap: { enabled: false }, fontSize: 13 }}
             />

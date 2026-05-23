@@ -1,7 +1,7 @@
 # Project Spec: OpenFire (Firefoo Alternative)
 
 ## 1. Executive Summary
-**Goal**: Build a high-performance, open-source, cross-platform Firebase GUI client.
+**Goal**: Build OpenFire — a high-performance, open-source, cross-platform Firestore GUI client.
 **Target Audience**: Developers using Firestore/Realtime Database who need a native-feeling, fast tool for data management.
 **Key Differentiators**:
 - **Speed**: Built on Tauri (Rust) for minimal resource usage compared to Electron.

@@ -124,7 +124,7 @@ export function QueryBuilder({
   };
 
   return (
-    <div className="space-y-3 border-b border-white/[0.06] dark:bg-white/[0.02] bg-white/30 backdrop-blur-sm px-4 py-3">
+    <div className="space-y-3 border-b border-border-soft bg-surface-1 px-4 py-3">
       <div className="space-y-2">
         {filters.length > 0 && (
           <div className="space-y-2">

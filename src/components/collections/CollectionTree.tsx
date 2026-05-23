@@ -5,8 +5,8 @@ export type CollectionTreeProps = {
   parentDocumentPath?: string | null;
   collectionPath: string | null;
   documentPath?: string | null;
-  onSelectCollection: (path: string) => void;
-  onSelectDocument?: (path: string) => void;
+  onSelectCollection: (path: string, opts?: { background?: boolean }) => void;
+  onSelectDocument?: (path: string, opts?: { background?: boolean }) => void;
   onDeleteCollection?: (path: string) => void;
 };
 
@@ -41,7 +41,7 @@ export function CollectionTree({
             collectionId={collectionId}
             fullPath={fullPath}
             isActive={collectionPath === fullPath}
-            onSelect={() => onSelectCollection(fullPath)}
+            onSelect={(e) => onSelectCollection(fullPath, { background: e.metaKey || e.ctrlKey })}
             collectionPath={collectionPath}
             documentPath={documentPath}
             onSelectCollection={onSelectCollection}

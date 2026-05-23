@@ -78,8 +78,8 @@ describe('ScriptPanel', () => {
     });
     render(<ScriptPanel />);
     expect(screen.getByText('info message')).toBeInTheDocument();
-    expect(screen.getByText('error message')).toHaveClass('text-red-400');
-    expect(screen.getByText('42')).toHaveClass('text-green-400');
+    expect(screen.getByText('error message')).toHaveClass('text-danger');
+    expect(screen.getByText('42')).toHaveClass('text-success');
   });
 
   it('shows save button and triggers dialog', async () => {

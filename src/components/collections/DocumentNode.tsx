@@ -8,8 +8,8 @@ export type DocumentNodeProps = {
   documentPath: string;
   selectedDocumentPath?: string | null;
   collectionPath: string | null;
-  onSelectCollection: (path: string) => void;
-  onSelectDocument?: (path: string) => void;
+  onSelectCollection: (path: string, opts?: { background?: boolean }) => void;
+  onSelectDocument?: (path: string, opts?: { background?: boolean }) => void;
 };
 
 export function DocumentNode({
@@ -27,7 +27,7 @@ export function DocumentNode({
     <div>
       <div className="flex items-center">
         <button
-          className="flex h-6 w-6 items-center justify-center rounded-sm hover:bg-white/10"
+          className="flex h-6 w-6 items-center justify-center rounded-sm hover:bg-surface-2"
           onClick={(e) => {
             e.stopPropagation();
             setExpanded(!expanded);
@@ -40,12 +40,12 @@ export function DocumentNode({
         </button>
         <button
           type="button"
-          onClick={() => onSelectDocument?.(documentPath)}
+          onClick={(e) => onSelectDocument?.(documentPath, { background: e.metaKey || e.ctrlKey })}
           aria-pressed={isActive}
           className={`flex flex-1 items-center gap-1.5 rounded-md px-2 py-1 text-left text-xs transition-colors ${
             isActive
-              ? 'bg-primary/10 font-medium text-foreground'
-              : 'text-muted-foreground hover:bg-white/[0.06]'
+              ? 'bg-surface-3 font-medium text-text'
+              : 'text-text-muted hover:bg-surface-2'
           }`}
         >
           <FileText className="h-3 w-3 shrink-0" />

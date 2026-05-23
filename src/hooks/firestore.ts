@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   deleteCollection,
@@ -33,13 +33,16 @@ export function useCollections(parentPath?: string | null) {
   });
 }
 
-export function useDocuments(collectionPath: string | null) {
+/** Paginated list keyed by collection path. Each page = one Firestore page. */
+export function useDocumentsInfinite(collectionPath: string | null, pageSize = 100) {
   const { key, hasConnection } = useConnectionKey();
-  return useQuery<DocumentPage>({
-    queryKey: ['documents', key, collectionPath],
-    queryFn: () => listDocuments(collectionPath!),
+  return useInfiniteQuery({
+    queryKey: ['documentsInf', key, collectionPath, pageSize],
+    queryFn: ({ pageParam }) =>
+      listDocuments(collectionPath!, pageSize, pageParam as string | null),
+    initialPageParam: null as string | null,
+    getNextPageParam: (last) => last.nextPageToken ?? undefined,
     enabled: hasConnection && Boolean(collectionPath),
-    placeholderData: (previousData) => previousData,
   });
 }
 
@@ -62,7 +65,8 @@ export function useDeleteDocument() {
       const collection = collectionFromDocPath(documentPath);
       if (collection) {
         queryClient.invalidateQueries({
-          queryKey: ['documents', key, collection],
+          queryKey: ['documentsInf', key, collection],
+          exact: false,
         });
       }
       queryClient.removeQueries({
@@ -89,7 +93,8 @@ export function useDeleteCollection() {
     mutationFn: (collectionPath: string) => deleteCollection(collectionPath),
     onSuccess: (_count, collectionPath) => {
       queryClient.invalidateQueries({
-        queryKey: ['documents', key, collectionPath],
+        queryKey: ['documentsInf', key, collectionPath],
+        exact: false,
       });
       queryClient.invalidateQueries({
         queryKey: ['collections'],

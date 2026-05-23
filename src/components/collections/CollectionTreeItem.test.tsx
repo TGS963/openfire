@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { CollectionTreeItem } from '@/components/collections/CollectionTreeItem';
-import { useDocuments } from '@/hooks/firestore';
+import { useDocumentsInfinite } from '@/hooks/firestore';
 
 // Mock DocumentNode to avoid recursive rendering
 vi.mock('@/components/collections/DocumentNode', () => ({
@@ -13,10 +13,22 @@ vi.mock('@/components/collections/DocumentNode', () => ({
 }));
 
 vi.mock('@/hooks/firestore', () => ({
-  useDocuments: vi.fn(),
+  useDocumentsInfinite: vi.fn(),
 }));
 
-const mockedUseDocuments = vi.mocked(useDocuments);
+const mockedUseDocumentsInfinite = vi.mocked(useDocumentsInfinite);
+
+type InfReturn = ReturnType<typeof useDocumentsInfinite>;
+
+const mockReturn = (over: Partial<InfReturn> = {}): InfReturn =>
+  ({
+    data: undefined,
+    isLoading: false,
+    hasNextPage: false,
+    isFetchingNextPage: false,
+    fetchNextPage: vi.fn(),
+    ...over,
+  }) as unknown as InfReturn;
 
 describe('CollectionTreeItem', () => {
   const defaultProps = {
@@ -30,10 +42,7 @@ describe('CollectionTreeItem', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedUseDocuments.mockReturnValue({
-      data: undefined,
-      isLoading: false,
-    } as unknown as ReturnType<typeof useDocuments>);
+    mockedUseDocumentsInfinite.mockReturnValue(mockReturn());
   });
 
   it('renders the collection name', () => {
@@ -54,16 +63,22 @@ describe('CollectionTreeItem', () => {
   });
 
   it('shows documents when expanded', async () => {
-    mockedUseDocuments.mockReturnValue({
-      data: {
-        documents: [
-          { id: 'doc1', path: 'users/doc1', data: {}, createTime: null, updateTime: null },
-          { id: 'doc2', path: 'users/doc2', data: {}, createTime: null, updateTime: null },
-        ],
-        nextPageToken: null,
-      },
-      isLoading: false,
-    } as unknown as ReturnType<typeof useDocuments>);
+    mockedUseDocumentsInfinite.mockReturnValue(
+      mockReturn({
+        data: {
+          pages: [
+            {
+              documents: [
+                { id: 'doc1', path: 'users/doc1', data: {}, createTime: null, updateTime: null },
+                { id: 'doc2', path: 'users/doc2', data: {}, createTime: null, updateTime: null },
+              ],
+              nextPageToken: null,
+            },
+          ],
+          pageParams: [null],
+        },
+      } as unknown as Partial<InfReturn>),
+    );
 
     const user = userEvent.setup();
     render(<CollectionTreeItem {...defaultProps} />);
@@ -73,14 +88,39 @@ describe('CollectionTreeItem', () => {
   });
 
   it('shows loading state when expanding', async () => {
-    mockedUseDocuments.mockReturnValue({
-      data: undefined,
-      isLoading: true,
-    } as unknown as ReturnType<typeof useDocuments>);
+    mockedUseDocumentsInfinite.mockReturnValue(mockReturn({ isLoading: true }));
 
     const user = userEvent.setup();
     render(<CollectionTreeItem {...defaultProps} />);
     await user.click(screen.getByRole('button', { name: 'Expand' }));
     expect(screen.getByText('Loading documents…')).toBeInTheDocument();
+  });
+
+  it('shows a Load more button when more pages are available', async () => {
+    const fetchNextPage = vi.fn();
+    mockedUseDocumentsInfinite.mockReturnValue(
+      mockReturn({
+        data: {
+          pages: [
+            {
+              documents: [
+                { id: 'doc1', path: 'users/doc1', data: {}, createTime: null, updateTime: null },
+              ],
+              nextPageToken: 'page2',
+            },
+          ],
+          pageParams: [null],
+        },
+        hasNextPage: true,
+        fetchNextPage,
+      } as unknown as Partial<InfReturn>),
+    );
+
+    const user = userEvent.setup();
+    render(<CollectionTreeItem {...defaultProps} />);
+    await user.click(screen.getByRole('button', { name: 'Expand' }));
+    const loadMore = screen.getByRole('button', { name: /load more/i });
+    await user.click(loadMore);
+    expect(fetchNextPage).toHaveBeenCalledTimes(1);
   });
 });

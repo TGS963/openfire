@@ -1,7 +1,6 @@
-import { Moon, Sun } from 'lucide-react';
+import { ChevronsUpDown, HelpCircle, Moon, Search, Sun } from 'lucide-react';
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Kbd } from '@/components/ui/kbd';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CollectionTree } from '@/components/collections/CollectionTree';
 import { useViewStore } from '@/stores/view-store';
@@ -15,8 +14,8 @@ export type SidebarProps = {
   onSelectAccount: (id: string) => Promise<void>;
   collectionPath: string | null;
   documentPath: string | null;
-  onSelectCollection: (path: string) => void;
-  onSelectDocument?: (path: string) => void;
+  onSelectCollection: (path: string, opts?: { background?: boolean }) => void;
+  onSelectDocument?: (path: string, opts?: { background?: boolean }) => void;
   connectionMode: 'production' | 'emulator' | null;
   emulatorProjectId: string | null;
   onConnectEmulator: () => void;
@@ -30,95 +29,62 @@ export type SidebarProps = {
 export function Sidebar({
   accounts,
   activeAccountId,
-  isLoading,
-  onImport,
-  onSelectAccount,
   collectionPath,
   documentPath,
   onSelectCollection,
   onSelectDocument,
   connectionMode,
   emulatorProjectId,
-  onConnectEmulator,
-  onDisconnectEmulator,
-  connectionCount = 0,
   onManageConnections,
   onDeleteCollection,
   onAbout,
 }: SidebarProps) {
   const theme = useViewStore((s) => s.theme);
   const toggleTheme = useViewStore((s) => s.toggleTheme);
+
+  const isEmulator = connectionMode === 'emulator';
+  const activeAccount = accounts.find((a) => a.id === activeAccountId);
+  const projectName = isEmulator ? emulatorProjectId : (activeAccount?.projectId ?? null);
+  const projectMeta = isEmulator ? 'local emulator' : (activeAccount?.clientEmail ?? null);
+  const mark = (projectName ?? '?').charAt(0).toUpperCase();
+
   return (
-    <aside className="flex h-full flex-col dark:bg-white/[0.008] bg-white/50 backdrop-blur-xl relative bg-noise">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-      <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-4 py-3">
-        <img src="/openfire-icon.svg" alt="OpenFire" className="h-7 w-7 rounded-md" />
-        <span className="text-sm font-semibold">OpenFire</span>
+    <aside className="flex h-full flex-col bg-surface-1">
+      {/* project pill */}
+      <div className="border-b border-border-soft px-2.5 pb-2 pt-2.5">
+        <button
+          type="button"
+          onClick={onManageConnections}
+          className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-surface-2"
+        >
+          <span className="grid h-[22px] w-[22px] shrink-0 place-items-center rounded-[5px] bg-ember font-mono text-[12px] font-bold text-ember-fg">
+            {mark}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[12.5px] font-semibold text-text">
+              {projectName ?? 'No project'}
+            </span>
+            <span className="block truncate font-mono text-[10.5px] text-text-muted">
+              {projectMeta ?? 'Connect a project'}
+            </span>
+          </span>
+          <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-text-faint" />
+        </button>
       </div>
-      <div className="space-y-3 border-b border-white/[0.06] px-4 py-4">
-        {connectionMode === 'emulator' ? (
-          <div>
-            <div className="flex items-center justify-between">
-              <Badge variant="outline" className="border-amber-500 text-amber-500">
-                Emulator
-              </Badge>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 text-xs"
-                onClick={onDisconnectEmulator}
-              >
-                Disconnect
-              </Button>
-            </div>
-            <p className="mt-1 text-sm font-medium">{emulatorProjectId}</p>
-          </div>
-        ) : (
-          <div>
-            <p className="text-xs uppercase text-muted-foreground">Active project</p>
-            <select
-              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
-              value={activeAccountId ?? ''}
-              onChange={(event) => onSelectAccount(event.target.value)}
-              disabled={!accounts.length || isLoading}
-            >
-              {!accounts.length && <option value="">No accounts yet</option>}
-              {accounts.map((account) => {
-                const projectCount = accounts.filter(
-                  (a) => a.projectId === account.projectId,
-                ).length;
-                const label =
-                  projectCount > 1
-                    ? `${account.projectId} (${account.clientEmail.split('@')[0]})`
-                    : account.projectId;
-                return (
-                  <option key={account.id} value={account.id}>
-                    {label}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-        )}
-        {connectionMode !== 'emulator' && (
-          <>
-            <Button onClick={onImport} variant="outline" size="sm" className="w-full">
-              Import service account
-            </Button>
-            <Button onClick={onConnectEmulator} variant="outline" size="sm" className="w-full">
-              Connect emulator
-            </Button>
-          </>
-        )}
-        {connectionCount >= 2 && onManageConnections && (
-          <Button onClick={onManageConnections} variant="ghost" size="sm" className="w-full">
-            Manage connections ({connectionCount})
-          </Button>
-        )}
+
+      {/* search */}
+      <div className="mx-2.5 mb-1 mt-2 flex items-center gap-1.5 rounded-md border border-border-soft bg-surface px-2 py-[5px] text-[12px] text-text-muted">
+        <Search className="h-3.5 w-3.5 shrink-0 text-text-faint" />
+        <span className="flex-1">Search…</span>
+        <Kbd className="ml-auto">⌘K</Kbd>
       </div>
-      <ScrollArea className="flex-1">
-        <div className="px-4 py-4">
-          <p className="mb-2 text-xs uppercase text-muted-foreground">Collections</p>
+
+      {/* collections */}
+      <div className="flex items-center justify-between px-2.5 pb-1 pt-3 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-text-faint">
+        Collections
+      </div>
+      <ScrollArea className="min-h-0 flex-1">
+        <div className="px-1.5 pb-2">
           <CollectionTree
             collectionPath={collectionPath}
             documentPath={documentPath}
@@ -128,19 +94,36 @@ export function Sidebar({
           />
         </div>
       </ScrollArea>
-      <div className="border-t px-4 py-3 space-y-1.5">
-        <Button variant="ghost" size="sm" className="w-full justify-start text-xs" onClick={toggleTheme}>
-          {theme === 'dark' ? (
-            <Sun className="mr-2 h-3.5 w-3.5" />
-          ) : (
-            <Moon className="mr-2 h-3.5 w-3.5" />
-          )}
-          {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-        </Button>
+
+      {/* footer */}
+      <div className="flex items-center gap-2 border-t border-border-soft px-2.5 py-2 text-[11.5px] text-text-muted">
+        <span
+          data-testid="connection-dot"
+          data-mode={isEmulator ? 'emulator' : 'production'}
+          className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+            isEmulator
+              ? 'bg-warning shadow-[0_0_0_2px_oklch(0.80_0.15_80_/_0.18)]'
+              : 'bg-success shadow-[0_0_0_2px_oklch(0.74_0.13_150_/_0.18)]'
+          }`}
+        />
+        <span className="min-w-0 flex-1 truncate">{projectName ?? 'Not connected'}</span>
+        <button
+          type="button"
+          aria-label="Toggle theme"
+          onClick={toggleTheme}
+          className="grid h-[22px] w-[22px] place-items-center rounded-sm text-text-muted hover:bg-surface-2 hover:text-text"
+        >
+          {theme === 'dark' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+        </button>
         {onAbout && (
-          <Button variant="ghost" size="sm" className="w-full justify-start text-xs" onClick={onAbout}>
-            About OpenFire
-          </Button>
+          <button
+            type="button"
+            aria-label="About OpenFire"
+            onClick={onAbout}
+            className="grid h-[22px] w-[22px] place-items-center rounded-sm text-text-muted hover:bg-surface-2 hover:text-text"
+          >
+            <HelpCircle className="h-3.5 w-3.5" />
+          </button>
         )}
       </div>
     </aside>

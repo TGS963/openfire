@@ -8,9 +8,9 @@ We will copy imported Service Account files into the application's local data di
 
 ### 1. Path Resolution
 Using Tauri's `path` API (exposed to Rust via `app.path().app_local_data_dir()`).
-- Linux: `~/.local/share/com.godavsky.firebase-gui-app/credentials/`
-- macOS: `~/Library/Application Support/com.godavsky.firebase-gui-app/credentials/`
-- Windows: `C:\Users\...\AppData\Local\com.godavsky.firebase-gui-app\credentials\`
+- Linux: `~/.local/share/dev.openfire.app/credentials/`
+- macOS: `~/Library/Application Support/dev.openfire.app/credentials/`
+- Windows: `C:\Users\...\AppData\Local\dev.openfire.app\credentials\`
 
 ### 2. Security Considerations
 - **Permissions**: Set file permissions to `600` (read/write only by owner) on Unix systems.

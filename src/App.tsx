@@ -1,11 +1,11 @@
 import { save as saveDialogPlugin } from '@tauri-apps/plugin-dialog';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Group, Panel, Separator, useDefaultLayout } from 'react-resizable-panels';
 
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/components/ui/use-toast';
-import { useDeleteCollection, useDeleteDocument, useDocument, useDocuments, useQueryDocuments } from '@/hooks/firestore';
+import { useDeleteCollection, useDeleteDocument, useDocument, useDocumentsInfinite, useQueryDocuments } from '@/hooks/firestore';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { duplicateCollection, duplicateDocument, exportCollection, importCollection, saveDocument, transferDocuments } from '@/lib/tauri';
 import { openFileDialog } from '@/lib/dialog-utils';
@@ -15,13 +15,20 @@ import { useAuthStore } from '@/stores/auth-store';
 import { useConnectionStore } from '@/stores/connection-store';
 import { useDialogStore, type DialogName } from '@/stores/dialog-store';
 import { useNavStore } from '@/stores/nav-store';
+import { useTabsStore } from '@/stores/tabs-store';
+import { usePaletteStore } from '@/stores/palette-store';
+import { useCellEditsStore } from '@/stores/cell-edits-store';
+import { flushTablePending } from '@/lib/cell-flush';
 import type { DocumentPage, FirestoreDocument, ImportMode, QuerySpec } from '@/types/firestore';
 
 import { Sidebar } from '@/components/layout/Sidebar';
-import { Header } from '@/components/layout/Header';
+import { Toolbar } from '@/components/layout/Toolbar';
+import { TabBar } from '@/components/layout/TabBar';
+import { CommandPalette, type PaletteAction } from '@/components/layout/CommandPalette';
+import { StatusBar } from '@/components/layout/StatusBar';
+import { Kbd } from '@/components/ui/kbd';
 import { ResizableLayout } from '@/components/layout/ResizableLayout';
 import { ContentSplit } from '@/components/layout/ContentSplit';
-import { BackgroundBlobs } from '@/components/layout/BackgroundBlobs';
 import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
 import { DocumentListSection } from '@/components/documents/DocumentListSection';
 import { DocumentPreviewSection } from '@/components/documents/DocumentPreviewSection';
@@ -52,7 +59,7 @@ type ShellSplitProps = {
 };
 
 const SEPARATOR_H =
-  'group relative h-2 cursor-row-resize select-none focus:outline-none before:absolute before:inset-x-0 before:top-1/2 before:h-px before:-translate-y-1/2 before:bg-black/[0.06] dark:before:bg-white/[0.06] before:transition-all hover:before:h-0.5 hover:before:bg-primary/50 focus:before:h-0.5 focus:before:bg-primary active:before:h-0.5 active:before:bg-primary';
+  'group relative h-2 cursor-row-resize select-none focus:outline-none before:absolute before:inset-x-0 before:top-1/2 before:h-px before:-translate-y-1/2 before:bg-border-soft before:transition-all hover:before:h-0.5 hover:before:bg-primary/50 focus:before:h-0.5 focus:before:bg-primary active:before:h-0.5 active:before:bg-primary';
 
 function ShellSplitInner({
   children,
@@ -116,7 +123,27 @@ export function App() {
   const documentPath = useNavStore((state) => state.documentPath);
   const setCollectionPath = useNavStore((state) => state.setCollectionPath);
   const setDocumentPath = useNavStore((state) => state.setDocumentPath);
+  const breadcrumbs = useNavStore((state) => state.breadcrumbs);
+  const popToBreadcrumb = useNavStore((state) => state.popToBreadcrumb);
   const resetNav = useNavStore((state) => state.reset);
+
+  const openCollectionTab = useTabsStore((s) => s.openCollection);
+  const openDocumentTab = useTabsStore((s) => s.openDocument);
+  const resetTabs = useTabsStore((s) => s.reset);
+  const setTabDirty = useTabsStore((s) => s.setDirty);
+  const hydrateNavFromActive = useTabsStore((s) => s.hydrateNavFromActive);
+  const ensureAccount = useTabsStore((s) => s.ensureAccount);
+  const syncActiveTab = useTabsStore((s) => s.syncActiveFromNav);
+  const activeTabId = useTabsStore((s) => s.activeId);
+  const tabsList = useTabsStore((s) => s.tabs);
+  const cellPendingCount = useCellEditsStore((s) =>
+    Object.values(s.pending).reduce((n, d) => n + Object.keys(d).length, 0),
+  );
+  const closeTabAction = useTabsStore((s) => s.closeTab);
+  const closeTabByPath = useTabsStore((s) => s.closeTabByPath);
+  const setActiveTab = useTabsStore((s) => s.setActive);
+  const openPalette = usePaletteStore((s) => s.open);
+  const closePalette = usePaletteStore((s) => s.close);
 
   const [search, setSearch] = useState('');
   const [duplicateDoc, setDuplicateDoc] = useState<FirestoreDocument | null>(null);
@@ -125,6 +152,7 @@ export function App() {
   const [activeQuery, setActiveQuery] = useState<QuerySpec | null>(null);
   const [isTransferring, setIsTransferring] = useState(false);
   const [shellOpen, setShellOpen] = useState(false);
+  const [queryOpen, setQueryOpen] = useState(false);
   const saveQueryToStore = useQueryStore((state) => state.saveQuery);
   const saveScriptToStore = useScriptStore((s) => s.saveScript);
   const scriptStoreScript = useScriptStore((s) => s.script);
@@ -141,6 +169,8 @@ export function App() {
   const isDialogOpen = (name: DialogName) => dialogStack.includes(name);
   const closeTopDialog = useDialogStore((s) => s.closeTop);
   const theme = useViewStore((s) => s.theme);
+  const listMode = useViewStore((s) => s.listMode);
+  const setPreviewMode = useViewStore((s) => s.setPreviewMode);
 
   const saveRequestedRef = useRef<(() => void) | null>(null);
   const runScriptRef = useRef<(() => void) | null>(null);
@@ -194,14 +224,29 @@ export function App() {
     queryClient.setQueryData<FirestoreDocument>(['document', activeAccountId, doc.path], doc);
     const collection = collectionFromDocPath(doc.path);
     if (!collection) return;
-    queryClient.setQueryData<DocumentPage | undefined>(
-      ['documents', activeAccountId, collection],
+    // Infinite (shared list/tree) cache — match all pageSize variants for this collection.
+    queryClient.setQueriesData<{ pages: DocumentPage[]; pageParams: unknown[] } | undefined>(
+      { queryKey: ['documentsInf', activeAccountId, collection], exact: false },
       (existing) => {
         if (!existing) return existing;
-        const nextDocuments = existing.documents.some((entry) => entry.path === doc.path)
-          ? existing.documents.map((entry) => (entry.path === doc.path ? doc : entry))
-          : [doc, ...existing.documents];
-        return { ...existing, documents: nextDocuments };
+        let inserted = false;
+        const pages = existing.pages.map((page) => {
+          if (page.documents.some((entry) => entry.path === doc.path)) {
+            inserted = true;
+            return {
+              ...page,
+              documents: page.documents.map((entry) =>
+                entry.path === doc.path ? doc : entry,
+              ),
+            };
+          }
+          return page;
+        });
+        // New document → prepend to first page.
+        if (!inserted && pages.length > 0) {
+          pages[0] = { ...pages[0], documents: [doc, ...pages[0].documents] };
+        }
+        return { ...existing, pages };
       },
     );
   };
@@ -224,15 +269,26 @@ export function App() {
       });
       throw new Error('Invalid path');
     }
+    const pending = toast({
+      title: 'Saving…',
+      description: normalizedPath,
+      duration: Number.POSITIVE_INFINITY,
+    });
     try {
       const doc = await saveDocumentMutation.mutateAsync({ path: normalizedPath, data });
       updateDocumentCaches(doc);
-      toast({
+      // Query-mode list reads from a separate cache key — invalidate so it refetches.
+      queryClient.invalidateQueries({ queryKey: ['queryDocuments', activeAccountId], exact: false });
+      pending.update({
+        id: pending.id,
         title: successMessage,
         description: doc.path,
+        variant: 'success',
+        duration: 3000,
       });
       return doc;
     } catch (err) {
+      pending.dismiss();
       toastError(toast, 'Failed to save document', err);
       throw err;
     }
@@ -272,7 +328,7 @@ export function App() {
         title: 'Document duplicated',
         description: `${doc.id} saved under ${collectionFromDocPath(doc.path) || 'collection'}.`,
       });
-      setDocumentPath(doc.path);
+      openDocumentTab(doc.path);
       setDuplicateDoc(null);
     } catch (err) {
       toastError(toast, 'Unable to duplicate document', err);
@@ -317,10 +373,10 @@ export function App() {
       });
       queryClient.invalidateQueries({ queryKey: ['collections'], exact: false });
       queryClient.invalidateQueries({
-        queryKey: ['documents', activeAccountId, normalizedTarget],
+        queryKey: ['documentsInf', activeAccountId, normalizedTarget],
+        exact: false,
       });
-      setCollectionPath(normalizedTarget);
-      setDocumentPath(null);
+      openCollectionTab(normalizedTarget);
       closeDialog('duplicateCollection');
     } catch (err) {
       toastError(toast, 'Unable to duplicate collection', err);
@@ -358,7 +414,7 @@ export function App() {
       data,
       successMessage: 'Document created',
     });
-    setDocumentPath(doc.path);
+    openDocumentTab(doc.path);
     closeDialog('createDocument');
   };
 
@@ -371,6 +427,7 @@ export function App() {
     try {
       await deleteDocumentMutation.mutateAsync(deleteDocPath);
       toast({ title: 'Document deleted', description: deleteDocPath });
+      closeTabByPath(deleteDocPath);
       if (documentPath === deleteDocPath) {
         setDocumentPath(null);
       }
@@ -434,7 +491,7 @@ export function App() {
         title: 'Import complete',
         description: `Imported ${result.imported} documents${result.skipped > 0 ? `, skipped ${result.skipped}` : ''}.`,
       });
-      queryClient.invalidateQueries({ queryKey: ['documents', activeAccountId, collectionPath] });
+      queryClient.invalidateQueries({ queryKey: ['documentsInf', activeAccountId, collectionPath], exact: false });
       queryClient.invalidateQueries({ queryKey: ['collections'], exact: false });
       closeDialog('importCollection');
     } catch (err) {
@@ -454,6 +511,7 @@ export function App() {
       await connectToEmulator(projectId, emulatorUrl);
       queryClient.clear();
       resetNav();
+      resetTabs();
       closeDialog('emulatorConnect');
       toast({ title: 'Connected to emulator', description: `Project: ${projectId}` });
     } catch (err) {
@@ -467,6 +525,7 @@ export function App() {
       await disconnectFromEmulator();
       queryClient.clear();
       resetNav();
+      resetTabs();
       toast({ title: 'Disconnected from emulator' });
     } catch (err) {
       toastError(toast, 'Failed to disconnect', err);
@@ -506,6 +565,7 @@ export function App() {
     await switchConnection(id);
     queryClient.clear();
     resetNav();
+    resetTabs();
     closeDialog('connectionManager');
   };
 
@@ -514,15 +574,15 @@ export function App() {
     if (id === activeConnectionId) {
       queryClient.clear();
       resetNav();
+      resetTabs();
     }
   };
 
   useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    const root = document.documentElement;
+    // Dark is the default (tokens live in :root). Light swaps in .theme-light.
+    root.classList.toggle('theme-light', theme === 'light');
+    root.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
   useEffect(() => {
@@ -541,19 +601,46 @@ export function App() {
     }
   }, [error, toast, clearError]);
 
+  // Restore nav from the persisted active tab once on mount.
   useEffect(() => {
-    resetNav();
-    setActiveQuery(null);
-  }, [activeAccountId, resetNav]);
+    hydrateNavFromActive();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const documentsQuery = useDocuments(collectionPath);
+  // Tabs are tagged with the account they belong to. When the active account
+  // changes (login / switch), ensureAccount clears stale tabs; matching account
+  // (cold start with persisted tabs) is a no-op.
+  useEffect(() => {
+    if (!activeAccountId) return;
+    if (ensureAccount(activeAccountId)) {
+      setActiveQuery(null);
+    }
+  }, [activeAccountId, ensureAccount]);
+
+  const handleDirtyChange = useCallback(
+    (dirty: boolean) => {
+      if (activeTabId) setTabDirty(activeTabId, dirty);
+    },
+    [activeTabId, setTabDirty],
+  );
+
+  const documentsQuery = useDocumentsInfinite(collectionPath);
+  const documentsFromPages = useMemo(
+    () => documentsQuery.data?.pages.flatMap((p) => p.documents) ?? [],
+    [documentsQuery.data],
+  );
+  const handleLoadMoreDocuments = () => {
+    if (documentsQuery.hasNextPage && !documentsQuery.isFetchingNextPage) {
+      void documentsQuery.fetchNextPage();
+    }
+  };
   const queryDocumentsResult = useQueryDocuments(activeQuery);
   const documentQuery = useDocument(documentPath);
 
   const isQueryActive = activeQuery !== null;
   const documents: FirestoreDocument[] = isQueryActive
     ? (queryDocumentsResult.data?.documents ?? [])
-    : (documentsQuery.data?.documents ?? []);
+    : documentsFromPages;
   const filteredDocuments = useMemo(() => {
     if (!search.trim()) return documents;
     return documents.filter((doc) => doc.id.toLowerCase().includes(search.toLowerCase()));
@@ -569,17 +656,39 @@ export function App() {
     }
   }, [documentPath, documents, setDocumentPath]);
 
+  const cycleTab = (delta: number) => {
+    if (tabsList.length === 0) return;
+    const idx = tabsList.findIndex((t) => t.id === activeTabId);
+    const next = (idx + delta + tabsList.length) % tabsList.length;
+    setActiveTab(tabsList[next].id);
+  };
+
   useKeyboardShortcuts({
-    'save-document': () => saveRequestedRef.current?.(),
+    'save-document': () => {
+      if (
+        listMode === 'table' &&
+        useCellEditsStore.getState().pendingCount() > 0
+      ) {
+        void flushTablePending(documents, handleSaveDocument);
+        return;
+      }
+      saveRequestedRef.current?.();
+    },
     'run-query': () => {
       if (activeQuery && collectionPath) {
         setActiveQuery({ ...activeQuery });
       }
     },
-    // toggle-query not wired — QueryBar manages its own expanded state
+    'toggle-query': () => {
+      if (collectionPath) setQueryOpen((prev) => !prev);
+    },
     escape: () => {
-      if (useDialogStore.getState().stack.length > 0) {
+      if (usePaletteStore.getState().isOpen) {
+        closePalette();
+      } else if (useDialogStore.getState().stack.length > 0) {
         closeTopDialog();
+      } else if (queryOpen) {
+        setQueryOpen(false);
       } else if (shellOpen) {
         setShellOpen(false);
       }
@@ -587,6 +696,29 @@ export function App() {
     'show-shortcuts': () => openDialog('shortcutsHelp'),
     'toggle-shell': () => setShellOpen((prev) => !prev),
     'run-script': () => runScriptRef.current?.(),
+    'open-palette': () => {
+      if (!showOnboarding) openPalette();
+    },
+    'goto-path': () => {
+      if (!showOnboarding) openPalette('goto');
+    },
+    'new-tab': () => {
+      if (!showOnboarding) openPalette('open-tab');
+    },
+    'close-tab': () => {
+      if (activeTabId) closeTabAction(activeTabId);
+    },
+    'prev-tab': () => cycleTab(-1),
+    'next-tab': () => cycleTab(1),
+    ...Object.fromEntries(
+      Array.from({ length: 9 }, (_, i) => [
+        `switch-tab-${i + 1}`,
+        () => {
+          const tab = tabsList[i];
+          if (tab) setActiveTab(tab.id);
+        },
+      ]),
+    ),
   });
 
   const handleImport = async () => {
@@ -623,9 +755,39 @@ export function App() {
 
   const showOnboarding = initialized && accounts.length === 0 && connectionMode !== 'emulator';
 
+  const projectName =
+    connectionMode === 'emulator'
+      ? emulatorProjectId
+      : (accounts.find((a) => a.id === activeAccountId)?.projectId ?? null);
+
+  const paletteActions: PaletteAction[] = [
+    ...(collectionPath
+      ? [
+          { id: 'export', label: 'Export collection…', run: () => void handleExportCollection() },
+          { id: 'import-collection', label: 'Import collection from JSON…', run: () => openDialog('importCollection') },
+          ...(connections.length >= 2
+            ? [{ id: 'transfer', label: 'Transfer collection…', run: () => openDialog('transfer') }]
+            : []),
+          { id: 'duplicate', label: 'Duplicate collection…', run: () => openDialog('duplicateCollection') },
+        ]
+      : []),
+    { id: 'connect-emulator', label: 'Connect to local emulator', run: () => openDialog('emulatorConnect') },
+    { id: 'import-sa', label: 'Import service account', run: () => void handleImport() },
+    {
+      id: 'toggle-theme',
+      label: theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme',
+      run: () => useViewStore.getState().toggleTheme(),
+    },
+    ...(activeQuery
+      ? [{ id: 'save-query', label: 'Save current query…', run: () => openDialog('saveQuery') }]
+      : []),
+  ];
+
   return (
     <ErrorBoundary>
-      <BackgroundBlobs />
+      <div className="flex h-screen flex-col">
+      {!showOnboarding && <TabBar onNewTab={() => openPalette('open-tab')} />}
+      <div className="min-h-0 flex-1">
       <ResizableLayout
         sidebarContent={
           <Sidebar
@@ -636,12 +798,8 @@ export function App() {
             onSelectAccount={handleSelectAccount}
             collectionPath={collectionPath}
             documentPath={documentPath}
-            onSelectCollection={(path) => setCollectionPath(path)}
-            onSelectDocument={(path) => {
-              const collection = collectionFromDocPath(path);
-              if (collection) setCollectionPath(collection);
-              setDocumentPath(path);
-            }}
+            onSelectCollection={(path, opts) => openCollectionTab(path, opts)}
+            onSelectDocument={(path, opts) => openDocumentTab(path, opts)}
             connectionMode={connectionMode}
             emulatorProjectId={emulatorProjectId}
             onConnectEmulator={() => openDialog('emulatorConnect')}
@@ -655,31 +813,32 @@ export function App() {
         mainContent={
           <main className="flex flex-1 flex-col min-h-0 bg-background text-foreground">
             {showOnboarding ? (
-              <OnboardingState onImport={handleImport} />
+              <OnboardingState
+                onImport={handleImport}
+                onConnectEmulator={() => openDialog('emulatorConnect')}
+              />
             ) : (
               <>
-                <Header
+                <Toolbar
                   collectionPath={collectionPath}
+                  breadcrumbs={breadcrumbs}
+                  onCrumbClick={(index) => {
+                    popToBreadcrumb(index);
+                    syncActiveTab();
+                  }}
                   isLoading={
                     isQueryActive
                       ? queryDocumentsResult.isLoading
                       : documentsQuery.isLoading && !documentsQuery.data
                   }
-                  onClearSelection={() => {
-                    setCollectionPath(null);
-                    setActiveQuery(null);
-                  }}
-                  canClear={Boolean(collectionPath)}
+                  queryOpen={queryOpen}
+                  onToggleQuery={collectionPath ? () => setQueryOpen((prev) => !prev) : undefined}
                   onDuplicateCollection={() => openDialog('duplicateCollection')}
                   onDeleteCollection={collectionPath ? () => setDeleteCollectionPath(collectionPath) : undefined}
-                  onExportCollection={collectionPath ? handleExportCollection : undefined}
-                  onImportCollection={collectionPath ? () => openDialog('importCollection') : undefined}
-                  onTransferCollection={collectionPath ? () => openDialog('transfer') : undefined}
-                  connectionCount={connections.length}
                   shellOpen={shellOpen}
                   onToggleShell={() => setShellOpen((prev) => !prev)}
                 />
-                {collectionPath && (
+                {collectionPath && queryOpen && (
                   <QueryBar
                     collectionPath={collectionPath}
                     activeQuery={activeQuery}
@@ -688,6 +847,7 @@ export function App() {
                     isQuerying={queryDocumentsResult.isLoading}
                     onSaveQuery={() => openDialog('saveQuery')}
                     onLoadQuery={(spec) => setActiveQuery(spec)}
+                    matchCount={isQueryActive ? filteredDocuments.length : undefined}
                   />
                 )}
                 <ShellSplit
@@ -703,6 +863,13 @@ export function App() {
                         error={documentsQuery.error as Error | undefined}
                         selectedPath={documentPath}
                         onSelect={setDocumentPath}
+                        onEditComplex={(path) => {
+                          setDocumentPath(path);
+                          setPreviewMode('fields');
+                        }}
+                        onEndReached={isQueryActive ? undefined : handleLoadMoreDocuments}
+                        hasMore={!isQueryActive && Boolean(documentsQuery.hasNextPage)}
+                        isFetchingMore={!isQueryActive && documentsQuery.isFetchingNextPage}
                         hasCollection={Boolean(collectionPath)}
                         search={search}
                         onSearchChange={setSearch}
@@ -718,6 +885,8 @@ export function App() {
                         onSave={handleSaveDocument}
                         isSaving={saveDocumentMutation.isPending}
                         onDuplicate={(doc) => setDuplicateDoc(doc)}
+                        onDelete={(path) => setDeleteDocPath(path)}
+                        onDirtyChange={handleDirtyChange}
                         saveRef={saveRequestedRef}
                       />
                     }
@@ -725,9 +894,46 @@ export function App() {
                 </ShellSplit>
               </>
             )}
+            {!showOnboarding && (
+              <StatusBar
+                items={[
+                  ...(projectName ? [{ id: 'project', label: projectName }] : []),
+                  ...(collectionPath
+                    ? [{
+                        id: 'count',
+                        label: `${filteredDocuments.length}${
+                          !isQueryActive && documentsQuery.hasNextPage ? '+' : ''
+                        } docs`,
+                      }]
+                    : []),
+                  ...(documentPath ? [{ id: 'sel', label: '1 selected' }] : []),
+                  ...(listMode === 'table' && cellPendingCount > 0
+                    ? [{ id: 'pending', label: `${cellPendingCount} change${cellPendingCount === 1 ? '' : 's'} pending` }]
+                    : []),
+                ]}
+                right={
+                  <span className="flex items-center gap-1.5">
+                    {listMode === 'table' && collectionPath ? (
+                      <>
+                        double-click to edit · <Kbd>⌘S</Kbd> save
+                      </>
+                    ) : (
+                      <>
+                        <Kbd>⌘K</Kbd> commands
+                      </>
+                    )}
+                  </span>
+                }
+              />
+            )}
           </main>
         }
       />
+      </div>
+      </div>
+      {!showOnboarding && (
+        <CommandPalette actions={paletteActions} onLoadQuery={(q) => setActiveQuery(q)} />
+      )}
       <CreateDocumentDialog
         open={isDialogOpen('createDocument')}
         onOpenChange={(next) => { if (!next) closeDialog('createDocument'); }}
@@ -809,6 +1015,8 @@ export function App() {
         connections={connections}
         onSwitch={handleSwitchConnection}
         onRemove={handleRemoveConnection}
+        onImport={handleImport}
+        onConnectEmulator={() => openDialog('emulatorConnect')}
       />
       <TransferDialog
         open={isDialogOpen('transfer')}
