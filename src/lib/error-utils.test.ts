@@ -18,6 +18,12 @@ describe('getErrorMessage', () => {
     expect(getErrorMessage({ code: 500 })).toBe('Unexpected error');
   });
 
+  it('unwraps message field from object errors (Tauri invoke shape)', () => {
+    expect(getErrorMessage({ message: 'permission denied' })).toBe('permission denied');
+    expect(getErrorMessage({ error: 'token expired' })).toBe('token expired');
+    expect(getErrorMessage({ description: 'rate limited' })).toBe('rate limited');
+  });
+
   it('uses custom fallback when provided', () => {
     expect(getErrorMessage(null, 'Custom fallback')).toBe('Custom fallback');
   });

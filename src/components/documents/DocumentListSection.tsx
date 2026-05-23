@@ -1,8 +1,9 @@
 import { useCallback, useRef } from 'react';
-import { Loader2 } from 'lucide-react';
+import { AlertCircle, FolderTree, Inbox, Loader2, SearchX } from 'lucide-react';
 import { Virtuoso } from 'react-virtuoso';
 
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { DocumentRow } from '@/components/documents/DocumentRow';
 import { TableView } from '@/components/views/TableView';
@@ -48,22 +49,29 @@ export function DocumentListSection({
 }: DocumentListSectionProps) {
   if (!hasCollection) {
     return (
-      <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-        Choose a collection to load documents.
-      </div>
+      <EmptyState
+        icon={FolderTree}
+        title="No collection selected"
+        description="Pick a collection from the sidebar to browse its documents."
+      />
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 text-center text-sm text-destructive">
-        <span className="max-w-md break-words">{error.message}</span>
-        {onRetry && (
-          <Button size="sm" variant="outline" onClick={onRetry}>
-            Retry
-          </Button>
-        )}
-      </div>
+      <EmptyState
+        icon={AlertCircle}
+        tone="destructive"
+        title="Couldn't load documents"
+        description={error.message}
+        action={
+          onRetry && (
+            <Button size="sm" variant="outline" onClick={onRetry}>
+              Retry
+            </Button>
+          )
+        }
+      />
     );
   }
 
@@ -102,9 +110,34 @@ export function DocumentListSection({
             <span>Loading documents…</span>
           </div>
         ) : !documents.length ? (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-            {search.trim() ? 'No matching documents.' : 'No documents in this collection.'}
-          </div>
+          search.trim() ? (
+            <EmptyState
+              icon={SearchX}
+              title="No matches"
+              description={
+                <>
+                  No document IDs match <span className="font-mono">"{search}"</span>. Clear the
+                  filter or try a different value.
+                </>
+              }
+              action={
+                <Button size="sm" variant="outline" onClick={() => onSearchChange('')}>
+                  Clear filter
+                </Button>
+              }
+            />
+          ) : (
+            <EmptyState
+              icon={Inbox}
+              title="No documents in this collection"
+              description="Create the first document to get started."
+              action={
+                <Button size="sm" onClick={onCreateDocument}>
+                  New document
+                </Button>
+              }
+            />
+          )
         ) : listMode === 'table' ? (
           <TableView
             documents={documents}

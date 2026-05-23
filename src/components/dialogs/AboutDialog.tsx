@@ -1,3 +1,5 @@
+import { Github } from 'lucide-react';
+
 import {
   Dialog,
   DialogContent,
@@ -6,13 +8,26 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/components/ui/use-toast';
 
 export type AboutDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
+const REPO_URL = 'https://github.com/TGS963/openfire';
+
 export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
+  const { toast } = useToast();
+  const copyRepoUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(REPO_URL);
+      toast({ title: 'Copied repo URL', description: REPO_URL });
+    } catch {
+      // ignore — anchor still navigates
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
@@ -33,6 +48,17 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
               v0.1.0
             </Badge>
             <p className="text-xs">Built with Tauri, React, and Rust.</p>
+            <a
+              href={REPO_URL}
+              target="_blank"
+              rel="noreferrer"
+              onClick={copyRepoUrl}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border-soft px-2.5 py-1 text-xs text-text hover:bg-surface-2"
+              aria-label="OpenFire on GitHub (click to copy URL)"
+            >
+              <Github className="h-3.5 w-3.5" />
+              <span className="font-mono">github.com/TGS963/openfire</span>
+            </a>
           </div>
         </div>
       </DialogContent>

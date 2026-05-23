@@ -1,8 +1,9 @@
 import Editor from '@monaco-editor/react';
-import { Copy, CopyPlus, Loader2, Trash2 } from 'lucide-react';
+import { Copy, CopyPlus, FileText, Loader2, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Kbd } from '@/components/ui/kbd';
 import { useToast } from '@/components/ui/use-toast';
 import { PreviewModeToggle } from '@/components/views/ViewModeToggle';
@@ -243,9 +244,11 @@ export function DocumentPreviewSection({
         document ? (
           <FieldsView data={fieldsData} onChange={handleFieldsChange} />
         ) : (
-          <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-            Select a document to edit its fields.
-          </div>
+          <EmptyState
+            icon={FileText}
+            title="No document selected"
+            description="Pick a document from the list to edit its fields."
+          />
         )
       ) : (
         <div className="flex flex-1 min-h-0">
@@ -259,9 +262,11 @@ export function DocumentPreviewSection({
               options={{ minimap: { enabled: false }, fontSize: 13 }}
             />
           ) : (
-            <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-              Select a document to preview and edit its JSON payload.
-            </div>
+            <EmptyState
+              icon={FileText}
+              title="No document selected"
+              description="Pick a document from the list to preview and edit its JSON payload."
+            />
           )}
         </div>
       )}

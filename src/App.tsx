@@ -640,12 +640,26 @@ export function App() {
   // Tabs are tagged with the account they belong to. When the active account
   // changes (login / switch), ensureAccount clears stale tabs; matching account
   // (cold start with persisted tabs) is a no-op.
+  const prevAccountIdRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!activeAccountId) return;
+    if (!activeAccountId) {
+      prevAccountIdRef.current = null;
+      return;
+    }
+    const prev = prevAccountIdRef.current;
     if (ensureAccount(activeAccountId)) {
       setActiveQuery(null);
+      // Only toast on an actual switch — first login (prev === null) has no
+      // stale tabs to warn about.
+      if (prev && prev !== activeAccountId) {
+        toast({
+          title: 'Switched account',
+          description: 'Open a collection from the sidebar to view its documents.',
+        });
+      }
     }
-  }, [activeAccountId, ensureAccount]);
+    prevAccountIdRef.current = activeAccountId;
+  }, [activeAccountId, ensureAccount, toast]);
 
   const handleDirtyChange = useCallback(
     (dirty: boolean) => {

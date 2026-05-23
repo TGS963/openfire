@@ -1,7 +1,8 @@
-import { ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { Braces, ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import { FieldEditor } from '@/components/fields/FieldEditor';
 import { detectFieldType, setValueAtPath, deleteValueAtPath } from '@/lib/field-types';
 
@@ -34,13 +35,17 @@ export function FieldsView({ data, onChange, readonly }: FieldsViewProps) {
 
   if (keys.length === 0 && !readonly) {
     return (
-      <div className="flex flex-col items-center justify-center flex-1 gap-3 py-8">
-        <p className="text-sm text-muted-foreground">No fields yet. Add one to get started.</p>
-        <Button variant="outline" size="sm" onClick={handleAddField}>
-          <Plus className="mr-1 h-3 w-3" />
-          Add field
-        </Button>
-      </div>
+      <EmptyState
+        icon={Braces}
+        title="No fields yet"
+        description="Add a field to start building this document."
+        action={
+          <Button variant="outline" size="sm" onClick={handleAddField}>
+            <Plus className="mr-1 h-3 w-3" />
+            Add field
+          </Button>
+        }
+      />
     );
   }
 
