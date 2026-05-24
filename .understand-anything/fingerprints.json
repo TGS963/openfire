@@ -1,0 +1,6463 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "4f59fd2a81be197498ce7be8773079d13d429ce5",
+  "generatedAt": "2026-05-24T18:58:33.705Z",
+  "files": {
+    ".cursor/worktrees.json": {
+      "filePath": ".cursor/worktrees.json",
+      "contentHash": "bcbb830af87909a7acfdbf2d8b7638df77c8b2d97baf692d6193d3b1f13b437c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": true
+    },
+    ".github/workflows/release.yml": {
+      "filePath": ".github/workflows/release.yml",
+      "contentHash": "5143c3af34b020d7e4b0196e274169f08c886c901ebbe11f58aef48f89621d54",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 109,
+      "hasStructuralAnalysis": true
+    },
+    "CLAUDE.md": {
+      "filePath": "CLAUDE.md",
+      "contentHash": "23a2ac9246ecf86af3e53751dde98563d9ce58fde6d9d61e4f16d5eb7462dff9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 72,
+      "hasStructuralAnalysis": true
+    },
+    "components.json": {
+      "filePath": "components.json",
+      "contentHash": "e55d039995c6a509e9ebdbcbafac494d63e91411859b79f0e7602ea98bf14409",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "index.html": {
+      "filePath": "index.html",
+      "contentHash": "c8a5b30142935a7f1ed4350ffbda986b96450b50651d2e62bae7200c195b9efb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": false
+    },
+    "package.json": {
+      "filePath": "package.json",
+      "contentHash": "10669d7ed613d018bdd568a827c08d6ce51bc2de19a3251d4a9d0b4a63614c47",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 67,
+      "hasStructuralAnalysis": true
+    },
+    "postcss.config.js": {
+      "filePath": "postcss.config.js",
+      "contentHash": "190c877db466995bf1482f4a16abd06e04a89ede3119341e2a86ff96e1737b27",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "src-tauri/Cargo.toml": {
+      "filePath": "src-tauri/Cargo.toml",
+      "contentHash": "b8057fafd8b9b05e8fac2ecd9fab15ce6d71b31fa208567c495d7f2825c890a8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 44,
+      "hasStructuralAnalysis": true
+    },
+    "src-tauri/build.rs": {
+      "filePath": "src-tauri/build.rs",
+      "contentHash": "487059eaf8a947b80f20a9aacac038a5047b2ad69d2401b827376c67d6fe847f",
+      "functions": [
+        {
+          "name": "main",
+          "params": [],
+          "exported": false,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": true
+    },
+    "src-tauri/capabilities/default.json": {
+      "filePath": "src-tauri/capabilities/default.json",
+      "contentHash": "ab52060a011cc375623646e138a215aaa77e12ab4bc2a6fb180fe26c1bcb1097",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": true
+    },
+    "src-tauri/icons/android/mipmap-anydpi-v26/ic_launcher.xml": {
+      "filePath": "src-tauri/icons/android/mipmap-anydpi-v26/ic_launcher.xml",
+      "contentHash": "760d4b8a06bf7163dd010c33ad2cac9e4a75fa0177afaba042f83e311eef0c3e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "src-tauri/icons/android/values/ic_launcher_background.xml": {
+      "filePath": "src-tauri/icons/android/values/ic_launcher_background.xml",
+      "contentHash": "0687336f0ccc6f7ee09c7c95110667c63b75931238df779a21af401fb864cd34",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": false
+    },
+    "src-tauri/src/commands.rs": {
+      "filePath": "src-tauri/src/commands.rs",
+      "contentHash": "7172383ccf600b915e3e44be2a9bee6a23666216a1daa0ed27580681af569139",
+      "functions": [
+        {
+          "name": "open_external",
+          "params": [
+            "url"
+          ],
+          "returnType": "CmdResult<()>",
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "import_service_account",
+          "params": [
+            "credential_manager",
+            "file_path"
+          ],
+          "returnType": "CmdResult<ServiceAccountSummary>",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "list_service_accounts",
+          "params": [
+            "credential_manager"
+          ],
+          "returnType": "CmdResult<Vec<ServiceAccountSummary>>",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "set_active_account",
+          "params": [
+            "credential_manager",
+            "app_state",
+            "account_id"
+          ],
+          "returnType": "CmdResult<ServiceAccountSummary>",
+          "exported": true,
+          "lineCount": 32
+        },
+        {
+          "name": "list_collections",
+          "params": [
+            "app_state",
+            "parent_path",
+            "page_size",
+            "page_token"
+          ],
+          "returnType": "CmdResult<CollectionList>",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "list_documents",
+          "params": [
+            "app_state",
+            "collection_path",
+            "page_size",
+            "page_token"
+          ],
+          "returnType": "CmdResult<DocumentPage>",
+          "exported": true,
+          "lineCount": 29
+        },
+        {
+          "name": "get_document",
+          "params": [
+            "app_state",
+            "document_path"
+          ],
+          "returnType": "CmdResult<FirestoreDocument>",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "save_document",
+          "params": [
+            "app_state",
+            "document_path",
+            "data"
+          ],
+          "returnType": "CmdResult<FirestoreDocument>",
+          "exported": true,
+          "lineCount": 38
+        },
+        {
+          "name": "duplicate_document",
+          "params": [
+            "app_state",
+            "source_path",
+            "target_path",
+            "overwrite"
+          ],
+          "returnType": "CmdResult<FirestoreDocument>",
+          "exported": true,
+          "lineCount": 52
+        },
+        {
+          "name": "duplicate_collection",
+          "params": [
+            "app_state",
+            "source_collection_path",
+            "target_collection_path",
+            "overwrite"
+          ],
+          "returnType": "CmdResult<u32>",
+          "exported": true,
+          "lineCount": 56
+        },
+        {
+          "name": "delete_document",
+          "params": [
+            "app_state",
+            "document_path"
+          ],
+          "returnType": "CmdResult<()>",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "delete_collection",
+          "params": [
+            "app_state",
+            "collection_path"
+          ],
+          "returnType": "CmdResult<u32>",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "query_documents",
+          "params": [
+            "app_state",
+            "query"
+          ],
+          "returnType": "CmdResult<DocumentPage>",
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "build_query_params",
+          "params": [
+            "db",
+            "query"
+          ],
+          "returnType": "Result<FirestoreQueryParams>",
+          "exported": false,
+          "lineCount": 48
+        },
+        {
+          "name": "build_filter_compare",
+          "params": [
+            "db",
+            "filter"
+          ],
+          "returnType": "Result<FirestoreQueryFilterCompare>",
+          "exported": false,
+          "lineCount": 19
+        },
+        {
+          "name": "export_collection",
+          "params": [
+            "app_state",
+            "collection_path",
+            "file_path"
+          ],
+          "returnType": "CmdResult<u32>",
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "import_collection",
+          "params": [
+            "app_state",
+            "collection_path",
+            "file_path",
+            "mode"
+          ],
+          "returnType": "CmdResult<ImportResult>",
+          "exported": true,
+          "lineCount": 76
+        },
+        {
+          "name": "connect_emulator",
+          "params": [
+            "app_state",
+            "project_id",
+            "emulator_url"
+          ],
+          "returnType": "CmdResult<ConnectionInfo>",
+          "exported": true,
+          "lineCount": 32
+        },
+        {
+          "name": "disconnect_emulator",
+          "params": [
+            "app_state"
+          ],
+          "returnType": "CmdResult<()>",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "ping_connection",
+          "params": [
+            "app_state"
+          ],
+          "returnType": "CmdResult<()>",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "get_connection_info",
+          "params": [
+            "app_state"
+          ],
+          "returnType": "CmdResult<Option<ConnectionInfo>>",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "list_connections",
+          "params": [
+            "app_state"
+          ],
+          "returnType": "CmdResult<Vec<ConnectionEntry>>",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "remove_connection",
+          "params": [
+            "app_state",
+            "connection_id"
+          ],
+          "returnType": "CmdResult<()>",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "set_active_connection",
+          "params": [
+            "app_state",
+            "connection_id"
+          ],
+          "returnType": "CmdResult<()>",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "transfer_documents",
+          "params": [
+            "app_state",
+            "source_connection_id",
+            "dest_connection_id",
+            "source_collection_path",
+            "dest_collection_path",
+            "overwrite"
+          ],
+          "returnType": "CmdResult<TransferResult>",
+          "exported": true,
+          "lineCount": 84
+        },
+        {
+          "name": "run_blocking",
+          "params": [
+            "func"
+          ],
+          "returnType": "CmdResult<T>",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "extract_doc_id",
+          "params": [
+            "name"
+          ],
+          "returnType": "std::result::Result<String, String>",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "export_collection_recursive",
+          "params": [
+            "db",
+            "collection_id",
+            "parent"
+          ],
+          "returnType": "std::result::Result<(Vec<JsonValue>, u32), String>",
+          "exported": false,
+          "lineCount": 64
+        },
+        {
+          "name": "for_each_doc_in_collection",
+          "params": [
+            "db",
+            "collection_id",
+            "parent",
+            "handler"
+          ],
+          "returnType": "std::result::Result<u32, String>",
+          "exported": false,
+          "lineCount": 39
+        },
+        {
+          "name": "normalize_parent_path",
+          "params": [
+            "db",
+            "parent"
+          ],
+          "returnType": "Result<Option<String>>",
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "parse_collection_path",
+          "params": [
+            "db",
+            "path"
+          ],
+          "returnType": "Result<(String, Option<String>)>",
+          "exported": false,
+          "lineCount": 25
+        },
+        {
+          "name": "parse_document_path",
+          "params": [
+            "db",
+            "path"
+          ],
+          "returnType": "Result<(String, String, String)>",
+          "exported": false,
+          "lineCount": 21
+        },
+        {
+          "name": "is_pagination_exhausted",
+          "params": [
+            "token"
+          ],
+          "returnType": "bool",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "split_segments",
+          "params": [
+            "path"
+          ],
+          "returnType": "Vec<&str>",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "document_to_model",
+          "params": [
+            "doc",
+            "db"
+          ],
+          "returnType": "Result<FirestoreDocument>",
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "relative_document_path",
+          "params": [
+            "db",
+            "name"
+          ],
+          "returnType": "String",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "timestamp_to_string",
+          "params": [
+            "ts"
+          ],
+          "returnType": "String",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "parent_or_root",
+          "params": [
+            "db",
+            "parent"
+          ],
+          "returnType": "String",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "json_to_document",
+          "params": [
+            "db",
+            "data",
+            "name"
+          ],
+          "returnType": "Result<Document>",
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "json_object_to_map",
+          "params": [
+            "db",
+            "object"
+          ],
+          "returnType": "Result<HashMap<String, Value>>",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "json_to_value",
+          "params": [
+            "db",
+            "value"
+          ],
+          "returnType": "Result<Value>",
+          "exported": false,
+          "lineCount": 97
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "crate::credentials",
+          "specifiers": [
+            "CredentialManager"
+          ]
+        },
+        {
+          "source": "crate::emulator",
+          "specifiers": [
+            "EmulatorTokenSource"
+          ]
+        },
+        {
+          "source": "crate::error",
+          "specifiers": [
+            "AppError",
+            "Result"
+          ]
+        },
+        {
+          "source": "crate::models",
+          "specifiers": [
+            "CollectionList",
+            "ConnectionInfo",
+            "DocumentPage",
+            "FilterOperator",
+            "FirestoreDocument",
+            "ImportMode",
+            "ImportResult",
+            "QuerySpec",
+            "ServiceAccountSummary",
+            "SortDirection",
+            "TransferResult"
+          ]
+        },
+        {
+          "source": "crate::state",
+          "specifiers": [
+            "AppState",
+            "ConnectionEntry",
+            "ConnectionMode"
+          ]
+        },
+        {
+          "source": "base64::engine::general_purpose::STANDARD as BASE64_STANDARD",
+          "specifiers": [
+            "base64::engine::general_purpose::STANDARD as BASE64_STANDARD"
+          ]
+        },
+        {
+          "source": "base64",
+          "specifiers": [
+            "Engine"
+          ]
+        },
+        {
+          "source": "chrono",
+          "specifiers": [
+            "DateTime",
+            "Utc"
+          ]
+        },
+        {
+          "source": "firestore::errors",
+          "specifiers": [
+            "FirestoreError"
+          ]
+        },
+        {
+          "source": "firestore",
+          "specifiers": [
+            "FirestoreCreateSupport",
+            "FirestoreDb",
+            "FirestoreDbOptions",
+            "FirestoreDeleteSupport",
+            "FirestoreGetByIdSupport",
+            "FirestoreListCollectionIdsParams",
+            "FirestoreListDocParams",
+            "FirestoreListingSupport",
+            "FirestoreQueryCollection",
+            "FirestoreQueryDirection",
+            "FirestoreQueryFilter",
+            "FirestoreQueryFilterCompare",
+            "FirestoreQueryFilterComposite",
+            "FirestoreQueryOrder",
+            "FirestoreQueryParams",
+            "FirestoreQuerySupport",
+            "FirestoreUpdateSupport",
+            "FirestoreValue"
+          ]
+        },
+        {
+          "source": "gcloud_sdk::google::firestore::v1::value",
+          "specifiers": [
+            "ValueType"
+          ]
+        },
+        {
+          "source": "gcloud_sdk::google::firestore::v1",
+          "specifiers": [
+            "ArrayValue",
+            "Document",
+            "MapValue",
+            "Value"
+          ]
+        },
+        {
+          "source": "gcloud_sdk::google::r#type",
+          "specifiers": [
+            "LatLng"
+          ]
+        },
+        {
+          "source": "gcloud_sdk",
+          "specifiers": [
+            "TokenSourceType"
+          ]
+        },
+        {
+          "source": "prost_types",
+          "specifiers": [
+            "Timestamp"
+          ]
+        },
+        {
+          "source": "serde_json::Value as JsonValue",
+          "specifiers": [
+            "serde_json::Value as JsonValue"
+          ]
+        },
+        {
+          "source": "std::collections",
+          "specifiers": [
+            "HashMap"
+          ]
+        },
+        {
+          "source": "tauri",
+          "specifiers": [
+            "State"
+          ]
+        }
+      ],
+      "exports": [
+        "open_external",
+        "import_service_account",
+        "list_service_accounts",
+        "set_active_account",
+        "list_collections",
+        "list_documents",
+        "get_document",
+        "save_document",
+        "duplicate_document",
+        "duplicate_collection",
+        "delete_document",
+        "delete_collection",
+        "query_documents",
+        "export_collection",
+        "import_collection",
+        "connect_emulator",
+        "disconnect_emulator",
+        "ping_connection",
+        "get_connection_info",
+        "list_connections",
+        "remove_connection",
+        "set_active_connection",
+        "transfer_documents"
+      ],
+      "totalLines": 1144,
+      "hasStructuralAnalysis": true
+    },
+    "src-tauri/src/credentials.rs": {
+      "filePath": "src-tauri/src/credentials.rs",
+      "contentHash": "b26ce300dbe443157275cc55700dbec6b057895c23beeb573a29333d7e524fd2",
+      "functions": [
+        {
+          "name": "new",
+          "params": [
+            "base_dir"
+          ],
+          "returnType": "Result<Self>",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "base_dir",
+          "params": [],
+          "returnType": "&Path",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "save_from_path",
+          "params": [
+            "source"
+          ],
+          "returnType": "Result<ServiceAccountSummary>",
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "list",
+          "params": [],
+          "returnType": "Result<Vec<ServiceAccountSummary>>",
+          "exported": true,
+          "lineCount": 32
+        },
+        {
+          "name": "load_metadata",
+          "params": [
+            "id"
+          ],
+          "returnType": "Result<ServiceAccountMetadata>",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "credential_path",
+          "params": [
+            "id"
+          ],
+          "returnType": "Result<PathBuf>",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "path_for",
+          "params": [
+            "id"
+          ],
+          "returnType": "PathBuf",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "account_id",
+          "params": [
+            "project_id",
+            "client_email"
+          ],
+          "returnType": "String",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "parse_metadata",
+          "params": [
+            "content"
+          ],
+          "returnType": "Result<ServiceAccountMetadata>",
+          "exported": false,
+          "lineCount": 14
+        }
+      ],
+      "classes": [
+        {
+          "name": "CredentialManager",
+          "methods": [
+            "new",
+            "base_dir",
+            "save_from_path",
+            "list",
+            "load_metadata",
+            "credential_path",
+            "path_for",
+            "account_id",
+            "parse_metadata"
+          ],
+          "properties": [
+            "base_dir"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "RawServiceAccount",
+          "methods": [],
+          "properties": [
+            "project_id",
+            "client_email"
+          ],
+          "exported": false,
+          "lineCount": 6
+        }
+      ],
+      "imports": [
+        {
+          "source": "crate::error",
+          "specifiers": [
+            "AppError",
+            "Result"
+          ]
+        },
+        {
+          "source": "crate::models",
+          "specifiers": [
+            "ServiceAccountMetadata",
+            "ServiceAccountSummary"
+          ]
+        },
+        {
+          "source": "serde",
+          "specifiers": [
+            "Deserialize"
+          ]
+        },
+        {
+          "source": "std::collections::hash_map",
+          "specifiers": [
+            "DefaultHasher"
+          ]
+        },
+        {
+          "source": "std",
+          "specifiers": [
+            "fs"
+          ]
+        },
+        {
+          "source": "std::hash",
+          "specifiers": [
+            "Hash",
+            "Hasher"
+          ]
+        },
+        {
+          "source": "std::path",
+          "specifiers": [
+            "Path",
+            "PathBuf"
+          ]
+        },
+        {
+          "source": "std::sync",
+          "specifiers": [
+            "Arc"
+          ]
+        }
+      ],
+      "exports": [
+        "CredentialManager",
+        "new",
+        "base_dir",
+        "save_from_path",
+        "list",
+        "load_metadata",
+        "credential_path"
+      ],
+      "totalLines": 141,
+      "hasStructuralAnalysis": true
+    },
+    "src-tauri/src/emulator.rs": {
+      "filePath": "src-tauri/src/emulator.rs",
+      "contentHash": "3efb5fb04cccf03be4d770345d6d5f9ed877e3c09df795a67592f7942ad3bf98",
+      "functions": [
+        {
+          "name": "token",
+          "params": [],
+          "returnType": "gcloud_sdk::error::Result<Token>",
+          "exported": false,
+          "lineCount": 7
+        }
+      ],
+      "classes": [
+        {
+          "name": "EmulatorTokenSource",
+          "methods": [
+            "token"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 1
+        }
+      ],
+      "imports": [
+        {
+          "source": "async_trait",
+          "specifiers": [
+            "async_trait"
+          ]
+        },
+        {
+          "source": "gcloud_sdk",
+          "specifiers": [
+            "Source",
+            "Token"
+          ]
+        },
+        {
+          "source": "secret_vault_value",
+          "specifiers": [
+            "SecretValue"
+          ]
+        }
+      ],
+      "exports": [
+        "EmulatorTokenSource"
+      ],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "src-tauri/src/error.rs": {
+      "filePath": "src-tauri/src/error.rs",
+      "contentHash": "f74e2b6a43e750543ef18e52edc55454b1a85f3c2c476429645218efd36bcb21",
+      "functions": [],
+      "classes": [
+        {
+          "name": "AppError",
+          "methods": [],
+          "properties": [
+            "CredentialNotFound",
+            "MissingFirestoreClient",
+            "ConnectionNotFound",
+            "InvalidCredentials",
+            "InvalidPath",
+            "InvalidPayload",
+            "Io",
+            "SerdeJson",
+            "Firestore",
+            "Anyhow"
+          ],
+          "exported": true,
+          "lineCount": 22
+        }
+      ],
+      "imports": [
+        {
+          "source": "thiserror",
+          "specifiers": [
+            "Error"
+          ]
+        }
+      ],
+      "exports": [
+        "AppError"
+      ],
+      "totalLines": 29,
+      "hasStructuralAnalysis": true
+    },
+    "src-tauri/src/lib.rs": {
+      "filePath": "src-tauri/src/lib.rs",
+      "contentHash": "a5424f6ba6ed7bacda90c2f3e4f13a4400e79249eede063d84c35af562950d2c",
+      "functions": [
+        {
+          "name": "run",
+          "params": [],
+          "exported": true,
+          "lineCount": 54
+        },
+        {
+          "name": "ensure_crypto_provider",
+          "params": [],
+          "exported": false,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "anyhow",
+          "specifiers": [
+            "Context"
+          ]
+        },
+        {
+          "source": "",
+          "specifiers": [
+            "*"
+          ]
+        },
+        {
+          "source": "credentials",
+          "specifiers": [
+            "CredentialManager"
+          ]
+        },
+        {
+          "source": "state",
+          "specifiers": [
+            "AppState"
+          ]
+        },
+        {
+          "source": "std::sync",
+          "specifiers": [
+            "Once"
+          ]
+        },
+        {
+          "source": "tauri",
+          "specifiers": [
+            "Manager"
+          ]
+        }
+      ],
+      "exports": [
+        "run"
+      ],
+      "totalLines": 79,
+      "hasStructuralAnalysis": true
+    },
+    "src-tauri/src/main.rs": {
+      "filePath": "src-tauri/src/main.rs",
+      "contentHash": "e5dfab54c7a9843285d54ff5a783c00813cd3f28d1bb2f6982aa348697cbb1c4",
+      "functions": [
+        {
+          "name": "main",
+          "params": [],
+          "exported": false,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "src-tauri/src/models.rs": {
+      "filePath": "src-tauri/src/models.rs",
+      "contentHash": "57bfc88241e375d3c36fbe876ca5defcbc9f7b86441dfffaf9002ce67a6ccf44",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ServiceAccountSummary",
+          "methods": [],
+          "properties": [
+            "id",
+            "project_id",
+            "client_email"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "ServiceAccountMetadata",
+          "methods": [],
+          "properties": [
+            "project_id",
+            "client_email"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "CollectionList",
+          "methods": [],
+          "properties": [
+            "collection_ids",
+            "next_page_token"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "FirestoreDocument",
+          "methods": [],
+          "properties": [
+            "id",
+            "path",
+            "data",
+            "create_time",
+            "update_time"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "DocumentPage",
+          "methods": [],
+          "properties": [
+            "documents",
+            "next_page_token"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "QueryFilter",
+          "methods": [],
+          "properties": [
+            "field",
+            "operator",
+            "value"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "FilterOperator",
+          "methods": [],
+          "properties": [
+            "Equal",
+            "NotEqual",
+            "LessThan",
+            "LessThanOrEqual",
+            "GreaterThan",
+            "GreaterThanOrEqual",
+            "ArrayContains",
+            "In",
+            "ArrayContainsAny",
+            "NotIn"
+          ],
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "QueryOrderBy",
+          "methods": [],
+          "properties": [
+            "field",
+            "direction"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "SortDirection",
+          "methods": [],
+          "properties": [
+            "Asc",
+            "Desc"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "QuerySpec",
+          "methods": [],
+          "properties": [
+            "collection_path",
+            "filters",
+            "order_by",
+            "limit"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "ImportMode",
+          "methods": [],
+          "properties": [
+            "CreateOnly",
+            "Overwrite"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "ImportResult",
+          "methods": [],
+          "properties": [
+            "imported",
+            "skipped"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "ConnectionInfo",
+          "methods": [],
+          "properties": [
+            "mode",
+            "project_id",
+            "emulator_url"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "TransferResult",
+          "methods": [],
+          "properties": [
+            "transferred",
+            "skipped"
+          ],
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "imports": [
+        {
+          "source": "serde",
+          "specifiers": [
+            "Deserialize",
+            "Serialize"
+          ]
+        },
+        {
+          "source": "serde_json",
+          "specifiers": [
+            "Value"
+          ]
+        }
+      ],
+      "exports": [
+        "ServiceAccountSummary",
+        "ServiceAccountMetadata",
+        "CollectionList",
+        "FirestoreDocument",
+        "DocumentPage",
+        "QueryFilter",
+        "FilterOperator",
+        "QueryOrderBy",
+        "SortDirection",
+        "QuerySpec",
+        "ImportMode",
+        "ImportResult",
+        "ConnectionInfo",
+        "TransferResult"
+      ],
+      "totalLines": 125,
+      "hasStructuralAnalysis": true
+    },
+    "src-tauri/src/state.rs": {
+      "filePath": "src-tauri/src/state.rs",
+      "contentHash": "bc27c028a633b45eabfd675ded84f7427e3d19f06fb5790e0acea447ef367ae6",
+      "functions": [
+        {
+          "name": "connection_id",
+          "params": [],
+          "returnType": "String",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "default",
+          "params": [],
+          "returnType": "Self",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "set_db",
+          "params": [
+            "db",
+            "mode"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "clear_db",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "db",
+          "params": [],
+          "returnType": "Result<FirestoreDb>",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "connection_mode",
+          "params": [],
+          "returnType": "Option<ConnectionMode>",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "add_connection",
+          "params": [
+            "id",
+            "db",
+            "mode"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "remove_connection",
+          "params": [
+            "id"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "set_active",
+          "params": [
+            "id"
+          ],
+          "returnType": "Result<()>",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "db_for",
+          "params": [
+            "id"
+          ],
+          "returnType": "Result<FirestoreDb>",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "list_connections",
+          "params": [],
+          "returnType": "Vec<ConnectionEntry>",
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "classes": [
+        {
+          "name": "ConnectionMode",
+          "methods": [
+            "connection_id"
+          ],
+          "properties": [
+            "Production",
+            "Emulator"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "AppState",
+          "methods": [
+            "default",
+            "set_db",
+            "clear_db",
+            "db",
+            "connection_mode",
+            "add_connection",
+            "remove_connection",
+            "set_active",
+            "db_for",
+            "list_connections"
+          ],
+          "properties": [
+            "connections",
+            "active_connection_id"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "ConnectionEntry",
+          "methods": [],
+          "properties": [
+            "id",
+            "mode",
+            "is_active"
+          ],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "imports": [
+        {
+          "source": "crate::error",
+          "specifiers": [
+            "AppError",
+            "Result"
+          ]
+        },
+        {
+          "source": "firestore",
+          "specifiers": [
+            "FirestoreDb"
+          ]
+        },
+        {
+          "source": "serde",
+          "specifiers": [
+            "Serialize"
+          ]
+        },
+        {
+          "source": "std::collections",
+          "specifiers": [
+            "HashMap"
+          ]
+        },
+        {
+          "source": "tokio::sync",
+          "specifiers": [
+            "RwLock"
+          ]
+        }
+      ],
+      "exports": [
+        "ConnectionMode",
+        "connection_id",
+        "AppState",
+        "set_db",
+        "clear_db",
+        "db",
+        "connection_mode",
+        "add_connection",
+        "remove_connection",
+        "set_active",
+        "db_for",
+        "list_connections",
+        "ConnectionEntry"
+      ],
+      "totalLines": 177,
+      "hasStructuralAnalysis": true
+    },
+    "src-tauri/tauri.conf.json": {
+      "filePath": "src-tauri/tauri.conf.json",
+      "contentHash": "cbaa87e32ece153bfe45bdedd2daf9b06578af55bffb1dcaaaa24749e56d6871",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "src-tauri/tests/emulator_audit.rs": {
+      "filePath": "src-tauri/tests/emulator_audit.rs",
+      "contentHash": "99021f0411e4103f99b2e54c1b6e33d3d621ec6a896e167183184b7383fe3215",
+      "functions": [
+        {
+          "name": "token",
+          "params": [],
+          "returnType": "gcloud_sdk::error::Result<Token>",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "emulator_reachable",
+          "params": [],
+          "returnType": "bool",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "connect",
+          "params": [],
+          "returnType": "FirestoreDb",
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "emulator_connect_write_read_list_query",
+          "params": [],
+          "exported": false,
+          "lineCount": 55
+        }
+      ],
+      "classes": [
+        {
+          "name": "EmulatorTokenSource",
+          "methods": [
+            "token"
+          ],
+          "properties": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "Widget",
+          "methods": [],
+          "properties": [
+            "name",
+            "count"
+          ],
+          "exported": false,
+          "lineCount": 4
+        }
+      ],
+      "imports": [
+        {
+          "source": "std::net",
+          "specifiers": [
+            "TcpStream"
+          ]
+        },
+        {
+          "source": "std::time",
+          "specifiers": [
+            "Duration"
+          ]
+        },
+        {
+          "source": "async_trait",
+          "specifiers": [
+            "async_trait"
+          ]
+        },
+        {
+          "source": "firestore",
+          "specifiers": [
+            "FirestoreDb",
+            "FirestoreDbOptions",
+            "FirestoreListCollectionIdsParams",
+            "FirestoreListingSupport"
+          ]
+        },
+        {
+          "source": "gcloud_sdk",
+          "specifiers": [
+            "Source",
+            "Token",
+            "TokenSourceType"
+          ]
+        },
+        {
+          "source": "secret_vault_value",
+          "specifiers": [
+            "SecretValue"
+          ]
+        },
+        {
+          "source": "serde",
+          "specifiers": [
+            "Deserialize",
+            "Serialize"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 130,
+      "hasStructuralAnalysis": true
+    },
+    "src/App.tsx": {
+      "filePath": "src/App.tsx",
+      "contentHash": "f9802bf617c6134ab4b24d1be98a353833834f5aeb8a1e72309dcd4dab4b4741",
+      "functions": [
+        {
+          "name": "ShellSplitInner",
+          "params": [
+            "{\n  children,\n  onSaveRequest,\n  runScriptRef,\n}"
+          ],
+          "exported": false,
+          "lineCount": 30
+        },
+        {
+          "name": "ShellSplit",
+          "params": [
+            "{ shellOpen, children, onSaveRequest, runScriptRef }"
+          ],
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "App",
+          "params": [],
+          "exported": true,
+          "lineCount": 1009
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@tauri-apps/plugin-dialog",
+          "specifiers": [
+            "saveDialogPlugin"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useCallback",
+            "useEffect",
+            "useMemo",
+            "useRef",
+            "useState"
+          ]
+        },
+        {
+          "source": "@tanstack/react-query",
+          "specifiers": [
+            "useMutation",
+            "useQueryClient"
+          ]
+        },
+        {
+          "source": "react-resizable-panels",
+          "specifiers": [
+            "Group",
+            "Panel",
+            "Separator",
+            "useDefaultLayout"
+          ]
+        },
+        {
+          "source": "@/components/ui/toaster",
+          "specifiers": [
+            "Toaster"
+          ]
+        },
+        {
+          "source": "@/components/ui/use-toast",
+          "specifiers": [
+            "useToast"
+          ]
+        },
+        {
+          "source": "@/hooks/firestore",
+          "specifiers": [
+            "useConnectionKey",
+            "useDeleteCollection",
+            "useDeleteDocument",
+            "useDocument",
+            "useDocumentsInfinite",
+            "useQueryDocuments"
+          ]
+        },
+        {
+          "source": "@/hooks/use-keyboard-shortcuts",
+          "specifiers": [
+            "useKeyboardShortcuts"
+          ]
+        },
+        {
+          "source": "@/lib/tauri",
+          "specifiers": [
+            "duplicateCollection",
+            "duplicateDocument",
+            "exportCollection",
+            "importCollection",
+            "saveDocument",
+            "transferDocuments"
+          ]
+        },
+        {
+          "source": "@/lib/dialog-utils",
+          "specifiers": [
+            "openFileDialog"
+          ]
+        },
+        {
+          "source": "@/lib/firestore-utils",
+          "specifiers": [
+            "normalizeFirestorePath",
+            "collectionFromDocPath"
+          ]
+        },
+        {
+          "source": "@/lib/error-utils",
+          "specifiers": [
+            "getErrorMessage"
+          ]
+        },
+        {
+          "source": "@/lib/toast-utils",
+          "specifiers": [
+            "toastError"
+          ]
+        },
+        {
+          "source": "@/stores/auth-store",
+          "specifiers": [
+            "useAuthStore"
+          ]
+        },
+        {
+          "source": "@/stores/connection-store",
+          "specifiers": [
+            "useConnectionStore"
+          ]
+        },
+        {
+          "source": "@/stores/dialog-store",
+          "specifiers": [
+            "useDialogStore",
+            "DialogName"
+          ]
+        },
+        {
+          "source": "@/stores/nav-store",
+          "specifiers": [
+            "useNavStore"
+          ]
+        },
+        {
+          "source": "@/stores/tabs-store",
+          "specifiers": [
+            "useTabsStore"
+          ]
+        },
+        {
+          "source": "@/stores/palette-store",
+          "specifiers": [
+            "usePaletteStore"
+          ]
+        },
+        {
+          "source": "@/stores/cell-edits-store",
+          "specifiers": [
+            "useCellEditsStore"
+          ]
+        },
+        {
+          "source": "@/lib/cell-flush",
+          "specifiers": [
+            "flushTablePending"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "DocumentPage",
+            "FirestoreDocument",
+            "ImportMode",
+            "QuerySpec"
+          ]
+        },
+        {
+          "source": "@/components/layout/Sidebar",
+          "specifiers": [
+            "Sidebar"
+          ]
+        },
+        {
+          "source": "@/components/layout/Toolbar",
+          "specifiers": [
+            "Toolbar"
+          ]
+        },
+        {
+          "source": "@/components/layout/TabBar",
+          "specifiers": [
+            "TabBar"
+          ]
+        },
+        {
+          "source": "@/components/layout/CommandPalette",
+          "specifiers": [
+            "CommandPalette",
+            "PaletteAction"
+          ]
+        },
+        {
+          "source": "@/components/layout/StatusBar",
+          "specifiers": [
+            "StatusBar"
+          ]
+        },
+        {
+          "source": "@/components/ui/kbd",
+          "specifiers": [
+            "Kbd"
+          ]
+        },
+        {
+          "source": "@/components/layout/ResizableLayout",
+          "specifiers": [
+            "ResizableLayout"
+          ]
+        },
+        {
+          "source": "@/components/layout/ContentSplit",
+          "specifiers": [
+            "ContentSplit"
+          ]
+        },
+        {
+          "source": "@/components/layout/ErrorBoundary",
+          "specifiers": [
+            "ErrorBoundary"
+          ]
+        },
+        {
+          "source": "@/components/documents/DocumentListSection",
+          "specifiers": [
+            "DocumentListSection"
+          ]
+        },
+        {
+          "source": "@/components/documents/DocumentPreviewSection",
+          "specifiers": [
+            "DocumentPreviewSection"
+          ]
+        },
+        {
+          "source": "@/components/dialogs/AboutDialog",
+          "specifiers": [
+            "AboutDialog"
+          ]
+        },
+        {
+          "source": "@/components/dialogs/CreateDocumentDialog",
+          "specifiers": [
+            "CreateDocumentDialog"
+          ]
+        },
+        {
+          "source": "@/components/dialogs/DuplicateDocumentDialog",
+          "specifiers": [
+            "DuplicateDocumentDialog"
+          ]
+        },
+        {
+          "source": "@/components/dialogs/DuplicateCollectionDialog",
+          "specifiers": [
+            "DuplicateCollectionDialog"
+          ]
+        },
+        {
+          "source": "@/components/dialogs/DeleteConfirmDialog",
+          "specifiers": [
+            "DeleteConfirmDialog"
+          ]
+        },
+        {
+          "source": "@/components/dialogs/ImportCollectionDialog",
+          "specifiers": [
+            "ImportCollectionDialog"
+          ]
+        },
+        {
+          "source": "@/components/dialogs/EmulatorConnectDialog",
+          "specifiers": [
+            "EmulatorConnectDialog"
+          ]
+        },
+        {
+          "source": "@/components/dialogs/SaveQueryDialog",
+          "specifiers": [
+            "SaveQueryDialog"
+          ]
+        },
+        {
+          "source": "@/components/dialogs/SaveScriptDialog",
+          "specifiers": [
+            "SaveScriptDialog"
+          ]
+        },
+        {
+          "source": "@/components/dialogs/ShortcutsHelpDialog",
+          "specifiers": [
+            "ShortcutsHelpDialog"
+          ]
+        },
+        {
+          "source": "@/components/dialogs/ConnectionManagerDialog",
+          "specifiers": [
+            "ConnectionManagerDialog"
+          ]
+        },
+        {
+          "source": "@/components/dialogs/TransferDialog",
+          "specifiers": [
+            "TransferDialog"
+          ]
+        },
+        {
+          "source": "@/components/shell/ScriptPanel",
+          "specifiers": [
+            "ScriptPanel"
+          ]
+        },
+        {
+          "source": "@/components/query/QueryBar",
+          "specifiers": [
+            "QueryBar"
+          ]
+        },
+        {
+          "source": "@/components/onboarding/OnboardingState",
+          "specifiers": [
+            "OnboardingState"
+          ]
+        },
+        {
+          "source": "@/stores/query-store",
+          "specifiers": [
+            "useQueryStore"
+          ]
+        },
+        {
+          "source": "@/stores/script-store",
+          "specifiers": [
+            "useScriptStore"
+          ]
+        },
+        {
+          "source": "@/stores/view-store",
+          "specifiers": [
+            "useViewStore"
+          ]
+        }
+      ],
+      "exports": [
+        "App"
+      ],
+      "totalLines": 1115,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/collections/CollectionTree.tsx": {
+      "filePath": "src/components/collections/CollectionTree.tsx",
+      "contentHash": "8d6bf04588b37c42d743111aabd3e378628ee491f528c24aa201872899f0c8ba",
+      "functions": [
+        {
+          "name": "CollectionTree",
+          "params": [
+            "{\n  parentDocumentPath,\n  collectionPath,\n  documentPath,\n  onSelectCollection,\n  onSelectDocument,\n  onDeleteCollection,\n}"
+          ],
+          "exported": true,
+          "lineCount": 43
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/hooks/firestore",
+          "specifiers": [
+            "useCollections"
+          ]
+        },
+        {
+          "source": "@/components/collections/CollectionTreeItem",
+          "specifiers": [
+            "CollectionTreeItem"
+          ]
+        }
+      ],
+      "exports": [
+        "CollectionTree"
+      ],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/collections/CollectionTreeItem.tsx": {
+      "filePath": "src/components/collections/CollectionTreeItem.tsx",
+      "contentHash": "76f42e2f6e5a7bd0b58107f67fbe0ec63bb50267b1bc960dd59d3b4f24a5ebde",
+      "functions": [
+        {
+          "name": "CollectionTreeItem",
+          "params": [
+            "{\n  collectionId,\n  fullPath,\n  isActive,\n  onSelect,\n  collectionPath,\n  documentPath,\n  onSelectCollection,\n  onSelectDocument,\n  onDeleteCollection,\n}"
+          ],
+          "exported": true,
+          "lineCount": 105
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "ChevronRight",
+            "Folder",
+            "Loader2"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useState"
+          ]
+        },
+        {
+          "source": "@/components/collections/DocumentNode",
+          "specifiers": [
+            "DocumentNode"
+          ]
+        },
+        {
+          "source": "@/components/ui/context-menu",
+          "specifiers": [
+            "ContextMenu",
+            "ContextMenuContent",
+            "ContextMenuItem",
+            "ContextMenuTrigger"
+          ]
+        },
+        {
+          "source": "@/hooks/firestore",
+          "specifiers": [
+            "useDocumentsInfinite"
+          ]
+        }
+      ],
+      "exports": [
+        "CollectionTreeItem"
+      ],
+      "totalLines": 130,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/collections/DocumentNode.tsx": {
+      "filePath": "src/components/collections/DocumentNode.tsx",
+      "contentHash": "341735113b47e8e6f9f22d71ab30e1f82171a0085a8ba9186cd8f1404fdaaf77",
+      "functions": [
+        {
+          "name": "DocumentNode",
+          "params": [
+            "{\n  documentId,\n  documentPath,\n  selectedDocumentPath,\n  collectionPath,\n  onSelectCollection,\n  onSelectDocument,\n}"
+          ],
+          "exported": true,
+          "lineCount": 54
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "ChevronRight",
+            "FileText"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useState"
+          ]
+        },
+        {
+          "source": "@/components/collections/CollectionTree",
+          "specifiers": [
+            "CollectionTree"
+          ]
+        }
+      ],
+      "exports": [
+        "DocumentNode"
+      ],
+      "totalLines": 69,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/dialogs/AboutDialog.tsx": {
+      "filePath": "src/components/dialogs/AboutDialog.tsx",
+      "contentHash": "851c301eb9b2fba6e85994d57b58933e6bfe8c1e43d2d4c22573df777f341625",
+      "functions": [
+        {
+          "name": "AboutDialog",
+          "params": [
+            "{ open, onOpenChange }"
+          ],
+          "exported": true,
+          "lineCount": 64
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Copy",
+            "Github"
+          ]
+        },
+        {
+          "source": "@tauri-apps/api/core",
+          "specifiers": [
+            "invoke"
+          ]
+        },
+        {
+          "source": "@/components/ui/dialog",
+          "specifiers": [
+            "Dialog",
+            "DialogContent",
+            "DialogDescription",
+            "DialogHeader",
+            "DialogTitle"
+          ]
+        },
+        {
+          "source": "@/components/ui/badge",
+          "specifiers": [
+            "Badge"
+          ]
+        },
+        {
+          "source": "@/components/ui/use-toast",
+          "specifiers": [
+            "useToast"
+          ]
+        }
+      ],
+      "exports": [
+        "AboutDialog"
+      ],
+      "totalLines": 85,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/dialogs/ConnectionManagerDialog.tsx": {
+      "filePath": "src/components/dialogs/ConnectionManagerDialog.tsx",
+      "contentHash": "3d5d791ea03e1cf15ae58b552bba0b9596f42439bd851ce7037f7e6ae3769387",
+      "functions": [
+        {
+          "name": "ConnectionManagerDialog",
+          "params": [
+            "{\n  open,\n  onOpenChange,\n  connections,\n  onSwitch,\n  onRemove,\n  onImport,\n  onConnectEmulator,\n}"
+          ],
+          "exported": true,
+          "lineCount": 70
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/components/ui/badge",
+          "specifiers": [
+            "Badge"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/dialog",
+          "specifiers": [
+            "Dialog",
+            "DialogContent",
+            "DialogDescription",
+            "DialogHeader",
+            "DialogTitle"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "ConnectionEntry"
+          ]
+        }
+      ],
+      "exports": [
+        "ConnectionManagerDialog"
+      ],
+      "totalLines": 92,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/dialogs/CreateDocumentDialog.tsx": {
+      "filePath": "src/components/dialogs/CreateDocumentDialog.tsx",
+      "contentHash": "8eea5d898c94554fac0671c6f3c5b3fd8a65f64e1d0782f06028fc4c1a600ead",
+      "functions": [
+        {
+          "name": "CreateDocumentDialog",
+          "params": [
+            "{\n  open,\n  onOpenChange,\n  collectionPath,\n  onSubmit,\n  isSubmitting,\n}"
+          ],
+          "exported": true,
+          "lineCount": 93
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Loader2"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/dialog",
+          "specifiers": [
+            "Dialog",
+            "DialogContent",
+            "DialogDescription",
+            "DialogFooter",
+            "DialogHeader",
+            "DialogTitle"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        },
+        {
+          "source": "@/components/ui/use-toast",
+          "specifiers": [
+            "useToast"
+          ]
+        }
+      ],
+      "exports": [
+        "CreateDocumentDialog"
+      ],
+      "totalLines": 117,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/dialogs/DeleteConfirmDialog.tsx": {
+      "filePath": "src/components/dialogs/DeleteConfirmDialog.tsx",
+      "contentHash": "40d374523a95ae06550297b7f75c8234e425ab84e83448c4c03703fbb0c0ed69",
+      "functions": [
+        {
+          "name": "DeleteConfirmDialog",
+          "params": [
+            "{\n  open,\n  onOpenChange,\n  onConfirm,\n  isDeleting,\n  mode,\n  targetPath,\n}"
+          ],
+          "exported": true,
+          "lineCount": 71
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Loader2"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/dialog",
+          "specifiers": [
+            "Dialog",
+            "DialogContent",
+            "DialogDescription",
+            "DialogFooter",
+            "DialogHeader",
+            "DialogTitle"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        }
+      ],
+      "exports": [
+        "DeleteConfirmDialog"
+      ],
+      "totalLines": 95,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/dialogs/DuplicateCollectionDialog.tsx": {
+      "filePath": "src/components/dialogs/DuplicateCollectionDialog.tsx",
+      "contentHash": "f180641f9bc9470d3f21607a627c067b2d182a69e622e99e16765098ea0d0c7e",
+      "functions": [
+        {
+          "name": "DuplicateCollectionDialog",
+          "params": [
+            "{\n  open,\n  onOpenChange,\n  sourceCollectionPath,\n  onSubmit,\n  isSubmitting,\n}"
+          ],
+          "exported": true,
+          "lineCount": 86
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Loader2"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/dialog",
+          "specifiers": [
+            "Dialog",
+            "DialogContent",
+            "DialogDescription",
+            "DialogFooter",
+            "DialogHeader",
+            "DialogTitle"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        },
+        {
+          "source": "@/components/ui/use-toast",
+          "specifiers": [
+            "useToast"
+          ]
+        }
+      ],
+      "exports": [
+        "DuplicateCollectionDialog"
+      ],
+      "totalLines": 110,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/dialogs/DuplicateDocumentDialog.tsx": {
+      "filePath": "src/components/dialogs/DuplicateDocumentDialog.tsx",
+      "contentHash": "8cba48752a0ac54bb3230928006d4e93db9f5227d5d78ca887d992bbc4640a9c",
+      "functions": [
+        {
+          "name": "DuplicateDocumentDialog",
+          "params": [
+            "{\n  open,\n  onOpenChange,\n  sourceDocument,\n  onSubmit,\n  isSubmitting,\n}"
+          ],
+          "exported": true,
+          "lineCount": 96
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Loader2"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/dialog",
+          "specifiers": [
+            "Dialog",
+            "DialogContent",
+            "DialogDescription",
+            "DialogFooter",
+            "DialogHeader",
+            "DialogTitle"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        },
+        {
+          "source": "@/components/ui/use-toast",
+          "specifiers": [
+            "useToast"
+          ]
+        },
+        {
+          "source": "@/lib/firestore-utils",
+          "specifiers": [
+            "collectionFromDocPath"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "FirestoreDocument"
+          ]
+        }
+      ],
+      "exports": [
+        "DuplicateDocumentDialog"
+      ],
+      "totalLines": 126,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/dialogs/EmulatorConnectDialog.tsx": {
+      "filePath": "src/components/dialogs/EmulatorConnectDialog.tsx",
+      "contentHash": "1843af96047d308b1ddfebcfd6c38893e16a2617c670842e48b432f197549d03",
+      "functions": [
+        {
+          "name": "EmulatorConnectDialog",
+          "params": [
+            "{\n  open,\n  onOpenChange,\n  onSubmit,\n  isSubmitting,\n}"
+          ],
+          "exported": true,
+          "lineCount": 69
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Loader2"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/dialog",
+          "specifiers": [
+            "Dialog",
+            "DialogContent",
+            "DialogDescription",
+            "DialogFooter",
+            "DialogHeader",
+            "DialogTitle"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        }
+      ],
+      "exports": [
+        "EmulatorConnectDialog"
+      ],
+      "totalLines": 91,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/dialogs/ImportCollectionDialog.tsx": {
+      "filePath": "src/components/dialogs/ImportCollectionDialog.tsx",
+      "contentHash": "a3b8f7cb56c21148a27dd97cba53c001b5102a11c6a7eb4129531e3e1ea3574d",
+      "functions": [
+        {
+          "name": "ImportCollectionDialog",
+          "params": [
+            "{\n  open,\n  onOpenChange,\n  collectionPath,\n  onSubmit,\n  isSubmitting,\n}"
+          ],
+          "exported": true,
+          "lineCount": 101
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Loader2",
+            "FileUp"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useState"
+          ]
+        },
+        {
+          "source": "@/lib/dialog-utils",
+          "specifiers": [
+            "openFileDialog"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/dialog",
+          "specifiers": [
+            "Dialog",
+            "DialogContent",
+            "DialogDescription",
+            "DialogFooter",
+            "DialogHeader",
+            "DialogTitle"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "ImportMode"
+          ]
+        }
+      ],
+      "exports": [
+        "ImportCollectionDialog"
+      ],
+      "totalLines": 126,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/dialogs/SaveNamedItemDialog.tsx": {
+      "filePath": "src/components/dialogs/SaveNamedItemDialog.tsx",
+      "contentHash": "2deb067268a70020fdabe18d9941b6057b5275bf143a38851e50810e63dd65a1",
+      "functions": [
+        {
+          "name": "SaveNamedItemDialog",
+          "params": [
+            "{ open, onOpenChange, onSave, itemLabel }"
+          ],
+          "exported": true,
+          "lineCount": 43
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/dialog",
+          "specifiers": [
+            "Dialog",
+            "DialogContent",
+            "DialogDescription",
+            "DialogFooter",
+            "DialogHeader",
+            "DialogTitle"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        }
+      ],
+      "exports": [
+        "SaveNamedItemDialog"
+      ],
+      "totalLines": 64,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/dialogs/SaveQueryDialog.tsx": {
+      "filePath": "src/components/dialogs/SaveQueryDialog.tsx",
+      "contentHash": "b68f1dd2b0c2afe65c4b1b270963c49669b6dd5e83f86df4df70868cceab5734",
+      "functions": [
+        {
+          "name": "SaveQueryDialog",
+          "params": [
+            "props"
+          ],
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/components/dialogs/SaveNamedItemDialog",
+          "specifiers": [
+            "SaveNamedItemDialog"
+          ]
+        },
+        {
+          "source": "@/components/dialogs/SaveNamedItemDialog",
+          "specifiers": [
+            "SaveNamedItemDialogProps"
+          ]
+        }
+      ],
+      "exports": [
+        "SaveQueryDialog"
+      ],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/dialogs/SaveScriptDialog.tsx": {
+      "filePath": "src/components/dialogs/SaveScriptDialog.tsx",
+      "contentHash": "702a9827c204e5501e70214c8ca3a99c7e528a19efe27d68fadadaacd3badff5",
+      "functions": [
+        {
+          "name": "SaveScriptDialog",
+          "params": [
+            "props"
+          ],
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/components/dialogs/SaveNamedItemDialog",
+          "specifiers": [
+            "SaveNamedItemDialog"
+          ]
+        },
+        {
+          "source": "@/components/dialogs/SaveNamedItemDialog",
+          "specifiers": [
+            "SaveNamedItemDialogProps"
+          ]
+        }
+      ],
+      "exports": [
+        "SaveScriptDialog"
+      ],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/dialogs/ShortcutsHelpDialog.tsx": {
+      "filePath": "src/components/dialogs/ShortcutsHelpDialog.tsx",
+      "contentHash": "0511fdf223e585f1670e06e52526d23326d00a2b7a4338af15da3d2e8e8dfe6b",
+      "functions": [
+        {
+          "name": "ShortcutsHelpDialog",
+          "params": [
+            "{ open, onOpenChange }"
+          ],
+          "exported": true,
+          "lineCount": 40
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/components/ui/dialog",
+          "specifiers": [
+            "Dialog",
+            "DialogContent",
+            "DialogHeader",
+            "DialogTitle"
+          ]
+        },
+        {
+          "source": "@/lib/keyboard-shortcuts",
+          "specifiers": [
+            "SHORTCUTS",
+            "formatShortcut"
+          ]
+        }
+      ],
+      "exports": [
+        "ShortcutsHelpDialog"
+      ],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/dialogs/TransferDialog.tsx": {
+      "filePath": "src/components/dialogs/TransferDialog.tsx",
+      "contentHash": "bf0a0adef1da6b13f0f3ec12ca815a8d1b81f2d07bc2521e493070edd4e5decc",
+      "functions": [
+        {
+          "name": "TransferDialog",
+          "params": [
+            "{\n  open,\n  onOpenChange,\n  connections,\n  sourceConnectionId,\n  sourceCollectionPath,\n  onTransfer,\n  isTransferring,\n}"
+          ],
+          "exported": true,
+          "lineCount": 110
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useState"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        },
+        {
+          "source": "@/components/ui/dialog",
+          "specifiers": [
+            "Dialog",
+            "DialogContent",
+            "DialogDescription",
+            "DialogFooter",
+            "DialogHeader",
+            "DialogTitle"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "ConnectionEntry"
+          ]
+        }
+      ],
+      "exports": [
+        "TransferDialog"
+      ],
+      "totalLines": 143,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/documents/DocumentListSection.tsx": {
+      "filePath": "src/components/documents/DocumentListSection.tsx",
+      "contentHash": "51df32e9ec5ba24b24b54fcf59801bf1332240ab2075d93e6240eb91ae009bd6",
+      "functions": [
+        {
+          "name": "DocumentListSection",
+          "params": [
+            "{\n  documents,\n  isLoading,\n  error,\n  onRetry,\n  selectedPath,\n  onSelect,\n  onEditComplex,\n  onEndReached,\n  hasMore,\n  isFetchingMore,\n  hasCollection,\n  search,\n  onSearchChange,\n  onCreateDocument,\n  onDuplicateDocument,\n  onDeleteDocument,\n}"
+          ],
+          "exported": true,
+          "lineCount": 157
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useCallback",
+            "useRef"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "AlertCircle",
+            "FolderTree",
+            "Inbox",
+            "Loader2",
+            "SearchX"
+          ]
+        },
+        {
+          "source": "react-virtuoso",
+          "specifiers": [
+            "Virtuoso"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/empty-state",
+          "specifiers": [
+            "EmptyState"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        },
+        {
+          "source": "@/components/documents/DocumentRow",
+          "specifiers": [
+            "DocumentRow"
+          ]
+        },
+        {
+          "source": "@/components/views/TableView",
+          "specifiers": [
+            "TableView"
+          ]
+        },
+        {
+          "source": "@/stores/view-store",
+          "specifiers": [
+            "useViewStore"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "FirestoreDocument"
+          ]
+        }
+      ],
+      "exports": [
+        "DocumentListSection"
+      ],
+      "totalLines": 189,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/documents/DocumentPreviewSection.tsx": {
+      "filePath": "src/components/documents/DocumentPreviewSection.tsx",
+      "contentHash": "9994973b1218f04ea606a3e41bc7832cb09684870a7916928582efa0b4772a1b",
+      "functions": [
+        {
+          "name": "fmtTime",
+          "params": [
+            "t"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "DocumentPreviewSection",
+          "params": [
+            "{\n  document,\n  isLoading,\n  onSave,\n  isSaving,\n  onDuplicate,\n  onDelete,\n  onDirtyChange,\n  saveRef,\n}"
+          ],
+          "exported": true,
+          "lineCount": 246
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@monaco-editor/react",
+          "specifiers": [
+            "Editor"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Copy",
+            "CopyPlus",
+            "FileText",
+            "Loader2",
+            "Trash2"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/empty-state",
+          "specifiers": [
+            "EmptyState"
+          ]
+        },
+        {
+          "source": "@/components/ui/kbd",
+          "specifiers": [
+            "Kbd"
+          ]
+        },
+        {
+          "source": "@/components/ui/use-toast",
+          "specifiers": [
+            "useToast"
+          ]
+        },
+        {
+          "source": "@/components/views/ViewModeToggle",
+          "specifiers": [
+            "PreviewModeToggle"
+          ]
+        },
+        {
+          "source": "@/components/views/FieldsView",
+          "specifiers": [
+            "FieldsView"
+          ]
+        },
+        {
+          "source": "@/stores/view-store",
+          "specifiers": [
+            "useViewStore"
+          ]
+        },
+        {
+          "source": "@/stores/doc-drafts-store",
+          "specifiers": [
+            "useDocDraftsStore"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "FirestoreDocument"
+          ]
+        }
+      ],
+      "exports": [
+        "DocumentPreviewSection"
+      ],
+      "totalLines": 276,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/documents/DocumentRow.tsx": {
+      "filePath": "src/components/documents/DocumentRow.tsx",
+      "contentHash": "49b77a63113fa00284ea3cd9aca53ae0e2a8afebc9b6ec51646fd33caa77e8e0",
+      "functions": [
+        {
+          "name": "DocumentRow",
+          "params": [
+            "{ doc, selectedPath, onSelect, onDuplicate, onDelete }"
+          ],
+          "exported": true,
+          "lineCount": 54
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "MoreHorizontal"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/dropdown-menu",
+          "specifiers": [
+            "DropdownMenu",
+            "DropdownMenuContent",
+            "DropdownMenuItem",
+            "DropdownMenuTrigger"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "FirestoreDocument"
+          ]
+        }
+      ],
+      "exports": [
+        "DocumentRow"
+      ],
+      "totalLines": 74,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/fields/FieldEditor.tsx": {
+      "filePath": "src/components/fields/FieldEditor.tsx",
+      "contentHash": "9d71af670925f336c4b5148e3ce13196bdb69211e99add429316a151b77630b7",
+      "functions": [
+        {
+          "name": "FieldEditor",
+          "params": [
+            "{ value, onChange }"
+          ],
+          "exported": true,
+          "lineCount": 41
+        },
+        {
+          "name": "FieldValueEditor",
+          "params": [
+            "{\n  type,\n  value,\n  onChange,\n}"
+          ],
+          "exported": false,
+          "lineCount": 118
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useState"
+          ]
+        },
+        {
+          "source": "@/components/ui/badge",
+          "specifiers": [
+            "Badge"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        },
+        {
+          "source": "@/lib/field-types",
+          "specifiers": [
+            "detectFieldType",
+            "defaultValueForType",
+            "FieldType"
+          ]
+        }
+      ],
+      "exports": [
+        "FieldEditor"
+      ],
+      "totalLines": 184,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/layout/CommandPalette.tsx": {
+      "filePath": "src/components/layout/CommandPalette.tsx",
+      "contentHash": "6f29bc368d4d4d00afd3f68f462158458b6476b8a33e2f2857c40a7200c916d9",
+      "functions": [
+        {
+          "name": "docId",
+          "params": [
+            "path"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "CommandPalette",
+          "params": [
+            "{ actions, onLoadQuery }"
+          ],
+          "exported": true,
+          "lineCount": 102
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Bookmark",
+            "FileText",
+            "Folder",
+            "Terminal"
+          ]
+        },
+        {
+          "source": "@/components/ui/command",
+          "specifiers": [
+            "Command",
+            "CommandEmpty",
+            "CommandGroup",
+            "CommandInput",
+            "CommandItem",
+            "CommandList"
+          ]
+        },
+        {
+          "source": "@/hooks/firestore",
+          "specifiers": [
+            "useCollections"
+          ]
+        },
+        {
+          "source": "@/stores/palette-store",
+          "specifiers": [
+            "usePaletteStore"
+          ]
+        },
+        {
+          "source": "@/stores/query-store",
+          "specifiers": [
+            "useQueryStore"
+          ]
+        },
+        {
+          "source": "@/stores/recents-store",
+          "specifiers": [
+            "useRecentsStore"
+          ]
+        },
+        {
+          "source": "@/stores/tabs-store",
+          "specifiers": [
+            "useTabsStore"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "SavedQuery"
+          ]
+        }
+      ],
+      "exports": [
+        "CommandPalette"
+      ],
+      "totalLines": 136,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/layout/ContentSplit.tsx": {
+      "filePath": "src/components/layout/ContentSplit.tsx",
+      "contentHash": "6bce373aa25718bda8b0be783fe3169bae4bd04a06ee331efd2966446f1e6aa9",
+      "functions": [
+        {
+          "name": "ContentSplit",
+          "params": [
+            "{ left, right }"
+          ],
+          "exported": true,
+          "lineCount": 22
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "ReactNode"
+          ]
+        },
+        {
+          "source": "react-resizable-panels",
+          "specifiers": [
+            "Group",
+            "Panel",
+            "Separator",
+            "useDefaultLayout"
+          ]
+        }
+      ],
+      "exports": [
+        "ContentSplit"
+      ],
+      "totalLines": 34,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/layout/ErrorBoundary.tsx": {
+      "filePath": "src/components/layout/ErrorBoundary.tsx",
+      "contentHash": "95d71f267362aefda7317bc1449317733de06417f683e32a8ac209ea1b9bc870",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ErrorBoundary",
+          "methods": [
+            "constructor",
+            "getDerivedStateFromError",
+            "componentDidCatch",
+            "render"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 30
+        }
+      ],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "Component"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "ErrorInfo",
+            "ReactNode"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        }
+      ],
+      "exports": [
+        "ErrorBoundary"
+      ],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/layout/ResizableLayout.tsx": {
+      "filePath": "src/components/layout/ResizableLayout.tsx",
+      "contentHash": "bb37071bc6c68b378f6c460984c829971a02eb2c2616b2fef6c820f2edb3e7b4",
+      "functions": [
+        {
+          "name": "ResizableLayout",
+          "params": [
+            "{ sidebarContent, mainContent }"
+          ],
+          "exported": true,
+          "lineCount": 21
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "ReactNode"
+          ]
+        },
+        {
+          "source": "react-resizable-panels",
+          "specifiers": [
+            "Group",
+            "Panel",
+            "Separator",
+            "useDefaultLayout"
+          ]
+        }
+      ],
+      "exports": [
+        "ResizableLayout"
+      ],
+      "totalLines": 33,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/layout/Sidebar.tsx": {
+      "filePath": "src/components/layout/Sidebar.tsx",
+      "contentHash": "d3c3bfe5010f0feff3683da335e259a430f7d8dcf6a1c76aa61faf84e6014459",
+      "functions": [
+        {
+          "name": "Sidebar",
+          "params": [
+            "{\n  accounts,\n  activeAccountId,\n  collectionPath,\n  documentPath,\n  onSelectCollection,\n  onSelectDocument,\n  connectionMode,\n  connectionError,\n  emulatorProjectId,\n  onManageConnections,\n  onDeleteCollection,\n  onAbout,\n}"
+          ],
+          "exported": true,
+          "lineCount": 117
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "ChevronsUpDown",
+            "HelpCircle",
+            "Moon",
+            "Search",
+            "Sun"
+          ]
+        },
+        {
+          "source": "@/components/ui/kbd",
+          "specifiers": [
+            "Kbd"
+          ]
+        },
+        {
+          "source": "@/components/ui/scroll-area",
+          "specifiers": [
+            "ScrollArea"
+          ]
+        },
+        {
+          "source": "@/components/collections/CollectionTree",
+          "specifiers": [
+            "CollectionTree"
+          ]
+        },
+        {
+          "source": "@/stores/view-store",
+          "specifiers": [
+            "useViewStore"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "ServiceAccountSummary"
+          ]
+        }
+      ],
+      "exports": [
+        "Sidebar"
+      ],
+      "totalLines": 147,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/layout/StatusBar.tsx": {
+      "filePath": "src/components/layout/StatusBar.tsx",
+      "contentHash": "21789d5b9813814cb704e0765396d186ecc3f3d54b071a21dcbcfe5160cd63c8",
+      "functions": [
+        {
+          "name": "StatusBar",
+          "params": [
+            "{ items, right }"
+          ],
+          "exported": true,
+          "lineCount": 17
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "Fragment",
+            "ReactNode"
+          ]
+        }
+      ],
+      "exports": [
+        "StatusBar"
+      ],
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/layout/TabBar.tsx": {
+      "filePath": "src/components/layout/TabBar.tsx",
+      "contentHash": "05dfbdf83da4c46b3c5788add61afa010b1899cdbc150e15eb3078fe41cdf348",
+      "functions": [
+        {
+          "name": "tabLabel",
+          "params": [
+            "tab"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "TabBar",
+          "params": [
+            "{ onNewTab }"
+          ],
+          "exported": true,
+          "lineCount": 82
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "FileText",
+            "Folder",
+            "Plus",
+            "X"
+          ]
+        },
+        {
+          "source": "@/stores/tabs-store",
+          "specifiers": [
+            "useTabsStore",
+            "Tab"
+          ]
+        }
+      ],
+      "exports": [
+        "TabBar"
+      ],
+      "totalLines": 99,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/layout/Toolbar.tsx": {
+      "filePath": "src/components/layout/Toolbar.tsx",
+      "contentHash": "4b0e3798b90e7ce54234b295d8559995f60ae097defa9fe6e5d36f53da8de8f7",
+      "functions": [
+        {
+          "name": "Toolbar",
+          "params": [
+            "{\n  collectionPath,\n  breadcrumbs,\n  onCrumbClick,\n  isLoading,\n  queryOpen,\n  onToggleQuery,\n  shellOpen,\n  onToggleShell,\n  onDuplicateCollection,\n  onDeleteCollection,\n}"
+          ],
+          "exported": true,
+          "lineCount": 93
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Filter",
+            "Loader2",
+            "MoreHorizontal",
+            "Terminal"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "Fragment"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/dropdown-menu",
+          "specifiers": [
+            "DropdownMenu",
+            "DropdownMenuContent",
+            "DropdownMenuItem",
+            "DropdownMenuSeparator",
+            "DropdownMenuTrigger"
+          ]
+        },
+        {
+          "source": "@/components/views/ViewModeToggle",
+          "specifiers": [
+            "ListModeToggle"
+          ]
+        }
+      ],
+      "exports": [
+        "Toolbar"
+      ],
+      "totalLines": 120,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/onboarding/OnboardingState.tsx": {
+      "filePath": "src/components/onboarding/OnboardingState.tsx",
+      "contentHash": "0f8a92fc101ee7a5ec16dead1aa69c8d8b4c867980a411fed3c314bee73c1537",
+      "functions": [
+        {
+          "name": "OnboardingState",
+          "params": [
+            "{ onImport, onConnectEmulator, onRestoreBackup }"
+          ],
+          "exported": true,
+          "lineCount": 72
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Upload",
+            "Zap"
+          ]
+        }
+      ],
+      "exports": [
+        "OnboardingState"
+      ],
+      "totalLines": 81,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/query/FilterRow.tsx": {
+      "filePath": "src/components/query/FilterRow.tsx",
+      "contentHash": "b0c1f508d0b4c024441a93a2fcf14207f6d339c27b90e2f21337fcf3c750e4e3",
+      "functions": [
+        {
+          "name": "FilterRow",
+          "params": [
+            "{ filter, onChange, onRemove }"
+          ],
+          "exported": true,
+          "lineCount": 42
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Trash2"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        },
+        {
+          "source": "@/components/ui/select",
+          "specifiers": [
+            "Select",
+            "SelectContent",
+            "SelectItem",
+            "SelectTrigger",
+            "SelectValue"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "FilterOperator"
+          ]
+        }
+      ],
+      "exports": [
+        "FILTER_OPERATORS",
+        "FilterRow"
+      ],
+      "totalLines": 83,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/query/OrderByRow.tsx": {
+      "filePath": "src/components/query/OrderByRow.tsx",
+      "contentHash": "51c4b946429ff30b80dfefe7ee12826c0c5ea0a9a098a26947ea4f23232f4a3d",
+      "functions": [
+        {
+          "name": "OrderByRow",
+          "params": [
+            "{ orderBy, onChange, onRemove }"
+          ],
+          "exported": true,
+          "lineCount": 37
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "ArrowDown",
+            "ArrowUp",
+            "Trash2"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        }
+      ],
+      "exports": [
+        "OrderByRow"
+      ],
+      "totalLines": 55,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/query/QueryBar.tsx": {
+      "filePath": "src/components/query/QueryBar.tsx",
+      "contentHash": "b0ff299501b5758c6e5a3b50ed9e678651ef63c279156d1c6d06051801a1cbb2",
+      "functions": [
+        {
+          "name": "displayValue",
+          "params": [
+            "value"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "QueryBar",
+          "params": [
+            "{\n  collectionPath,\n  activeQuery,\n  onRunQuery,\n  onClearQuery,\n  isQuerying,\n  onSaveQuery,\n  matchCount,\n}"
+          ],
+          "exported": true,
+          "lineCount": 86
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Bookmark",
+            "Plus",
+            "X"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useState"
+          ]
+        },
+        {
+          "source": "@/components/ui/badge",
+          "specifiers": [
+            "Badge"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/query/QueryBuilder",
+          "specifiers": [
+            "QueryBuilder"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "QueryFilter",
+            "QuerySpec"
+          ]
+        }
+      ],
+      "exports": [
+        "QueryBar"
+      ],
+      "totalLines": 110,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/query/QueryBuilder.tsx": {
+      "filePath": "src/components/query/QueryBuilder.tsx",
+      "contentHash": "6468a9696bed609c677adbe07fefc867d07bd67caa9e97085d02cb3ccbb42b67",
+      "functions": [
+        {
+          "name": "parseFilterValue",
+          "params": [
+            "raw"
+          ],
+          "returnType": "unknown",
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "QueryBuilder",
+          "params": [
+            "{\n  collectionPath,\n  onRunQuery,\n  onClearQuery,\n  isQuerying,\n  onSaveQuery,\n  initialQuery,\n}"
+          ],
+          "exported": true,
+          "lineCount": 174
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "ListFilter",
+            "ArrowUpDown",
+            "Play",
+            "X",
+            "Save"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/input",
+          "specifiers": [
+            "Input"
+          ]
+        },
+        {
+          "source": "@/components/ui/separator",
+          "specifiers": [
+            "Separator"
+          ]
+        },
+        {
+          "source": "@/components/query/FilterRow",
+          "specifiers": [
+            "FilterRow",
+            "FilterRowData"
+          ]
+        },
+        {
+          "source": "@/components/query/OrderByRow",
+          "specifiers": [
+            "OrderByRow",
+            "OrderByRowData"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "QuerySpec"
+          ]
+        }
+      ],
+      "exports": [
+        "QueryBuilder"
+      ],
+      "totalLines": 210,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/query/SavedQueryList.tsx": {
+      "filePath": "src/components/query/SavedQueryList.tsx",
+      "contentHash": "8bd7a1c94a230269df4c3ab3a4a2cfb5a62e129cd7e66041b69522e0554711be",
+      "functions": [
+        {
+          "name": "SavedQueryList",
+          "params": [
+            "{ queries, onLoad, onDelete }"
+          ],
+          "exported": true,
+          "lineCount": 57
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Play",
+            "Trash2"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "QuerySpec",
+            "SavedQuery"
+          ]
+        }
+      ],
+      "exports": [
+        "SavedQueryList"
+      ],
+      "totalLines": 69,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/shell/ScriptPanel.tsx": {
+      "filePath": "src/components/shell/ScriptPanel.tsx",
+      "contentHash": "8f97267daad6077f22fcbc1f6b96347a87fbb4036c45e52edd549c81980a1873",
+      "functions": [
+        {
+          "name": "ScriptPanel",
+          "params": [
+            "{ onSaveRequest, runRef }"
+          ],
+          "exported": true,
+          "lineCount": 122
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@monaco-editor/react",
+          "specifiers": [
+            "Editor"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Loader2",
+            "Play",
+            "Trash2",
+            "Save"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useRef"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/kbd",
+          "specifiers": [
+            "Kbd"
+          ]
+        },
+        {
+          "source": "@/lib/script-engine",
+          "specifiers": [
+            "createDbApi",
+            "executeScript"
+          ]
+        },
+        {
+          "source": "@/stores/script-store",
+          "specifiers": [
+            "useScriptStore"
+          ]
+        },
+        {
+          "source": "@/stores/view-store",
+          "specifiers": [
+            "useViewStore"
+          ]
+        }
+      ],
+      "exports": [
+        "ScriptPanel"
+      ],
+      "totalLines": 138,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/badge.tsx": {
+      "filePath": "src/components/ui/badge.tsx",
+      "contentHash": "edfb88643a194b3c9817fc26a139adbc84475be64782585e68350a3b88116130",
+      "functions": [
+        {
+          "name": "Badge",
+          "params": [
+            "{ className, variant, dot, ...props }"
+          ],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "class-variance-authority",
+          "specifiers": [
+            "cva",
+            "VariantProps"
+          ]
+        },
+        {
+          "source": "@/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Badge",
+        "badgeVariants"
+      ],
+      "totalLines": 40,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/button.tsx": {
+      "filePath": "src/components/ui/button.tsx",
+      "contentHash": "e283fc60db761629cf32e1a2a539bce4bad7f520b40bfb579563aa75e02ee2ce",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@radix-ui/react-slot",
+          "specifiers": [
+            "Slot"
+          ]
+        },
+        {
+          "source": "class-variance-authority",
+          "specifiers": [
+            "VariantProps",
+            "cva"
+          ]
+        },
+        {
+          "source": "@/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Button",
+        "buttonVariants"
+      ],
+      "totalLines": 52,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/calendar.tsx": {
+      "filePath": "src/components/ui/calendar.tsx",
+      "contentHash": "0a2aa5f094c392f517186c1e77fe01325669b1f7c40368dd7377379cdbf1d10f",
+      "functions": [
+        {
+          "name": "Calendar",
+          "params": [
+            "{ className, classNames, ...props }"
+          ],
+          "exported": true,
+          "lineCount": 28
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "react-day-picker",
+          "specifiers": [
+            "DayPicker"
+          ]
+        },
+        {
+          "source": "react-day-picker/style.css",
+          "specifiers": []
+        },
+        {
+          "source": "@/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Calendar"
+      ],
+      "totalLines": 37,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/command.tsx": {
+      "filePath": "src/components/ui/command.tsx",
+      "contentHash": "5f0b6e9403625df6fdb1a52e999bdb5a2dba3bab9f953e35028a881d8a53b20c",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "cmdk",
+          "specifiers": [
+            "CommandPrimitive"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Search"
+          ]
+        },
+        {
+          "source": "@/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Command",
+        "CommandInput",
+        "CommandList",
+        "CommandEmpty",
+        "CommandGroup",
+        "CommandItem",
+        "CommandSeparator"
+      ],
+      "totalLines": 112,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/context-menu.tsx": {
+      "filePath": "src/components/ui/context-menu.tsx",
+      "contentHash": "0ed64e35ba5cb53593ada3fac8651c9ac092a6e910ef93a8d466c333f03b4805",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@radix-ui/react-context-menu",
+          "specifiers": [
+            "* as ContextMenuPrimitive"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "ContextMenu",
+        "ContextMenuTrigger",
+        "ContextMenuContent",
+        "ContextMenuItem",
+        "ContextMenuSeparator"
+      ],
+      "totalLines": 58,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/dialog.tsx": {
+      "filePath": "src/components/ui/dialog.tsx",
+      "contentHash": "0b63cc9dcfdfd72060ecd39a70b27348ddac4364b4a500dba8c8d1385b072661",
+      "functions": [
+        {
+          "name": "DialogHeader",
+          "params": [
+            "{ className, ...props }"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "DialogFooter",
+          "params": [
+            "{ className, ...props }"
+          ],
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@radix-ui/react-dialog",
+          "specifiers": [
+            "* as DialogPrimitive"
+          ]
+        },
+        {
+          "source": "@/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Dialog",
+        "DialogClose",
+        "DialogContent",
+        "DialogDescription",
+        "DialogFooter",
+        "DialogHeader",
+        "DialogOverlay",
+        "DialogPortal",
+        "DialogTitle",
+        "DialogTrigger"
+      ],
+      "totalLines": 95,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/dropdown-menu.tsx": {
+      "filePath": "src/components/ui/dropdown-menu.tsx",
+      "contentHash": "820b2d12c01f4c894d4b152737db714d6b0ed3ecab4987d3f24445a9a45f3b5a",
+      "functions": [
+        {
+          "name": "DropdownMenuShortcut",
+          "params": [
+            "{ className, ...props }"
+          ],
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@radix-ui/react-dropdown-menu",
+          "specifiers": [
+            "* as DropdownMenuPrimitive"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "DropdownMenu",
+        "DropdownMenuCheckboxItem",
+        "DropdownMenuContent",
+        "DropdownMenuGroup",
+        "DropdownMenuItem",
+        "DropdownMenuLabel",
+        "DropdownMenuPortal",
+        "DropdownMenuRadioGroup",
+        "DropdownMenuRadioItem",
+        "DropdownMenuSeparator",
+        "DropdownMenuShortcut",
+        "DropdownMenuSub",
+        "DropdownMenuSubContent",
+        "DropdownMenuSubTrigger",
+        "DropdownMenuTrigger"
+      ],
+      "totalLines": 180,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/empty-state.tsx": {
+      "filePath": "src/components/ui/empty-state.tsx",
+      "contentHash": "e671de803869c7cf69edee74a9f22076d1fc9608d5e5f1f0e751b5cb008e4afb",
+      "functions": [
+        {
+          "name": "EmptyState",
+          "params": [
+            "{\n  icon: Icon,\n  title,\n  description,\n  action,\n  tone = 'neutral',\n  className = '',\n}"
+          ],
+          "exported": true,
+          "lineCount": 24
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "LucideIcon"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "ReactNode"
+          ]
+        }
+      ],
+      "exports": [
+        "EmptyState"
+      ],
+      "totalLines": 37,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/input.tsx": {
+      "filePath": "src/components/ui/input.tsx",
+      "contentHash": "c2af2583af77f3cbd2e720980fabdef454d57443f663f4b9d2af91f3e94a6856",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Input"
+      ],
+      "totalLines": 23,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/kbd.tsx": {
+      "filePath": "src/components/ui/kbd.tsx",
+      "contentHash": "dcc9cd525f5597bde476405f68baa4b1284955211fe95c63352f22a68471e51d",
+      "functions": [
+        {
+          "name": "Kbd",
+          "params": [
+            "{ className, ...props }"
+          ],
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Kbd"
+      ],
+      "totalLines": 24,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/popover.tsx": {
+      "filePath": "src/components/ui/popover.tsx",
+      "contentHash": "39c8019521a477b85e8aa0521a4d6124c0cbf00955b23214795c3929acc13775",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@radix-ui/react-popover",
+          "specifiers": [
+            "* as PopoverPrimitive"
+          ]
+        },
+        {
+          "source": "@/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Popover",
+        "PopoverTrigger",
+        "PopoverAnchor",
+        "PopoverContent"
+      ],
+      "totalLines": 30,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/scroll-area.tsx": {
+      "filePath": "src/components/ui/scroll-area.tsx",
+      "contentHash": "02dfb7e2d44599ce94bb21540f6b4d909ed95ef5461fdd37a1292a127ad68438",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@radix-ui/react-scroll-area",
+          "specifiers": [
+            "* as ScrollAreaPrimitive"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "ScrollArea",
+        "ScrollBar"
+      ],
+      "totalLines": 39,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/select.tsx": {
+      "filePath": "src/components/ui/select.tsx",
+      "contentHash": "66d51b7152007e966e6088ccf719a8a5cc0b4b71ddecc3e34553fef7bab88682",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@radix-ui/react-select",
+          "specifiers": [
+            "* as SelectPrimitive"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Check",
+            "ChevronDown",
+            "ChevronUp"
+          ]
+        },
+        {
+          "source": "@/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Select",
+        "SelectGroup",
+        "SelectValue",
+        "SelectTrigger",
+        "SelectContent",
+        "SelectLabel",
+        "SelectItem",
+        "SelectSeparator",
+        "SelectScrollUpButton",
+        "SelectScrollDownButton"
+      ],
+      "totalLines": 158,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/separator.tsx": {
+      "filePath": "src/components/ui/separator.tsx",
+      "contentHash": "995c54f1c5c688f712a675fe35d55bcada2b31dba561dcc71553a1ad601e59ec",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@radix-ui/react-separator",
+          "specifiers": [
+            "* as SeparatorPrimitive"
+          ]
+        },
+        {
+          "source": "@/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Separator"
+      ],
+      "totalLines": 32,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/sheet.tsx": {
+      "filePath": "src/components/ui/sheet.tsx",
+      "contentHash": "55a001b84e22286c5827d0c457a6e674f57b44c80c50caab4de555e22ae59a3e",
+      "functions": [
+        {
+          "name": "SheetHeader",
+          "params": [
+            "{ className, ...props }"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "SheetFooter",
+          "params": [
+            "{ className, ...props }"
+          ],
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@radix-ui/react-dialog",
+          "specifiers": [
+            "* as SheetPrimitive"
+          ]
+        },
+        {
+          "source": "@/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Sheet",
+        "SheetClose",
+        "SheetContent",
+        "SheetDescription",
+        "SheetFooter",
+        "SheetHeader",
+        "SheetOverlay",
+        "SheetPortal",
+        "SheetTitle",
+        "SheetTrigger"
+      ],
+      "totalLines": 101,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/table.tsx": {
+      "filePath": "src/components/ui/table.tsx",
+      "contentHash": "da459a385bfc0c636866ea5e015586c162c736b384d8ed098430b51cccd1e147",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Table",
+        "TableBody",
+        "TableCaption",
+        "TableCell",
+        "TableFooter",
+        "TableHead",
+        "TableHeader",
+        "TableRow"
+      ],
+      "totalLines": 87,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/tabs.tsx": {
+      "filePath": "src/components/ui/tabs.tsx",
+      "contentHash": "7f5656a197814b53d8d0b4fc45392593890874bcc87c4ef6862b7d79d795a616",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@radix-ui/react-tabs",
+          "specifiers": [
+            "* as TabsPrimitive"
+          ]
+        },
+        {
+          "source": "@/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Tabs",
+        "TabsList",
+        "TabsTrigger",
+        "TabsContent"
+      ],
+      "totalLines": 54,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/toast.tsx": {
+      "filePath": "src/components/ui/toast.tsx",
+      "contentHash": "e1c7799d82260ff1d3e314d0838ad512853088f284bd879bdc562f44d57afea8",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        },
+        {
+          "source": "@radix-ui/react-toast",
+          "specifiers": [
+            "* as ToastPrimitives"
+          ]
+        },
+        {
+          "source": "class-variance-authority",
+          "specifiers": [
+            "cva",
+            "VariantProps"
+          ]
+        },
+        {
+          "source": "@/lib/utils",
+          "specifiers": [
+            "cn"
+          ]
+        }
+      ],
+      "exports": [
+        "Toast",
+        "ToastAction",
+        "ToastClose",
+        "ToastDescription",
+        "ToastProvider",
+        "ToastTitle",
+        "ToastViewport",
+        "toastVariants"
+      ],
+      "totalLines": 103,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/toaster.tsx": {
+      "filePath": "src/components/ui/toaster.tsx",
+      "contentHash": "6c2dd4a5aa98ff2446cfc34369dfb1300d7c6c1bc0abaf98a9eeecc679410b05",
+      "functions": [
+        {
+          "name": "VariantIcon",
+          "params": [
+            "{ variant }"
+          ],
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "Toaster",
+          "params": [],
+          "exported": true,
+          "lineCount": 22
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "AlertCircle",
+            "CheckCircle2"
+          ]
+        },
+        {
+          "source": "./use-toast",
+          "specifiers": [
+            "useToast"
+          ]
+        },
+        {
+          "source": "./toast",
+          "specifiers": [
+            "Toast",
+            "ToastClose",
+            "ToastDescription",
+            "ToastProvider",
+            "ToastTitle",
+            "ToastViewport"
+          ]
+        }
+      ],
+      "exports": [
+        "Toaster"
+      ],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/ui/use-toast.ts": {
+      "filePath": "src/components/ui/use-toast.ts",
+      "contentHash": "c5b1d4f9cbca60bf50dd05a55dde483c50fd7cb11256c43e5bfbc60cb81e969f",
+      "functions": [
+        {
+          "name": "addToRemoveQueue",
+          "params": [
+            "toastId"
+          ],
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "reducer",
+          "params": [
+            "state",
+            "action"
+          ],
+          "returnType": "State",
+          "exported": false,
+          "lineCount": 47
+        },
+        {
+          "name": "dispatch",
+          "params": [
+            "action"
+          ],
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "toast",
+          "params": [
+            "props"
+          ],
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "useToast",
+          "params": [],
+          "exported": true,
+          "lineCount": 17
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "* as React"
+          ]
+        }
+      ],
+      "exports": [
+        "toast",
+        "useToast"
+      ],
+      "totalLines": 163,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/views/CellEditor.tsx": {
+      "filePath": "src/components/views/CellEditor.tsx",
+      "contentHash": "1c73259ba8dd049143f9fb84e564c6fb5845851c85fcdfe426f7284572201933",
+      "functions": [
+        {
+          "name": "synColor",
+          "params": [
+            "type"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "Tip",
+          "params": [
+            "{ type }"
+          ],
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "CellEditor",
+          "params": [
+            "{ value, type, onCommit, onCancel, onAdvance }"
+          ],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "ScalarEditor",
+          "params": [
+            "{ value, type, onCommit, onCancel, onAdvance }"
+          ],
+          "exported": false,
+          "lineCount": 63
+        },
+        {
+          "name": "BoolEditor",
+          "params": [
+            "{\n  value,\n  onCommit,\n  onCancel,\n  onAdvance,\n}"
+          ],
+          "exported": false,
+          "lineCount": 60
+        },
+        {
+          "name": "toTsValue",
+          "params": [
+            "value"
+          ],
+          "returnType": "TsValue",
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "TimestampEditor",
+          "params": [
+            "{\n  value,\n  onCommit,\n  onCancel,\n  onAdvance,\n}"
+          ],
+          "exported": false,
+          "lineCount": 70
+        },
+        {
+          "name": "ReferenceEditor",
+          "params": [
+            "{\n  value,\n  onCommit,\n  onCancel,\n  onAdvance,\n}"
+          ],
+          "exported": false,
+          "lineCount": 69
+        },
+        {
+          "name": "GeopointEditor",
+          "params": [
+            "{\n  value,\n  onCommit,\n  onCancel,\n  onAdvance,\n}"
+          ],
+          "exported": false,
+          "lineCount": 66
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useMemo",
+            "useRef",
+            "useState",
+            "KeyboardEvent"
+          ]
+        },
+        {
+          "source": "@/components/ui/calendar",
+          "specifiers": [
+            "Calendar"
+          ]
+        },
+        {
+          "source": "@/components/ui/command",
+          "specifiers": [
+            "Command",
+            "CommandEmpty",
+            "CommandGroup",
+            "CommandInput",
+            "CommandItem",
+            "CommandList"
+          ]
+        },
+        {
+          "source": "@/components/ui/kbd",
+          "specifiers": [
+            "Kbd"
+          ]
+        },
+        {
+          "source": "@/components/ui/popover",
+          "specifiers": [
+            "Popover",
+            "PopoverAnchor",
+            "PopoverContent"
+          ]
+        },
+        {
+          "source": "@/hooks/firestore",
+          "specifiers": [
+            "useCollections"
+          ]
+        },
+        {
+          "source": "@/lib/field-types",
+          "specifiers": [
+            "FieldType"
+          ]
+        }
+      ],
+      "exports": [
+        "CellEditor"
+      ],
+      "totalLines": 415,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/views/FieldsView.tsx": {
+      "filePath": "src/components/views/FieldsView.tsx",
+      "contentHash": "c65b01e1f7daed9aa0d685f1f036a75792d8ca1e54f1f26311034ceb9ef5a150",
+      "functions": [
+        {
+          "name": "FieldsView",
+          "params": [
+            "{ data, onChange, readonly }"
+          ],
+          "exported": true,
+          "lineCount": 71
+        },
+        {
+          "name": "FieldRow",
+          "params": [
+            "{\n  fieldName,\n  value,\n  onChange,\n  onDelete,\n  onNestedChange,\n  onNestedDelete,\n  readonly,\n  depth,\n}"
+          ],
+          "exported": false,
+          "lineCount": 77
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Braces",
+            "ChevronDown",
+            "ChevronRight",
+            "Plus",
+            "Trash2"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useState"
+          ]
+        },
+        {
+          "source": "@/components/ui/button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "@/components/ui/empty-state",
+          "specifiers": [
+            "EmptyState"
+          ]
+        },
+        {
+          "source": "@/components/fields/FieldEditor",
+          "specifiers": [
+            "FieldEditor"
+          ]
+        },
+        {
+          "source": "@/lib/field-types",
+          "specifiers": [
+            "detectFieldType",
+            "setValueAtPath",
+            "deleteValueAtPath"
+          ]
+        }
+      ],
+      "exports": [
+        "FieldsView"
+      ],
+      "totalLines": 175,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/views/TableView.tsx": {
+      "filePath": "src/components/views/TableView.tsx",
+      "contentHash": "54ba58bd12d3a99653932d07b5c820e5a52bbdb47d04561fa1b0fb2891c51436",
+      "functions": [
+        {
+          "name": "formatCellValue",
+          "params": [
+            "value"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 26
+        },
+        {
+          "name": "detectColumns",
+          "params": [
+            "documents",
+            "maxScan"
+          ],
+          "returnType": "string[]",
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "synColorClass",
+          "params": [
+            "type"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "isEditableType",
+          "params": [
+            "t"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "TableView",
+          "params": [
+            "{\n  documents,\n  selectedPath,\n  onSelect,\n  onEditComplex,\n  onEndReached,\n  hasMore,\n  isFetchingMore,\n}"
+          ],
+          "exported": true,
+          "lineCount": 212
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "forwardRef",
+            "useEffect",
+            "useMemo",
+            "useRef",
+            "useState"
+          ]
+        },
+        {
+          "source": "react-virtuoso",
+          "specifiers": [
+            "TableVirtuoso"
+          ]
+        },
+        {
+          "source": "@/components/views/CellEditor",
+          "specifiers": [
+            "CellEditor"
+          ]
+        },
+        {
+          "source": "@/lib/field-types",
+          "specifiers": [
+            "detectFieldType",
+            "FieldType"
+          ]
+        },
+        {
+          "source": "@/stores/cell-edits-store",
+          "specifiers": [
+            "useCellEditsStore"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "FirestoreDocument"
+          ]
+        }
+      ],
+      "exports": [
+        "TableView"
+      ],
+      "totalLines": 300,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/views/ViewModeToggle.tsx": {
+      "filePath": "src/components/views/ViewModeToggle.tsx",
+      "contentHash": "913d698308b2f3ef447c5e3e14770b4e66911f499b5eee0a182f21dc06f0bba6",
+      "functions": [
+        {
+          "name": "ListModeToggle",
+          "params": [],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "PreviewModeToggle",
+          "params": [],
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/components/ui/tabs",
+          "specifiers": [
+            "Tabs",
+            "TabsList",
+            "TabsTrigger"
+          ]
+        },
+        {
+          "source": "@/stores/view-store",
+          "specifiers": [
+            "useViewStore",
+            "ListMode",
+            "PreviewMode"
+          ]
+        }
+      ],
+      "exports": [
+        "ListModeToggle",
+        "PreviewModeToggle"
+      ],
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    "src/hooks/firestore.ts": {
+      "filePath": "src/hooks/firestore.ts",
+      "contentHash": "301cb08a0e42122b3aaf5176f7ec3cfdedff6ce491e26fab014282827926483d",
+      "functions": [
+        {
+          "name": "useConnectionKey",
+          "params": [],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "useCollections",
+          "params": [
+            "parentPath"
+          ],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "useDocumentsInfinite",
+          "params": [
+            "collectionPath",
+            "pageSize"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "useDocument",
+          "params": [
+            "documentPath"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "useDeleteDocument",
+          "params": [],
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "useQueryDocuments",
+          "params": [
+            "query"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "useDeleteCollection",
+          "params": [],
+          "exported": true,
+          "lineCount": 18
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@tanstack/react-query",
+          "specifiers": [
+            "useInfiniteQuery",
+            "useMutation",
+            "useQuery",
+            "useQueryClient"
+          ]
+        },
+        {
+          "source": "@/lib/tauri",
+          "specifiers": [
+            "deleteCollection",
+            "deleteDocument",
+            "getDocument",
+            "listCollections",
+            "listDocuments",
+            "queryDocuments"
+          ]
+        },
+        {
+          "source": "@/lib/firestore-utils",
+          "specifiers": [
+            "collectionFromDocPath"
+          ]
+        },
+        {
+          "source": "@/stores/auth-store",
+          "specifiers": [
+            "useAuthStore"
+          ]
+        },
+        {
+          "source": "@/stores/connection-store",
+          "specifiers": [
+            "useConnectionStore"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "CollectionList",
+            "DocumentPage",
+            "FirestoreDocument",
+            "QuerySpec"
+          ]
+        }
+      ],
+      "exports": [
+        "useConnectionKey",
+        "useCollections",
+        "useDocumentsInfinite",
+        "useDocument",
+        "useDeleteDocument",
+        "useQueryDocuments",
+        "useDeleteCollection"
+      ],
+      "totalLines": 110,
+      "hasStructuralAnalysis": true
+    },
+    "src/hooks/use-keyboard-shortcuts.ts": {
+      "filePath": "src/hooks/use-keyboard-shortcuts.ts",
+      "contentHash": "f30d2a6459fb9b8f07c31c1436d9d2be21fbeab074a6f872c4216eb8d0f56a5b",
+      "functions": [
+        {
+          "name": "isEditableTarget",
+          "params": [
+            "target"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "useKeyboardShortcuts",
+          "params": [
+            "handlers"
+          ],
+          "exported": true,
+          "lineCount": 24
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useRef"
+          ]
+        },
+        {
+          "source": "@/lib/keyboard-shortcuts",
+          "specifiers": [
+            "SHORTCUTS",
+            "matchesShortcut"
+          ]
+        }
+      ],
+      "exports": [
+        "useKeyboardShortcuts"
+      ],
+      "totalLines": 52,
+      "hasStructuralAnalysis": true
+    },
+    "src/lib/cell-flush.ts": {
+      "filePath": "src/lib/cell-flush.ts",
+      "contentHash": "33647d3543b7e0d1272bfb3117d6086f72a5bd9b99b750913323ff09a03cf797",
+      "functions": [
+        {
+          "name": "flushTablePending",
+          "params": [
+            "documents",
+            "save"
+          ],
+          "returnType": "Promise<CellFlushResult>",
+          "exported": true,
+          "lineCount": 24
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/lib/field-types",
+          "specifiers": [
+            "setValueAtPath"
+          ]
+        },
+        {
+          "source": "@/stores/cell-edits-store",
+          "specifiers": [
+            "useCellEditsStore"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "FirestoreDocument"
+          ]
+        }
+      ],
+      "exports": [
+        "flushTablePending"
+      ],
+      "totalLines": 48,
+      "hasStructuralAnalysis": true
+    },
+    "src/lib/dialog-utils.ts": {
+      "filePath": "src/lib/dialog-utils.ts",
+      "contentHash": "86c2858f1defceeeedde4c0b07fb7b81edd4ab2be670a47ae6b228072df2f54b",
+      "functions": [
+        {
+          "name": "openFileDialog",
+          "params": [
+            "options"
+          ],
+          "returnType": "Promise<string | null>",
+          "exported": true,
+          "lineCount": 22
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@tauri-apps/plugin-dialog",
+          "specifiers": [
+            "openDialogPlugin"
+          ]
+        },
+        {
+          "source": "@tauri-apps/api/core",
+          "specifiers": [
+            "invoke"
+          ]
+        }
+      ],
+      "exports": [
+        "openFileDialog"
+      ],
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    "src/lib/error-utils.ts": {
+      "filePath": "src/lib/error-utils.ts",
+      "contentHash": "d8f78be19766a620f92a8561c726a11d668c0141472d951cb0c06d7869c936d6",
+      "functions": [
+        {
+          "name": "getErrorMessage",
+          "params": [
+            "err",
+            "fallback"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "getErrorMessage"
+      ],
+      "totalLines": 14,
+      "hasStructuralAnalysis": true
+    },
+    "src/lib/field-types.ts": {
+      "filePath": "src/lib/field-types.ts",
+      "contentHash": "ed2336f063717e4e49daae55d467855dcd748a6bc29a3df3b8f9ac112048b942",
+      "functions": [
+        {
+          "name": "detectFieldType",
+          "params": [
+            "value"
+          ],
+          "returnType": "FieldType",
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "defaultValueForType",
+          "params": [
+            "type"
+          ],
+          "returnType": "unknown",
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "setValueAtPath",
+          "params": [
+            "data",
+            "path",
+            "value"
+          ],
+          "returnType": "Record<string, unknown>",
+          "exported": true,
+          "lineCount": 33
+        },
+        {
+          "name": "deleteValueAtPath",
+          "params": [
+            "data",
+            "path"
+          ],
+          "returnType": "Record<string, unknown>",
+          "exported": true,
+          "lineCount": 30
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "detectFieldType",
+        "defaultValueForType",
+        "setValueAtPath",
+        "deleteValueAtPath"
+      ],
+      "totalLines": 117,
+      "hasStructuralAnalysis": true
+    },
+    "src/lib/firestore-utils.ts": {
+      "filePath": "src/lib/firestore-utils.ts",
+      "contentHash": "7be8e4093ac00e58776e014f21d5f7a5525ae742b28997082272f0e0429f36e9",
+      "functions": [
+        {
+          "name": "normalizeFirestorePath",
+          "params": [
+            "value"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "collectionFromDocPath",
+          "params": [
+            "path"
+          ],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "normalizeFirestorePath",
+        "collectionFromDocPath"
+      ],
+      "totalLines": 14,
+      "hasStructuralAnalysis": true
+    },
+    "src/lib/glass-constants.ts": {
+      "filePath": "src/lib/glass-constants.ts",
+      "contentHash": "a6f9925d7cbc0618a4fc1fa5dcd95cf3d728fa5a1a60744c12b513bde4bc3e0e",
+      "functions": [
+        {
+          "name": "hexToRgb",
+          "params": [
+            "hex"
+          ],
+          "returnType": "[number, number, number]",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "glassAccentShadow",
+          "params": [
+            "color"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "CSSProperties"
+          ]
+        }
+      ],
+      "exports": [
+        "NOISE_SVG",
+        "GLASS_BACKDROP",
+        "GLASS_BACKDROP_LIGHT",
+        "GLASS_BORDER",
+        "GLASS_BORDER_LIGHT",
+        "GLASS_TOP_SHINE",
+        "GLASS_SHADOW_NEUTRAL",
+        "glassAccentShadow",
+        "GLASS_DIALOG_STYLE"
+      ],
+      "totalLines": 61,
+      "hasStructuralAnalysis": true
+    },
+    "src/lib/keyboard-shortcuts.ts": {
+      "filePath": "src/lib/keyboard-shortcuts.ts",
+      "contentHash": "80dcedabbd0ac91f19cc4b0d03d66a159e9c07dab0a0e2d5bf2fb42ab62d7350",
+      "functions": [
+        {
+          "name": "matchesShortcut",
+          "params": [
+            "event",
+            "shortcut",
+            "isMac"
+          ],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "formatShortcut",
+          "params": [
+            "shortcut",
+            "isMac"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 17
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "SHORTCUTS",
+        "matchesShortcut",
+        "formatShortcut"
+      ],
+      "totalLines": 164,
+      "hasStructuralAnalysis": true
+    },
+    "src/lib/script-completions.ts": {
+      "filePath": "src/lib/script-completions.ts",
+      "contentHash": "74ec11da7caa3883276a210fae13f5d74a3fab1a638eda4eb636d76593701642",
+      "functions": [
+        {
+          "name": "getDbCompletionItems",
+          "params": [],
+          "returnType": "CompletionItem[]",
+          "exported": true,
+          "lineCount": 46
+        },
+        {
+          "name": "registerDbCompletions",
+          "params": [
+            "monaco"
+          ],
+          "exported": true,
+          "lineCount": 31
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@monaco-editor/react",
+          "specifiers": [
+            "Monaco"
+          ]
+        }
+      ],
+      "exports": [
+        "getDbCompletionItems",
+        "registerDbCompletions"
+      ],
+      "totalLines": 88,
+      "hasStructuralAnalysis": true
+    },
+    "src/lib/script-engine.ts": {
+      "filePath": "src/lib/script-engine.ts",
+      "contentHash": "1a20bd13e0139087b3dcadc9f96d5e49ee37cf28b34d6bd6c64d1df3cb2b8a50",
+      "functions": [
+        {
+          "name": "toScriptDoc",
+          "params": [
+            "doc"
+          ],
+          "returnType": "ScriptDoc",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "createDocRef",
+          "params": [
+            "documentPath"
+          ],
+          "returnType": "DocRef",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "createCollectionRef",
+          "params": [
+            "collectionPath",
+            "filters"
+          ],
+          "returnType": "CollectionRef",
+          "exported": false,
+          "lineCount": 18
+        },
+        {
+          "name": "createDbApi",
+          "params": [],
+          "returnType": "DbApi",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "stringify",
+          "params": [
+            "value"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "executeScript",
+          "params": [
+            "script",
+            "db",
+            "onLog"
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 30
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@tauri-apps/api/core",
+          "specifiers": [
+            "invoke"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "DocumentPage",
+            "FilterOperator",
+            "FirestoreDocument",
+            "QueryFilter"
+          ]
+        }
+      ],
+      "exports": [
+        "createDbApi",
+        "executeScript"
+      ],
+      "totalLines": 102,
+      "hasStructuralAnalysis": true
+    },
+    "src/lib/tauri.ts": {
+      "filePath": "src/lib/tauri.ts",
+      "contentHash": "c9c6e00c7c2bf8b66a279317cd11a257261a9c2801d0fb16fddd6677ab39a7e7",
+      "functions": [
+        {
+          "name": "importServiceAccount",
+          "params": [
+            "filePath"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "listServiceAccounts",
+          "params": [],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "setActiveAccount",
+          "params": [
+            "accountId"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "listCollections",
+          "params": [
+            "parentPath",
+            "pageSize"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "listDocuments",
+          "params": [
+            "collectionPath",
+            "pageSize",
+            "pageToken"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "getDocument",
+          "params": [
+            "documentPath"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "saveDocument",
+          "params": [
+            "documentPath",
+            "data"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "duplicateDocument",
+          "params": [
+            "sourcePath",
+            "targetPath",
+            "overwrite"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "duplicateCollection",
+          "params": [
+            "sourceCollectionPath",
+            "targetCollectionPath",
+            "overwrite"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "deleteDocument",
+          "params": [
+            "documentPath"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "deleteCollection",
+          "params": [
+            "collectionPath"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "queryDocuments",
+          "params": [
+            "query"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "exportCollection",
+          "params": [
+            "collectionPath",
+            "filePath"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "importCollection",
+          "params": [
+            "collectionPath",
+            "filePath",
+            "mode"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "connectEmulator",
+          "params": [
+            "projectId",
+            "emulatorUrl"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "disconnectEmulator",
+          "params": [],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "getConnectionInfo",
+          "params": [],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "pingConnection",
+          "params": [],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "listConnections",
+          "params": [],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "removeConnection",
+          "params": [
+            "connectionId"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "setActiveConnection",
+          "params": [
+            "connectionId"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "transferDocuments",
+          "params": [
+            "sourceConnectionId",
+            "destConnectionId",
+            "sourceCollectionPath",
+            "destCollectionPath",
+            "overwrite"
+          ],
+          "exported": true,
+          "lineCount": 15
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@tauri-apps/api/core",
+          "specifiers": [
+            "invoke"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "CollectionList",
+            "ConnectionEntry",
+            "ConnectionInfo",
+            "DocumentPage",
+            "FirestoreDocument",
+            "ImportMode",
+            "ImportResult",
+            "QuerySpec",
+            "ServiceAccountSummary",
+            "TransferResult"
+          ]
+        }
+      ],
+      "exports": [
+        "importServiceAccount",
+        "listServiceAccounts",
+        "setActiveAccount",
+        "listCollections",
+        "listDocuments",
+        "getDocument",
+        "saveDocument",
+        "duplicateDocument",
+        "duplicateCollection",
+        "deleteDocument",
+        "deleteCollection",
+        "queryDocuments",
+        "exportCollection",
+        "importCollection",
+        "connectEmulator",
+        "disconnectEmulator",
+        "getConnectionInfo",
+        "pingConnection",
+        "listConnections",
+        "removeConnection",
+        "setActiveConnection",
+        "transferDocuments"
+      ],
+      "totalLines": 143,
+      "hasStructuralAnalysis": true
+    },
+    "src/lib/toast-utils.ts": {
+      "filePath": "src/lib/toast-utils.ts",
+      "contentHash": "be701f7501f170e261501a2f1f017c3ac278d3e84e9c82fb00baa4d80842acf3",
+      "functions": [
+        {
+          "name": "toastError",
+          "params": [
+            "toast",
+            "title",
+            "err"
+          ],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/lib/error-utils",
+          "specifiers": [
+            "getErrorMessage"
+          ]
+        }
+      ],
+      "exports": [
+        "toastError"
+      ],
+      "totalLines": 8,
+      "hasStructuralAnalysis": true
+    },
+    "src/lib/utils.ts": {
+      "filePath": "src/lib/utils.ts",
+      "contentHash": "74e8fe9d0d680c442ed6adb13e7d119d6c210c19ae6c114313b2a72552be0883",
+      "functions": [
+        {
+          "name": "cn",
+          "params": [
+            "...inputs"
+          ],
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "clsx",
+          "specifiers": [
+            "ClassValue",
+            "clsx"
+          ]
+        },
+        {
+          "source": "tailwind-merge",
+          "specifiers": [
+            "twMerge"
+          ]
+        }
+      ],
+      "exports": [
+        "cn"
+      ],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "src/main.tsx": {
+      "filePath": "src/main.tsx",
+      "contentHash": "9300cb49af845794a44a0a6b4131977de6e18ed53b240356811c143e2074deb7",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "React"
+          ]
+        },
+        {
+          "source": "react-dom/client",
+          "specifiers": [
+            "ReactDOM"
+          ]
+        },
+        {
+          "source": "@tanstack/react-query",
+          "specifiers": [
+            "QueryClient",
+            "QueryClientProvider"
+          ]
+        },
+        {
+          "source": "@tanstack/react-query-devtools",
+          "specifiers": [
+            "ReactQueryDevtools"
+          ]
+        },
+        {
+          "source": "./App",
+          "specifiers": [
+            "App"
+          ]
+        },
+        {
+          "source": "./style.css",
+          "specifiers": []
+        }
+      ],
+      "exports": [],
+      "totalLines": 34,
+      "hasStructuralAnalysis": true
+    },
+    "src/stores/auth-store.ts": {
+      "filePath": "src/stores/auth-store.ts",
+      "contentHash": "7271dd95590deddb565c0ead191d0c05518d849ce3684c02e78db0769ffc3cd4",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zustand",
+          "specifiers": [
+            "create"
+          ]
+        },
+        {
+          "source": "zustand/middleware",
+          "specifiers": [
+            "persist"
+          ]
+        },
+        {
+          "source": "@/lib/error-utils",
+          "specifiers": [
+            "getErrorMessage"
+          ]
+        },
+        {
+          "source": "@/lib/tauri",
+          "specifiers": [
+            "connectEmulator",
+            "disconnectEmulator",
+            "importServiceAccount",
+            "listServiceAccounts",
+            "pingConnection",
+            "setActiveAccount"
+          ]
+        },
+        {
+          "source": "@/stores/connection-store",
+          "specifiers": [
+            "useConnectionStore"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "ServiceAccountSummary"
+          ]
+        }
+      ],
+      "exports": [
+        "useAuthStore"
+      ],
+      "totalLines": 199,
+      "hasStructuralAnalysis": true
+    },
+    "src/stores/cell-edits-store.ts": {
+      "filePath": "src/stores/cell-edits-store.ts",
+      "contentHash": "1f58a4232bff3b48a47009c59df9ce17ccfbbe0306d83d0f51f053377ec60cbd",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zustand",
+          "specifiers": [
+            "create"
+          ]
+        }
+      ],
+      "exports": [
+        "useCellEditsStore"
+      ],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "src/stores/connection-store.ts": {
+      "filePath": "src/stores/connection-store.ts",
+      "contentHash": "68aeee392cbc88d604374176a7ff05b4d26f1ddfe37c0ec6a199424669b5ebba",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zustand",
+          "specifiers": [
+            "create"
+          ]
+        },
+        {
+          "source": "@/lib/error-utils",
+          "specifiers": [
+            "getErrorMessage"
+          ]
+        },
+        {
+          "source": "@/lib/tauri",
+          "specifiers": [
+            "listConnections",
+            "removeConnection",
+            "setActiveConnection"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "ConnectionEntry"
+          ]
+        }
+      ],
+      "exports": [
+        "useConnectionStore"
+      ],
+      "totalLines": 64,
+      "hasStructuralAnalysis": true
+    },
+    "src/stores/dialog-store.ts": {
+      "filePath": "src/stores/dialog-store.ts",
+      "contentHash": "dd84bd3d16b74b9b7e76de63ebf66b4b76f2768cd2ebd09fb0358b431701f77c",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zustand",
+          "specifiers": [
+            "create"
+          ]
+        }
+      ],
+      "exports": [
+        "useDialogStore"
+      ],
+      "totalLines": 35,
+      "hasStructuralAnalysis": true
+    },
+    "src/stores/doc-drafts-store.ts": {
+      "filePath": "src/stores/doc-drafts-store.ts",
+      "contentHash": "e71e4f9adad4e468b12ecb51dba0f75e76decd00dd8503d5e2c9a8a1b5746175",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zustand",
+          "specifiers": [
+            "create"
+          ]
+        }
+      ],
+      "exports": [
+        "useDocDraftsStore"
+      ],
+      "totalLines": 32,
+      "hasStructuralAnalysis": true
+    },
+    "src/stores/nav-store.ts": {
+      "filePath": "src/stores/nav-store.ts",
+      "contentHash": "0db5ecf1307ea329d36b028046d1d1d87edff6bcc2417ab049233d971c84edf6",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zustand",
+          "specifiers": [
+            "create"
+          ]
+        }
+      ],
+      "exports": [
+        "useNavStore"
+      ],
+      "totalLines": 36,
+      "hasStructuralAnalysis": true
+    },
+    "src/stores/palette-store.ts": {
+      "filePath": "src/stores/palette-store.ts",
+      "contentHash": "33534527674de9548d768120382f9b9a6f391befb07c5179a08aa2d40881d821",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zustand",
+          "specifiers": [
+            "create"
+          ]
+        }
+      ],
+      "exports": [
+        "usePaletteStore"
+      ],
+      "totalLines": 22,
+      "hasStructuralAnalysis": true
+    },
+    "src/stores/query-store.ts": {
+      "filePath": "src/stores/query-store.ts",
+      "contentHash": "996905371251cba21abe040a6f3a665c784839dda228f22677ce26589a4cbad2",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zustand",
+          "specifiers": [
+            "create"
+          ]
+        },
+        {
+          "source": "zustand/middleware",
+          "specifiers": [
+            "persist"
+          ]
+        },
+        {
+          "source": "@/types/firestore",
+          "specifiers": [
+            "QuerySpec",
+            "SavedQuery"
+          ]
+        }
+      ],
+      "exports": [
+        "useQueryStore"
+      ],
+      "totalLines": 39,
+      "hasStructuralAnalysis": true
+    },
+    "src/stores/recents-store.ts": {
+      "filePath": "src/stores/recents-store.ts",
+      "contentHash": "6717de66e0a84b83769a0ef2b494cde5b19150a854ac887cf393553990986218",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zustand",
+          "specifiers": [
+            "create"
+          ]
+        },
+        {
+          "source": "zustand/middleware",
+          "specifiers": [
+            "persist"
+          ]
+        }
+      ],
+      "exports": [
+        "useRecentsStore"
+      ],
+      "totalLines": 25,
+      "hasStructuralAnalysis": true
+    },
+    "src/stores/script-store.ts": {
+      "filePath": "src/stores/script-store.ts",
+      "contentHash": "78b1ad0ee36fefdc443835a7a4ab8fb5feaec9892f6330653fa9296ebd1895b2",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zustand",
+          "specifiers": [
+            "create"
+          ]
+        },
+        {
+          "source": "zustand/middleware",
+          "specifiers": [
+            "persist"
+          ]
+        }
+      ],
+      "exports": [
+        "useScriptStore"
+      ],
+      "totalLines": 53,
+      "hasStructuralAnalysis": true
+    },
+    "src/stores/tabs-store.ts": {
+      "filePath": "src/stores/tabs-store.ts",
+      "contentHash": "737d00821deba8551eade82ffcc1b60dfd6cb2d9209a396883589c53a1857609",
+      "functions": [
+        {
+          "name": "newId",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "navSnapshot",
+          "params": [],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "hydrateNav",
+          "params": [
+            "tab"
+          ],
+          "exported": false,
+          "lineCount": 7
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zustand",
+          "specifiers": [
+            "create"
+          ]
+        },
+        {
+          "source": "zustand/middleware",
+          "specifiers": [
+            "persist"
+          ]
+        },
+        {
+          "source": "@/lib/firestore-utils",
+          "specifiers": [
+            "collectionFromDocPath"
+          ]
+        },
+        {
+          "source": "@/stores/nav-store",
+          "specifiers": [
+            "useNavStore"
+          ]
+        },
+        {
+          "source": "@/stores/recents-store",
+          "specifiers": [
+            "useRecentsStore"
+          ]
+        }
+      ],
+      "exports": [
+        "useTabsStore"
+      ],
+      "totalLines": 207,
+      "hasStructuralAnalysis": true
+    },
+    "src/stores/view-store.ts": {
+      "filePath": "src/stores/view-store.ts",
+      "contentHash": "5cf30af151e53935c485a4c3b6edefca889c0b9836497f2e7650a0a489982683",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zustand",
+          "specifiers": [
+            "create"
+          ]
+        },
+        {
+          "source": "zustand/middleware",
+          "specifiers": [
+            "persist"
+          ]
+        }
+      ],
+      "exports": [
+        "useViewStore"
+      ],
+      "totalLines": 33,
+      "hasStructuralAnalysis": true
+    },
+    "src/style.css": {
+      "filePath": "src/style.css",
+      "contentHash": "944a85742581b5c9ea5fe65c376c2bb8f464a8b68dce2f3db508f161f5efd94b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 198,
+      "hasStructuralAnalysis": false
+    },
+    "src/test-setup.ts": {
+      "filePath": "src/test-setup.ts",
+      "contentHash": "e72be9025dc256179fb04a0a14f4001e990bc2e5b2408fa5a6bcd27d06077b0e",
+      "functions": [
+        {
+          "name": "installMemoryStorage",
+          "params": [
+            "key"
+          ],
+          "exported": false,
+          "lineCount": 19
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@testing-library/jest-dom/vitest",
+          "specifiers": []
+        },
+        {
+          "source": "vitest",
+          "specifiers": [
+            "vi"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 58,
+      "hasStructuralAnalysis": true
+    },
+    "src/types/firestore.ts": {
+      "filePath": "src/types/firestore.ts",
+      "contentHash": "9d3cbb4c5d18e60a35bd5c81658ea2b6a8834057b187e1bc03d67dee568a26f7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 88,
+      "hasStructuralAnalysis": true
+    },
+    "tailwind.config.js": {
+      "filePath": "tailwind.config.js",
+      "contentHash": "29f41a28675158b3c960d8dedce1e8e0350fd006a1774ce37696b066799ac20a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 115,
+      "hasStructuralAnalysis": true
+    },
+    "tsconfig.json": {
+      "filePath": "tsconfig.json",
+      "contentHash": "4887aaa27620aef80ca04f7f22b5681a65ae9bfc1dfaf4aad04702769cf4f411",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 32,
+      "hasStructuralAnalysis": true
+    },
+    "vite.config.ts": {
+      "filePath": "vite.config.ts",
+      "contentHash": "3a9307d61a1ecf1b20419d87e941f3a18ea9035160879b305e7ded294a8b2bb5",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vite",
+          "specifiers": [
+            "defineConfig"
+          ]
+        },
+        {
+          "source": "@vitejs/plugin-react",
+          "specifiers": [
+            "react"
+          ]
+        },
+        {
+          "source": "node:path",
+          "specifiers": [
+            "path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 13,
+      "hasStructuralAnalysis": true
+    },
+    "vitest.config.ts": {
+      "filePath": "vitest.config.ts",
+      "contentHash": "4c10558d3246ce8ed79b566d5c4522add03122c77d547b55a39a6342189f9c83",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "node:path",
+          "specifiers": [
+            "path"
+          ]
+        },
+        {
+          "source": "@vitejs/plugin-react",
+          "specifiers": [
+            "react"
+          ]
+        },
+        {
+          "source": "vitest/config",
+          "specifiers": [
+            "defineConfig"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": true
+    }
+  }
+}
