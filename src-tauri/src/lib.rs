@@ -57,6 +57,7 @@ pub fn run() {
             connect_emulator,
             disconnect_emulator,
             get_connection_info,
+            ping_connection,
             list_connections,
             remove_connection,
             set_active_connection,

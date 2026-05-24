@@ -22,6 +22,7 @@ beforeEach(() => {
     isLoading: false,
     initialized: false,
     error: null,
+    connectionError: null,
     connectionMode: null,
     emulatorUrl: null,
     emulatorProjectId: null,
@@ -201,6 +202,58 @@ describe('useAuthStore', () => {
       await useAuthStore.getState().disconnectFromEmulator();
 
       expect(useAuthStore.getState().error).toBe('Disconnect failed');
+    });
+  });
+
+  describe('validateActiveAccount', () => {
+    it('clears a stale connectionError when the probe succeeds', async () => {
+      useAuthStore.setState({
+        connectionMode: 'production',
+        activeAccountId: 'acc1',
+        connectionError: 'creds revoked',
+      });
+      mockedInvoke.mockResolvedValueOnce({ id: 'acc1', projectId: 'proj', clientEmail: 'a@b.com' });
+
+      await useAuthStore.getState().validateActiveAccount();
+
+      expect(useAuthStore.getState().connectionError).toBeNull();
+    });
+
+    it('sets connectionError when the probe fails', async () => {
+      useAuthStore.setState({ connectionMode: 'production', activeAccountId: 'acc1' });
+      mockedInvoke.mockRejectedValueOnce(new Error('Service account invalid'));
+
+      await useAuthStore.getState().validateActiveAccount();
+
+      const state = useAuthStore.getState();
+      expect(state.connectionError).toBe('Service account invalid');
+      expect(state.connectionMode).toBe('production');
+    });
+
+    it('pings the emulator and clears connectionError on success', async () => {
+      useAuthStore.setState({ connectionMode: 'emulator', connectionError: 'stale' });
+      mockedInvoke.mockResolvedValueOnce(undefined);
+
+      await useAuthStore.getState().validateActiveAccount();
+
+      expect(mockedInvoke).toHaveBeenCalledWith('ping_connection');
+      expect(useAuthStore.getState().connectionError).toBeNull();
+    });
+
+    it('sets connectionError when the emulator ping fails', async () => {
+      useAuthStore.setState({ connectionMode: 'emulator' });
+      mockedInvoke.mockRejectedValueOnce(new Error('Connection refused'));
+
+      await useAuthStore.getState().validateActiveAccount();
+
+      expect(useAuthStore.getState().connectionError).toBe('Connection refused');
+      expect(useAuthStore.getState().connectionMode).toBe('emulator');
+    });
+
+    it('is a no-op with no active connection', async () => {
+      useAuthStore.setState({ connectionMode: null });
+      await useAuthStore.getState().validateActiveAccount();
+      expect(mockedInvoke).not.toHaveBeenCalled();
     });
   });
 
