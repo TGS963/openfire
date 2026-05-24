@@ -108,6 +108,10 @@ export async function getConnectionInfo() {
   return invoke<ConnectionInfo | null>('get_connection_info');
 }
 
+export async function pingConnection() {
+  return invoke<void>('ping_connection');
+}
+
 export async function listConnections() {
   return invoke<ConnectionEntry[]>('list_connections');
 }

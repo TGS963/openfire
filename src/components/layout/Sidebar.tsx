@@ -17,6 +17,7 @@ export type SidebarProps = {
   onSelectCollection: (path: string, opts?: { background?: boolean }) => void;
   onSelectDocument?: (path: string, opts?: { background?: boolean }) => void;
   connectionMode: 'production' | 'emulator' | null;
+  connectionError?: string | null;
   emulatorProjectId: string | null;
   onConnectEmulator: () => void;
   onDisconnectEmulator: () => void;
@@ -34,6 +35,7 @@ export function Sidebar({
   onSelectCollection,
   onSelectDocument,
   connectionMode,
+  connectionError,
   emulatorProjectId,
   onManageConnections,
   onDeleteCollection,
@@ -99,11 +101,24 @@ export function Sidebar({
       <div className="flex items-center gap-2 border-t border-border-soft px-2.5 py-2 text-[11.5px] text-text-muted">
         <span
           data-testid="connection-dot"
-          data-mode={isEmulator ? 'emulator' : 'production'}
+          // Health-first precedence: no active mode = disconnected; an active
+          // connection with a probe/connect error = error (wins over context);
+          // otherwise show the mode (emulator vs production).
+          data-mode={
+            connectionMode === null
+              ? 'disconnected'
+              : connectionError
+                ? 'error'
+                : connectionMode
+          }
           className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-            isEmulator
-              ? 'bg-warning shadow-[0_0_0_2px_oklch(0.80_0.15_80_/_0.18)]'
-              : 'bg-success shadow-[0_0_0_2px_oklch(0.74_0.13_150_/_0.18)]'
+            connectionMode === null
+              ? 'bg-text-faint'
+              : connectionError
+                ? 'bg-danger shadow-[0_0_0_2px_oklch(0.63_0.20_25_/_0.18)]'
+                : isEmulator
+                  ? 'bg-warning shadow-[0_0_0_2px_oklch(0.80_0.15_80_/_0.18)]'
+                  : 'bg-success shadow-[0_0_0_2px_oklch(0.74_0.13_150_/_0.18)]'
           }`}
         />
         <span className="min-w-0 flex-1 truncate">{projectName ?? 'Not connected'}</span>

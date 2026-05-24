@@ -65,6 +65,44 @@ describe('Sidebar', () => {
     expect(screen.getByTestId('connection-dot')).toHaveAttribute('data-mode', 'emulator');
   });
 
+  it('shows a disconnected status indicator when nothing is connected', () => {
+    render(
+      <Sidebar
+        {...baseProps}
+        connectionMode={null}
+        activeAccountId={null}
+        accounts={[]}
+      />,
+    );
+    expect(screen.getByTestId('connection-dot')).toHaveAttribute('data-mode', 'disconnected');
+  });
+
+  it('shows an error status indicator when production connection has an error', () => {
+    render(<Sidebar {...baseProps} connectionMode="production" connectionError="creds revoked" />);
+    const dot = screen.getByTestId('connection-dot');
+    expect(dot).toHaveAttribute('data-mode', 'error');
+    expect(dot.className).toContain('bg-danger');
+  });
+
+  it('shows error (not emulator) when an emulator connection has an error', () => {
+    render(
+      <Sidebar
+        {...baseProps}
+        connectionMode="emulator"
+        emulatorProjectId="demo-app"
+        activeAccountId={null}
+        accounts={[]}
+        connectionError="emulator unreachable"
+      />,
+    );
+    expect(screen.getByTestId('connection-dot')).toHaveAttribute('data-mode', 'error');
+  });
+
+  it('ignores a stale error when disconnected', () => {
+    render(<Sidebar {...baseProps} connectionMode={null} connectionError="old error" />);
+    expect(screen.getByTestId('connection-dot')).toHaveAttribute('data-mode', 'disconnected');
+  });
+
   it('toggles the theme from the footer', async () => {
     const user = userEvent.setup();
     render(<Sidebar {...baseProps} />);

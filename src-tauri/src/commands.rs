@@ -588,6 +588,24 @@ pub async fn disconnect_emulator(app_state: State<'_, AppState>) -> CmdResult<()
     Ok(())
 }
 
+/// Cheap liveness round-trip against the active connection. Lists collection
+/// ids with page_size 1 — proves the DB actually answers, for both production
+/// and emulator. Errors if no active connection or the request fails (emulator
+/// down, network gone, creds revoked).
+#[tauri::command]
+pub async fn ping_connection(app_state: State<'_, AppState>) -> CmdResult<()> {
+    let db = app_state.db().await.map_err(|err| err.to_string())?;
+    let params = FirestoreListCollectionIdsParams {
+        parent: normalize_parent_path(&db, None).map_err(|err| err.to_string())?,
+        page_size: 1,
+        page_token: None,
+    };
+    db.list_collection_ids(params)
+        .await
+        .map_err(|err| err.to_string())?;
+    Ok(())
+}
+
 #[tauri::command]
 pub async fn get_connection_info(app_state: State<'_, AppState>) -> CmdResult<Option<ConnectionInfo>> {
     let mode = app_state.connection_mode().await;

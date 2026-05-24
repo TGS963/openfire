@@ -7,6 +7,7 @@ import {
   disconnectEmulator,
   importServiceAccount,
   listServiceAccounts,
+  pingConnection,
   setActiveAccount,
 } from '@/lib/tauri';
 import { useConnectionStore } from '@/stores/connection-store';
@@ -20,6 +21,10 @@ type AuthStore = {
   isLoading: boolean;
   initialized: boolean;
   error: string | null;
+  // Connection-health signal for the status dot. Distinct from `error` (the
+  // generic toast bucket) so the dot only reflects DB reachability and does
+  // not flap on unrelated op failures (e.g. a failed delete).
+  connectionError: string | null;
   connectionMode: ConnectionMode;
   emulatorUrl: string | null;
   emulatorProjectId: string | null;
@@ -40,6 +45,7 @@ export const useAuthStore = create<AuthStore>()(
       isLoading: false,
       initialized: false,
       error: null,
+      connectionError: null,
       connectionMode: null,
       emulatorUrl: null,
       emulatorProjectId: null,
@@ -99,14 +105,17 @@ export const useAuthStore = create<AuthStore>()(
           set({
             activeAccountId: id,
             connectionMode: 'production',
+            connectionError: null,
             emulatorUrl: null,
             emulatorProjectId: null,
             isLoading: false,
           });
           useConnectionStore.getState().loadConnections();
         } catch (error) {
+          const message = getErrorMessage(error, 'Unable to switch account');
           set({
-            error: getErrorMessage(error, 'Unable to switch account'),
+            error: message,
+            connectionError: message,
             activeAccountId: null,
             isLoading: false,
           });
@@ -119,6 +128,7 @@ export const useAuthStore = create<AuthStore>()(
           await connectEmulator(projectId, url);
           set({
             connectionMode: 'emulator',
+            connectionError: null,
             emulatorUrl: url,
             emulatorProjectId: projectId,
             activeAccountId: null,
@@ -126,8 +136,10 @@ export const useAuthStore = create<AuthStore>()(
           });
           useConnectionStore.getState().loadConnections();
         } catch (error) {
+          const message = getErrorMessage(error, 'Unable to connect to emulator');
           set({
-            error: getErrorMessage(error, 'Unable to connect to emulator'),
+            error: message,
+            connectionError: message,
             isLoading: false,
           });
           throw error;
@@ -139,6 +151,7 @@ export const useAuthStore = create<AuthStore>()(
           await disconnectEmulator();
           set({
             connectionMode: null,
+            connectionError: null,
             emulatorUrl: null,
             emulatorProjectId: null,
             isLoading: false,
@@ -152,18 +165,25 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
       async validateActiveAccount() {
-        // Cheap auth-liveness probe: re-invoke set_active_account on the
-        // active id. Refreshes the access token server-side; if creds were
-        // revoked or rotated, this surfaces an error without clearing the
-        // active account so the UI can prompt re-import.
-        const state = get();
-        if (state.connectionMode !== 'production' || !state.activeAccountId) return;
+        const { connectionMode, activeAccountId } = get();
+        const probeActiveConnection =
+          connectionMode === 'production' && activeAccountId
+            ? () => setActiveAccount(activeAccountId)
+            : connectionMode === 'emulator'
+              ? () => pingConnection()
+              : null;
+        if (!probeActiveConnection) return;
+
+        const unreachableMessage =
+          connectionMode === 'emulator'
+            ? 'Emulator unreachable — check it is still running.'
+            : 'Service account invalid — please re-import.';
         try {
-          await setActiveAccount(state.activeAccountId);
+          await probeActiveConnection();
+          if (get().connectionError) set({ connectionError: null });
         } catch (error) {
-          set({
-            error: getErrorMessage(error, 'Service account invalid — please re-import.'),
-          });
+          const message = getErrorMessage(error, unreachableMessage);
+          set({ error: message, connectionError: message });
         }
       },
       clearError() {

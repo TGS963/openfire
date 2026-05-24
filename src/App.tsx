@@ -117,6 +117,7 @@ export function App() {
   const selectAccount = useAuthStore((state) => state.selectAccount);
   const clearError = useAuthStore((state) => state.clearError);
   const connectionMode = useAuthStore((state) => state.connectionMode);
+  const connectionError = useAuthStore((state) => state.connectionError);
   const emulatorProjectId = useAuthStore((state) => state.emulatorProjectId);
   const connectToEmulator = useAuthStore((state) => state.connectToEmulator);
   const disconnectFromEmulator = useAuthStore((state) => state.disconnectFromEmulator);
@@ -860,6 +861,7 @@ export function App() {
             onSelectCollection={(path, opts) => openCollectionTab(path, opts)}
             onSelectDocument={(path, opts) => openDocumentTab(path, opts)}
             connectionMode={connectionMode}
+            connectionError={connectionError}
             emulatorProjectId={emulatorProjectId}
             onConnectEmulator={() => openDialog('emulatorConnect')}
             onDisconnectEmulator={handleDisconnectEmulator}
