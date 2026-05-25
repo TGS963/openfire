@@ -22,4 +22,14 @@ describe('StatusBar', () => {
     const right = screen.getByText('idle').closest('[data-status-right]');
     expect(right).not.toBeNull();
   });
+
+  it('shows a fetching indicator when loading', () => {
+    render(<StatusBar items={[{ id: 'a', label: 'a' }]} loading />);
+    expect(screen.getByLabelText('Fetching')).toBeInTheDocument();
+  });
+
+  it('hides the fetching indicator when not loading', () => {
+    render(<StatusBar items={[{ id: 'a', label: 'a' }]} />);
+    expect(screen.queryByLabelText('Fetching')).toBeNull();
+  });
 });

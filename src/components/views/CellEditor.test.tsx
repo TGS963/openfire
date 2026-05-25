@@ -87,6 +87,17 @@ describe('CellEditor', () => {
       expect(typeof payload.seconds).toBe('number');
       expect(payload.nanos).toBe(0);
     });
+
+    it('cancels on Escape without committing', async () => {
+      const user = userEvent.setup();
+      const onCommit = vi.fn();
+      const onCancel = vi.fn();
+      const initial = { __type__: 'timestamp', seconds: 1_700_000_000, nanos: 0 };
+      render(<CellEditor value={initial} type="timestamp" onCommit={onCommit} onCancel={onCancel} />);
+      await user.keyboard('{Escape}');
+      expect(onCancel).toHaveBeenCalled();
+      expect(onCommit).not.toHaveBeenCalled();
+    });
   });
 
   describe('reference', () => {
@@ -98,6 +109,16 @@ describe('CellEditor', () => {
       await user.type(input, 'users/abc');
       await user.keyboard('{Enter}');
       expect(onCommit).toHaveBeenCalledWith({ __type__: 'reference', path: 'users/abc' });
+    });
+
+    it('cancels on Escape without committing', async () => {
+      const user = userEvent.setup();
+      const onCommit = vi.fn();
+      const onCancel = vi.fn();
+      render(<CellEditor value={{ __type__: 'reference', path: 'users/abc' }} type="reference" onCommit={onCommit} onCancel={onCancel} />);
+      await user.keyboard('{Escape}');
+      expect(onCancel).toHaveBeenCalled();
+      expect(onCommit).not.toHaveBeenCalled();
     });
   });
 
@@ -114,6 +135,16 @@ describe('CellEditor', () => {
       await user.type(lng, '-122.1');
       await user.keyboard('{Enter}');
       expect(onCommit).toHaveBeenCalledWith({ __type__: 'geopoint', latitude: 37.5, longitude: -122.1 });
+    });
+
+    it('cancels on Escape without committing', async () => {
+      const user = userEvent.setup();
+      const onCommit = vi.fn();
+      const onCancel = vi.fn();
+      render(<CellEditor value={{ __type__: 'geopoint', latitude: 1, longitude: 2 }} type="geopoint" onCommit={onCommit} onCancel={onCancel} />);
+      await user.keyboard('{Escape}');
+      expect(onCancel).toHaveBeenCalled();
+      expect(onCommit).not.toHaveBeenCalled();
     });
   });
 });

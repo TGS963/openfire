@@ -98,7 +98,7 @@ export function Sidebar({
       </ScrollArea>
 
       {/* footer */}
-      <div className="flex items-center gap-2 border-t border-border-soft px-2.5 py-2 text-[11.5px] text-text-muted">
+      <div className="flex h-6 flex-shrink-0 items-center gap-2 border-t border-border-soft px-2.5 text-[11.5px] text-text-muted">
         <span
           data-testid="connection-dot"
           // Health-first precedence: no active mode = disconnected; an active

@@ -22,6 +22,10 @@ export type ToolbarProps = {
   onToggleShell?: () => void;
   onDuplicateCollection: () => void;
   onDeleteCollection?: () => void;
+  pendingCount?: number;
+  savableCount?: number;
+  onSavePending?: () => void;
+  onDiscardPending?: () => void;
 };
 
 export function Toolbar({
@@ -35,8 +39,13 @@ export function Toolbar({
   onToggleShell,
   onDuplicateCollection,
   onDeleteCollection,
+  pendingCount = 0,
+  savableCount = 0,
+  onSavePending,
+  onDiscardPending,
 }: ToolbarProps) {
   const hasCollection = Boolean(collectionPath);
+  const showPendingActions = pendingCount > 0 && Boolean(onSavePending || onDiscardPending);
 
   return (
     <div className="flex h-10 flex-shrink-0 items-center gap-2 border-b border-border-soft pl-3.5 pr-3">
@@ -97,18 +106,44 @@ export function Toolbar({
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="More" disabled={!hasCollection || isLoading}>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="More"
+              // Reachable for collection actions, or to save/discard pending
+              // edits even after navigating away from their collection.
+              disabled={(!hasCollection && pendingCount === 0) || isLoading}
+            >
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={onDuplicateCollection}>Duplicate</DropdownMenuItem>
-            {onDeleteCollection && (
+            {showPendingActions && (
               <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-danger" onSelect={onDeleteCollection}>
-                  Delete
-                </DropdownMenuItem>
+                {onSavePending && savableCount > 0 && (
+                  <DropdownMenuItem onSelect={onSavePending}>
+                    Save changes ({savableCount})
+                  </DropdownMenuItem>
+                )}
+                {onDiscardPending && (
+                  <DropdownMenuItem className="text-danger" onSelect={onDiscardPending}>
+                    Discard unsaved changes ({pendingCount})
+                  </DropdownMenuItem>
+                )}
+              </>
+            )}
+            {hasCollection && (
+              <>
+                {showPendingActions && <DropdownMenuSeparator />}
+                <DropdownMenuItem onSelect={onDuplicateCollection}>Duplicate</DropdownMenuItem>
+                {onDeleteCollection && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="text-danger" onSelect={onDeleteCollection}>
+                      Delete
+                    </DropdownMenuItem>
+                  </>
+                )}
               </>
             )}
           </DropdownMenuContent>

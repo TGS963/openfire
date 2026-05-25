@@ -217,6 +217,12 @@ function TimestampEditor({
   const pad = (n: number) => String(n).padStart(2, '0');
   const [time, setTime] = useState(`${pad(initialDate.getHours())}:${pad(initialDate.getMinutes())}`);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const cancelledRef = useRef(false);
+
+  const cancel = () => {
+    cancelledRef.current = true;
+    onCancel();
+  };
 
   useEffect(() => {
     wrapRef.current?.focus();
@@ -235,7 +241,7 @@ function TimestampEditor({
       commit();
     } else if (e.key === 'Escape') {
       e.preventDefault();
-      onCancel();
+      cancel();
     } else if (e.key === 'Tab') {
       e.preventDefault();
       commit();
@@ -248,8 +254,7 @@ function TimestampEditor({
       <Popover
         open
         onOpenChange={(open) => {
-          // Radix fires onOpenChange(false) on outside click / Esc.
-          if (!open) commit();
+          if (!open && !cancelledRef.current) commit();
         }}
       >
         <PopoverAnchor asChild>
@@ -257,7 +262,7 @@ function TimestampEditor({
             {date.toISOString().replace('T', ' ').replace(/\..+$/, '')}
           </span>
         </PopoverAnchor>
-        <PopoverContent className="w-auto" align="start">
+        <PopoverContent className="w-auto" align="start" onEscapeKeyDown={cancel}>
           <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} required={false} />
           <div className="mt-2 flex items-center gap-2 border-t border-border-soft pt-2">
             <span className="text-[10.5px] uppercase tracking-[0.06em] text-text-faint">time</span>
@@ -287,12 +292,17 @@ function ReferenceEditor({
   const { data } = useCollections();
   const suggestions = useMemo(() => data?.collectionIds ?? [], [data]);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const cancelledRef = useRef(false);
 
   useEffect(() => {
     wrapRef.current?.focus();
   }, []);
 
   const commit = () => onCommit({ __type__: 'reference', path });
+  const cancel = () => {
+    cancelledRef.current = true;
+    onCancel();
+  };
 
   const handleKey = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter') {
@@ -300,7 +310,7 @@ function ReferenceEditor({
       commit();
     } else if (e.key === 'Escape') {
       e.preventDefault();
-      onCancel();
+      cancel();
     } else if (e.key === 'Tab') {
       e.preventDefault();
       commit();
@@ -313,7 +323,7 @@ function ReferenceEditor({
       <Popover
         open
         onOpenChange={(open) => {
-          if (!open) commit();
+          if (!open && !cancelledRef.current) commit();
         }}
       >
         <PopoverAnchor asChild>
@@ -325,7 +335,7 @@ function ReferenceEditor({
             className="h-full w-full bg-transparent px-[10px] py-[6px] font-mono text-[12.5px] text-syn-key outline-none caret-ember"
           />
         </PopoverAnchor>
-        <PopoverContent align="start" className="w-72 p-0">
+        <PopoverContent align="start" className="w-72 p-0" onEscapeKeyDown={cancel}>
           <Command>
             <CommandInput placeholder="filter collections…" />
             <CommandList>
@@ -356,6 +366,7 @@ function GeopointEditor({
   const [lat, setLat] = useState(String(obj.latitude ?? 0));
   const [lng, setLng] = useState(String(obj.longitude ?? 0));
   const latRef = useRef<HTMLInputElement>(null);
+  const cancelledRef = useRef(false);
 
   useEffect(() => {
     latRef.current?.focus();
@@ -363,10 +374,15 @@ function GeopointEditor({
   }, []);
 
   const commit = () => {
+    if (cancelledRef.current) return;
     const la = Number(lat);
     const lo = Number(lng);
     if (Number.isNaN(la) || Number.isNaN(lo)) return;
     onCommit({ __type__: 'geopoint', latitude: la, longitude: lo });
+  };
+  const cancel = () => {
+    cancelledRef.current = true;
+    onCancel();
   };
 
   const handleKey = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -375,7 +391,7 @@ function GeopointEditor({
       commit();
     } else if (e.key === 'Escape') {
       e.preventDefault();
-      onCancel();
+      cancel();
     } else if (e.key === 'Tab') {
       e.preventDefault();
       commit();

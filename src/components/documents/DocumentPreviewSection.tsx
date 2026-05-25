@@ -10,6 +10,7 @@ import { PreviewModeToggle } from '@/components/views/ViewModeToggle';
 import { FieldsView } from '@/components/views/FieldsView';
 import { useViewStore } from '@/stores/view-store';
 import { useDocDraftsStore } from '@/stores/doc-drafts-store';
+import { fieldValuesEqual } from '@/lib/firestore-utils';
 import type { FirestoreDocument } from '@/types/firestore';
 
 export type DocumentPreviewSectionProps = {
@@ -63,24 +64,52 @@ export function DocumentPreviewSection({
     }
   }, [document?.path, document?.updateTime]);
 
+  // Keep the draft store in sync with the working buffers, but only while they
+  // actually differ from the saved document — a draft present must mean dirty,
+  // so the global unsaved count never overcounts reverted edits.
+  const syncDraft = (nextEditor: string, nextFields: Record<string, unknown>) => {
+    if (!document) return;
+    const dirty =
+      nextEditor !== lastSynced || !fieldValuesEqual(nextFields, fieldsLastSynced);
+    if (dirty) {
+      useDocDraftsStore.getState().setDraft(document.path, {
+        editorValue: nextEditor,
+        fieldsData: nextFields,
+      });
+    } else {
+      useDocDraftsStore.getState().clearDraft(document.path);
+    }
+  };
+
   const handleEditorChange = (value: string) => {
     setEditorValue(value);
-    if (document) {
-      useDocDraftsStore.getState().setDraft(document.path, { editorValue: value, fieldsData });
-    }
+    syncDraft(value, fieldsData);
   };
 
   const handleFieldsChange = (next: Record<string, unknown>) => {
     setFieldsData(next);
-    if (document) {
-      useDocDraftsStore.getState().setDraft(document.path, { editorValue, fieldsData: next });
-    }
+    syncDraft(editorValue, next);
   };
+
+  // When the draft for this doc is cleared from outside (e.g. a global "discard
+  // unsaved changes"), reset the working buffers back to the saved baseline so
+  // the open editor reflects the discard instead of keeping stale edits.
+  const currentDraft = useDocDraftsStore((s) =>
+    document ? s.drafts[document.path] : undefined,
+  );
+  useEffect(() => {
+    // `lastSynced === ''` only before the seeding effect runs; guarding against
+    // it stops the editor flashing empty on doc switches that have no draft.
+    if (document && currentDraft === undefined && lastSynced !== '') {
+      setEditorValue(lastSynced);
+      setFieldsData(fieldsLastSynced);
+    }
+  }, [currentDraft, document, lastSynced, fieldsLastSynced]);
 
   const isJsonDirty = previewMode === 'json' && Boolean(document && editorValue !== lastSynced);
   const isFieldsDirty =
     previewMode === 'fields' &&
-    Boolean(document && JSON.stringify(fieldsData) !== JSON.stringify(fieldsLastSynced));
+    Boolean(document && !fieldValuesEqual(fieldsData, fieldsLastSynced));
   const isDirty = isJsonDirty || isFieldsDirty;
 
   useEffect(() => {

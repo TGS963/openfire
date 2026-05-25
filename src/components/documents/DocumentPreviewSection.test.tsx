@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { useViewStore } from '@/stores/view-store';
@@ -84,5 +84,36 @@ describe('DocumentPreviewSection', () => {
     await user.type(editor, '{{"name":"Bob"}');
     expect(screen.getByText(/unsaved/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /save/i })).toBeInTheDocument();
+  });
+
+  it('seeds the editor with the saved value and never blanks on mount', () => {
+    render(<DocumentPreviewSection {...baseProps} />);
+    const editor = screen.getByTestId('monaco-editor') as HTMLTextAreaElement;
+    expect(editor.value).toBe(JSON.stringify(doc.data, null, 2));
+    expect(editor.value).not.toBe('');
+  });
+
+  it('drops the draft when edits are reverted to the saved value', () => {
+    render(<DocumentPreviewSection {...baseProps} />);
+    const editor = screen.getByTestId('monaco-editor') as HTMLTextAreaElement;
+    const original = editor.value;
+    fireEvent.change(editor, { target: { value: '{"name":"Zed"}' } });
+    expect(useDocDraftsStore.getState().count()).toBe(1);
+    fireEvent.change(editor, { target: { value: original } });
+    expect(useDocDraftsStore.getState().count()).toBe(0);
+    expect(screen.getByText(/saved/i)).toBeInTheDocument();
+  });
+
+  it('resets the open editor when the draft is cleared externally', () => {
+    render(<DocumentPreviewSection {...baseProps} />);
+    const editor = screen.getByTestId('monaco-editor') as HTMLTextAreaElement;
+    const original = editor.value;
+    fireEvent.change(editor, { target: { value: '{"name":"Zed"}' } });
+    expect(screen.getByText(/unsaved/i)).toBeInTheDocument();
+    act(() => {
+      useDocDraftsStore.getState().clearAll();
+    });
+    expect((screen.getByTestId('monaco-editor') as HTMLTextAreaElement).value).toBe(original);
+    expect(screen.getByText(/saved/i)).toBeInTheDocument();
   });
 });

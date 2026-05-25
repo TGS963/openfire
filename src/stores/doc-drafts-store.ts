@@ -10,6 +10,8 @@ type DocDraftsStore = {
   getDraft: (path: string) => DocDraft | undefined;
   setDraft: (path: string, draft: DocDraft) => void;
   clearDraft: (path: string) => void;
+  clearAll: () => void;
+  count: () => number;
 };
 
 /**
@@ -28,4 +30,6 @@ export const useDocDraftsStore = create<DocDraftsStore>((set, get) => ({
       delete next[path];
       return { drafts: next };
     }),
+  clearAll: () => set({ drafts: {} }),
+  count: () => Object.keys(get().drafts).length,
 }));

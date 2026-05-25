@@ -19,6 +19,7 @@ import { useNavStore } from '@/stores/nav-store';
 import { useTabsStore } from '@/stores/tabs-store';
 import { usePaletteStore } from '@/stores/palette-store';
 import { useCellEditsStore } from '@/stores/cell-edits-store';
+import { discardAllUnsaved, useUnsavedCount } from '@/hooks/use-unsaved-changes';
 import { flushTablePending } from '@/lib/cell-flush';
 import type { DocumentPage, FirestoreDocument, ImportMode, QuerySpec } from '@/types/firestore';
 
@@ -143,6 +144,7 @@ export function App() {
   const cellPendingCount = useCellEditsStore((s) =>
     Object.values(s.pending).reduce((n, d) => n + Object.keys(d).length, 0),
   );
+  const unsavedCount = useUnsavedCount();
   const closeTabAction = useTabsStore((s) => s.closeTab);
   const closeTabByPath = useTabsStore((s) => s.closeTabByPath);
   const setActiveTab = useTabsStore((s) => s.setActive);
@@ -714,28 +716,39 @@ export function App() {
     setActiveTab(tabsList[next].id);
   };
 
+  const saveAllPending = async () => {
+    // Per-doc failures already surface as destructive toasts via
+    // persistDocument; this summary fires only when at least one
+    // doc failed in the batch.
+    const result = await flushTablePending(documents, handleSaveDocument);
+    if (result.failures.length > 0) {
+      toast({
+        title: `Saved ${result.saved}, failed ${result.failures.length}`,
+        description: result.failures
+          .map((failure) => `${failure.path}: ${failure.fields.join(', ')}`)
+          .join('\n'),
+        variant: 'destructive',
+        duration: 6000,
+      });
+    }
+  };
+
+  const discardAllPending = () => {
+    const count = discardAllUnsaved();
+    if (count === 0) return;
+    toast({
+      title: 'Changes discarded',
+      description: `Discarded ${count} unsaved change${count === 1 ? '' : 's'}.`,
+    });
+  };
+
   useKeyboardShortcuts({
     'save-document': () => {
       if (
         listMode === 'table' &&
         useCellEditsStore.getState().pendingCount() > 0
       ) {
-        void (async () => {
-          // Per-doc failures already surface as destructive toasts via
-          // persistDocument; this summary fires only when at least one
-          // doc failed in the batch.
-          const r = await flushTablePending(documents, handleSaveDocument);
-          if (r.failures.length > 0) {
-            toast({
-              title: `Saved ${r.saved}, failed ${r.failures.length}`,
-              description: r.failures
-                .map((f) => `${f.path}: ${f.fields.join(', ')}`)
-                .join('\n'),
-              variant: 'destructive',
-              duration: 6000,
-            });
-          }
-        })();
+        void saveAllPending();
         return;
       }
       saveRequestedRef.current?.();
@@ -827,6 +840,12 @@ export function App() {
       : (accounts.find((a) => a.id === activeAccountId)?.projectId ?? null);
 
   const paletteActions: PaletteAction[] = [
+    ...(cellPendingCount > 0
+      ? [{ id: 'save-pending', label: `Save changes (${cellPendingCount})`, run: () => void saveAllPending() }]
+      : []),
+    ...(unsavedCount > 0
+      ? [{ id: 'discard-pending', label: `Discard unsaved changes (${unsavedCount})`, run: () => discardAllPending() }]
+      : []),
     ...(collectionPath
       ? [
           { id: 'export', label: 'Export collection…', run: () => void handleExportCollection() },
@@ -904,6 +923,10 @@ export function App() {
                   onDeleteCollection={collectionPath ? () => setDeleteCollectionPath(collectionPath) : undefined}
                   shellOpen={shellOpen}
                   onToggleShell={() => setShellOpen((prev) => !prev)}
+                  pendingCount={unsavedCount}
+                  savableCount={cellPendingCount}
+                  onSavePending={() => void saveAllPending()}
+                  onDiscardPending={discardAllPending}
                 />
                 {collectionPath && queryOpen && (
                   <QueryBar
@@ -971,6 +994,11 @@ export function App() {
             )}
             {!showOnboarding && (
               <StatusBar
+                loading={
+                  isQueryActive
+                    ? queryDocumentsResult.isFetching
+                    : documentsQuery.isFetching || documentsQuery.isFetchingNextPage
+                }
                 items={[
                   ...(projectName ? [{ id: 'project', label: projectName }] : []),
                   ...(collectionPath
@@ -1000,8 +1028,8 @@ export function App() {
                       }]
                     : []),
                   ...(documentPath ? [{ id: 'sel', label: '1 selected' }] : []),
-                  ...(listMode === 'table' && cellPendingCount > 0
-                    ? [{ id: 'pending', label: `${cellPendingCount} change${cellPendingCount === 1 ? '' : 's'} pending` }]
+                  ...(unsavedCount > 0
+                    ? [{ id: 'pending', label: `${unsavedCount} unsaved change${unsavedCount === 1 ? '' : 's'}` }]
                     : []),
                 ]}
                 right={

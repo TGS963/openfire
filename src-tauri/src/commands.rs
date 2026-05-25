@@ -991,7 +991,13 @@ fn split_segments(path: &str) -> Vec<&str> {
 fn document_to_model(doc: Document, db: &FirestoreDb) -> Result<FirestoreDocument> {
     let path = relative_document_path(db, &doc.name);
     let id = path.rsplit('/').next().unwrap_or_default().to_string();
-    let data = FirestoreDb::deserialize_doc_to::<JsonValue>(&doc)?;
+    let docs_path = db.get_documents_path();
+    let data = JsonValue::Object(
+        doc.fields
+            .iter()
+            .map(|(key, value)| (key.clone(), value_to_json(docs_path.as_str(), value)))
+            .collect(),
+    );
     Ok(FirestoreDocument {
         id,
         path,
@@ -1010,6 +1016,48 @@ fn timestamp_to_string(ts: &Timestamp) -> String {
     DateTime::<Utc>::from_timestamp(ts.seconds, ts.nanos as u32)
         .unwrap_or(DateTime::<Utc>::UNIX_EPOCH)
         .to_rfc3339()
+}
+
+fn value_to_json(documents_path: &str, value: &Value) -> JsonValue {
+    match &value.value_type {
+        None | Some(ValueType::NullValue(_)) => JsonValue::Null,
+        Some(ValueType::BooleanValue(b)) => JsonValue::Bool(*b),
+        Some(ValueType::IntegerValue(n)) => JsonValue::from(*n),
+        Some(ValueType::DoubleValue(d)) => JsonValue::from(*d),
+        Some(ValueType::StringValue(s)) => JsonValue::String(s.clone()),
+        Some(ValueType::TimestampValue(ts)) => serde_json::json!({
+            "__type__": "timestamp",
+            "seconds": ts.seconds,
+            "nanos": ts.nanos,
+        }),
+        Some(ValueType::GeoPointValue(latlng)) => serde_json::json!({
+            "__type__": "geopoint",
+            "latitude": latlng.latitude,
+            "longitude": latlng.longitude,
+        }),
+        Some(ValueType::ReferenceValue(name)) => {
+            let prefix = format!("{documents_path}/");
+            let path = name.strip_prefix(&prefix).unwrap_or(name);
+            serde_json::json!({ "__type__": "reference", "path": path })
+        }
+        Some(ValueType::BytesValue(bytes)) => serde_json::json!({
+            "__type__": "bytes",
+            "base64": BASE64_STANDARD.encode(bytes),
+        }),
+        Some(ValueType::ArrayValue(array)) => JsonValue::Array(
+            array
+                .values
+                .iter()
+                .map(|item| value_to_json(documents_path, item))
+                .collect(),
+        ),
+        Some(ValueType::MapValue(map)) => JsonValue::Object(
+            map.fields
+                .iter()
+                .map(|(key, item)| (key.clone(), value_to_json(documents_path, item)))
+                .collect(),
+        ),
+    }
 }
 
 fn parent_or_root(db: &FirestoreDb, parent: &Option<String>) -> String {
@@ -1084,14 +1132,20 @@ fn json_to_value(db: &FirestoreDb, value: &JsonValue) -> Result<Value> {
                                 .unwrap_or_default() as i32;
                             ValueType::TimestampValue(Timestamp { seconds, nanos })
                         }
-                        "geo" => {
-                            let lat =
-                                object.get("lat").and_then(|v| v.as_f64()).ok_or_else(|| {
-                                    AppError::InvalidPayload("GeoPoint missing lat".into())
+                        "geo" | "geopoint" => {
+                            let lat = object
+                                .get("latitude")
+                                .or_else(|| object.get("lat"))
+                                .and_then(|v| v.as_f64())
+                                .ok_or_else(|| {
+                                    AppError::InvalidPayload("GeoPoint missing latitude".into())
                                 })?;
-                            let lng =
-                                object.get("lng").and_then(|v| v.as_f64()).ok_or_else(|| {
-                                    AppError::InvalidPayload("GeoPoint missing lng".into())
+                            let lng = object
+                                .get("longitude")
+                                .or_else(|| object.get("lng"))
+                                .and_then(|v| v.as_f64())
+                                .ok_or_else(|| {
+                                    AppError::InvalidPayload("GeoPoint missing longitude".into())
                                 })?;
                             ValueType::GeoPointValue(LatLng {
                                 latitude: lat,
@@ -1233,5 +1287,76 @@ mod tests {
     #[test]
     fn test_count_from_aggregated_docs_negative_clamped() {
         assert_eq!(count_from_aggregated_docs(&[count_doc(-5)]), 0);
+    }
+
+    const DOCS_PATH: &str = "projects/p/databases/(default)/documents";
+
+    fn val(vt: ValueType) -> Value {
+        Value { value_type: Some(vt) }
+    }
+
+    #[test]
+    fn test_value_to_json_scalars() {
+        assert_eq!(value_to_json(DOCS_PATH, &val(ValueType::NullValue(0))), JsonValue::Null);
+        assert_eq!(value_to_json(DOCS_PATH, &val(ValueType::BooleanValue(true))), serde_json::json!(true));
+        assert_eq!(value_to_json(DOCS_PATH, &val(ValueType::IntegerValue(42))), serde_json::json!(42));
+        assert_eq!(value_to_json(DOCS_PATH, &val(ValueType::DoubleValue(1.5))), serde_json::json!(1.5));
+        assert_eq!(
+            value_to_json(DOCS_PATH, &val(ValueType::StringValue("hi".into()))),
+            serde_json::json!("hi")
+        );
+    }
+
+    #[test]
+    fn test_value_to_json_timestamp_is_tagged() {
+        let ts = val(ValueType::TimestampValue(Timestamp { seconds: 1709913600, nanos: 250 }));
+        assert_eq!(
+            value_to_json(DOCS_PATH, &ts),
+            serde_json::json!({ "__type__": "timestamp", "seconds": 1709913600, "nanos": 250 })
+        );
+    }
+
+    #[test]
+    fn test_value_to_json_geopoint_is_tagged() {
+        let gp = val(ValueType::GeoPointValue(LatLng { latitude: 12.5, longitude: -8.0 }));
+        assert_eq!(
+            value_to_json(DOCS_PATH, &gp),
+            serde_json::json!({ "__type__": "geopoint", "latitude": 12.5, "longitude": -8.0 })
+        );
+    }
+
+    #[test]
+    fn test_value_to_json_reference_is_relative() {
+        let r = val(ValueType::ReferenceValue(format!("{DOCS_PATH}/users/abc")));
+        assert_eq!(
+            value_to_json(DOCS_PATH, &r),
+            serde_json::json!({ "__type__": "reference", "path": "users/abc" })
+        );
+    }
+
+    #[test]
+    fn test_value_to_json_bytes_is_base64() {
+        let b = val(ValueType::BytesValue(vec![1, 2, 3]));
+        assert_eq!(
+            value_to_json(DOCS_PATH, &b),
+            serde_json::json!({ "__type__": "bytes", "base64": "AQID" })
+        );
+    }
+
+    #[test]
+    fn test_value_to_json_nested_timestamp_in_array_and_map() {
+        let ts = val(ValueType::TimestampValue(Timestamp { seconds: 5, nanos: 0 }));
+        let arr = val(ValueType::ArrayValue(ArrayValue { values: vec![ts.clone()] }));
+        let mut fields = HashMap::new();
+        fields.insert("at".to_string(), ts);
+        let map = val(ValueType::MapValue(MapValue { fields }));
+        assert_eq!(
+            value_to_json(DOCS_PATH, &arr),
+            serde_json::json!([{ "__type__": "timestamp", "seconds": 5, "nanos": 0 }])
+        );
+        assert_eq!(
+            value_to_json(DOCS_PATH, &map),
+            serde_json::json!({ "at": { "__type__": "timestamp", "seconds": 5, "nanos": 0 } })
+        );
     }
 }

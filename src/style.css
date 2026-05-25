@@ -103,6 +103,17 @@
     --muted-foreground: 0.52 0.005 80;
     --accent: 0.945 0.003 80;
     --accent-foreground: 0.20 0.005 80;
+
+    /* ember accent literals — re-declared so the brand orange survives the
+       light-theme override of the shadcn --accent grey above (same collision
+       resolution as :root, where the ember block is declared last) */
+    --accent:        oklch(0.74 0.15 50);
+    --accent-strong: oklch(0.78 0.17 50);
+    --accent-bg:     oklch(0.74 0.15 50 / 0.12);
+    --accent-bg-hover: oklch(0.74 0.15 50 / 0.18);
+    --accent-border: oklch(0.74 0.15 50 / 0.35);
+    --accent-fg:     oklch(0.18 0.02 50);
+
     --border: 0.86 0.003 80;
     --input: 0.86 0.003 80;
 

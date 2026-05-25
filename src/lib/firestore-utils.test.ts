@@ -1,6 +1,24 @@
 import { describe, it, expect } from 'vitest';
 
-import { normalizeFirestorePath, collectionFromDocPath } from './firestore-utils';
+import { normalizeFirestorePath, collectionFromDocPath, fieldValuesEqual } from './firestore-utils';
+
+describe('fieldValuesEqual', () => {
+  it('treats objects with reordered keys as equal', () => {
+    expect(fieldValuesEqual({ a: 1, b: 2 }, { b: 2, a: 1 })).toBe(true);
+  });
+
+  it('treats reordered nested objects as equal', () => {
+    expect(fieldValuesEqual({ x: { a: 1, b: 2 } }, { x: { b: 2, a: 1 } })).toBe(true);
+  });
+
+  it('treats reordered arrays as not equal (order is significant)', () => {
+    expect(fieldValuesEqual([1, 2], [2, 1])).toBe(false);
+  });
+
+  it('returns false for differing values', () => {
+    expect(fieldValuesEqual({ a: 1 }, { a: 2 })).toBe(false);
+  });
+});
 
 describe('normalizeFirestorePath', () => {
   it('returns a normal path unchanged', () => {

@@ -33,4 +33,13 @@ describe('useDocDraftsStore', () => {
     s.clearDraft('users/a');
     expect(useDocDraftsStore.getState().getDraft('users/a')).toBeUndefined();
   });
+
+  it('clears all drafts and counts them', () => {
+    const s = useDocDraftsStore.getState();
+    s.setDraft('users/a', { editorValue: 'a', fieldsData: {} });
+    s.setDraft('users/b', { editorValue: 'b', fieldsData: {} });
+    expect(useDocDraftsStore.getState().count()).toBe(2);
+    useDocDraftsStore.getState().clearAll();
+    expect(useDocDraftsStore.getState().count()).toBe(0);
+  });
 });

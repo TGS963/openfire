@@ -58,4 +58,78 @@ describe('Toolbar', () => {
     await user.click(await screen.findByText('Delete'));
     expect(onDeleteCollection).toHaveBeenCalledTimes(1);
   });
+
+  it('exposes Save and Discard when there are pending changes', async () => {
+    const user = userEvent.setup();
+    const onSavePending = vi.fn();
+    const onDiscardPending = vi.fn();
+    render(
+      <Toolbar
+        {...baseProps}
+        pendingCount={3}
+        savableCount={3}
+        onSavePending={onSavePending}
+        onDiscardPending={onDiscardPending}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: /more/i }));
+    await user.click(await screen.findByText(/save changes/i));
+    expect(onSavePending).toHaveBeenCalledTimes(1);
+
+    await user.click(screen.getByRole('button', { name: /more/i }));
+    await user.click(await screen.findByText(/discard unsaved changes/i));
+    expect(onDiscardPending).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows Discard but hides Save when only non-savable drafts are pending', async () => {
+    const user = userEvent.setup();
+    render(
+      <Toolbar
+        {...baseProps}
+        pendingCount={1}
+        savableCount={0}
+        onSavePending={vi.fn()}
+        onDiscardPending={vi.fn()}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: /more/i }));
+    expect(await screen.findByText(/discard unsaved changes/i)).toBeInTheDocument();
+    expect(screen.queryByText(/save changes/i)).toBeNull();
+  });
+
+  it('keeps the more menu reachable for pending edits with no collection', async () => {
+    const user = userEvent.setup();
+    const onDiscardPending = vi.fn();
+    render(
+      <Toolbar
+        {...baseProps}
+        collectionPath={null}
+        breadcrumbs={[]}
+        pendingCount={2}
+        savableCount={0}
+        onDiscardPending={onDiscardPending}
+      />,
+    );
+    const more = screen.getByRole('button', { name: /more/i });
+    expect(more).not.toBeDisabled();
+    await user.click(more);
+    await user.click(await screen.findByText(/discard unsaved changes/i));
+    expect(onDiscardPending).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('Duplicate')).toBeNull();
+  });
+
+  it('hides Save and Discard when there are no pending changes', async () => {
+    const user = userEvent.setup();
+    render(
+      <Toolbar
+        {...baseProps}
+        pendingCount={0}
+        onSavePending={vi.fn()}
+        onDiscardPending={vi.fn()}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: /more/i }));
+    expect(screen.queryByText(/save changes/i)).toBeNull();
+    expect(screen.queryByText(/discard unsaved changes/i)).toBeNull();
+  });
 });
