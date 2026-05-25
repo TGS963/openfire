@@ -47,6 +47,19 @@ export function DocumentListSection({
   onDuplicateDocument,
   onDeleteDocument,
 }: DocumentListSectionProps) {
+  const listMode = useViewStore((state) => state.listMode);
+
+  // Virtuoso can fire endReached multiple times within a single tick before
+  // isFetchingMore flips. Guard with a ref so we only enqueue one fetch per
+  // boundary crossing; the ref clears once the fetched page arrives.
+  const fetchLockRef = useRef(false);
+  if (!isFetchingMore) fetchLockRef.current = false;
+  const handleEndReached = useCallback(() => {
+    if (!hasMore || isFetchingMore || fetchLockRef.current) return;
+    fetchLockRef.current = true;
+    onEndReached?.();
+  }, [hasMore, isFetchingMore, onEndReached]);
+
   if (!hasCollection) {
     return (
       <EmptyState
@@ -74,19 +87,6 @@ export function DocumentListSection({
       />
     );
   }
-
-  const listMode = useViewStore((state) => state.listMode);
-
-  // Virtuoso can fire endReached multiple times within a single tick before
-  // isFetchingMore flips. Guard with a ref so we only enqueue one fetch per
-  // boundary crossing; the ref clears once the fetched page arrives.
-  const fetchLockRef = useRef(false);
-  if (!isFetchingMore) fetchLockRef.current = false;
-  const handleEndReached = useCallback(() => {
-    if (!hasMore || isFetchingMore || fetchLockRef.current) return;
-    fetchLockRef.current = true;
-    onEndReached?.();
-  }, [hasMore, isFetchingMore, onEndReached]);
 
   return (
     <section className="flex flex-1 flex-col min-h-0">
