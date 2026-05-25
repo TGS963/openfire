@@ -84,6 +84,10 @@ export async function queryDocuments(query: QuerySpec) {
   return invoke<DocumentPage>('query_documents', { query });
 }
 
+export async function countDocuments(collectionPath: string) {
+  return invoke<number>('count_documents', { collectionPath });
+}
+
 export async function exportCollection(collectionPath: string, filePath: string) {
   return invoke<number>('export_collection', { collectionPath, filePath });
 }

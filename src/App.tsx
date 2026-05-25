@@ -5,7 +5,7 @@ import { Group, Panel, Separator, useDefaultLayout } from 'react-resizable-panel
 
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/components/ui/use-toast';
-import { useConnectionKey, useDeleteCollection, useDeleteDocument, useDocument, useDocumentsInfinite, useQueryDocuments } from '@/hooks/firestore';
+import { useConnectionKey, useDeleteCollection, useDeleteDocument, useDocument, useDocumentCount, useDocumentsInfinite, useQueryDocuments } from '@/hooks/firestore';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { duplicateCollection, duplicateDocument, exportCollection, importCollection, saveDocument, transferDocuments } from '@/lib/tauri';
 import { openFileDialog } from '@/lib/dialog-utils';
@@ -286,6 +286,9 @@ export function App() {
       updateDocumentCaches(doc, keyAtStart);
       // Query-mode list reads from a separate cache key — invalidate so it refetches.
       queryClient.invalidateQueries({ queryKey: ['queryDocuments', keyAtStart], exact: false });
+      // A create changes the total — drop the cached count so the chip reverts to
+      // its clickable state (a disabled query keeps stale data through invalidate).
+      queryClient.removeQueries({ queryKey: ['docCount', keyAtStart], exact: false });
       pending.update({
         id: pending.id,
         title: successMessage,
@@ -682,6 +685,7 @@ export function App() {
     }
   };
   const queryDocumentsResult = useQueryDocuments(activeQuery);
+  const documentCount = useDocumentCount(collectionPath);
   const documentQuery = useDocument(documentPath);
 
   const isQueryActive = activeQuery !== null;
@@ -972,9 +976,27 @@ export function App() {
                   ...(collectionPath
                     ? [{
                         id: 'count',
-                        label: `${filteredDocuments.length}${
-                          !isQueryActive && documentsQuery.hasNextPage ? '+' : ''
-                        } docs`,
+                        label: (() => {
+                          const exact = documentCount.data;
+                          // Exact count applies to the unfiltered collection — in
+                          // filter mode fall through to the filtered-result count.
+                          if (exact != null && !isQueryActive) return `${exact.toLocaleString()} docs`;
+                          const hasMore = !isQueryActive && documentsQuery.hasNextPage;
+                          if (!hasMore) return `${filteredDocuments.length} docs`;
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => void documentCount.refetch()}
+                              disabled={documentCount.isFetching}
+                              title="Click to count all documents"
+                              className="font-mono text-[11px] text-text-muted underline decoration-dotted underline-offset-2 hover:text-text disabled:no-underline disabled:opacity-70"
+                            >
+                              {documentCount.isFetching
+                                ? 'counting…'
+                                : `${filteredDocuments.length}+ docs`}
+                            </button>
+                          );
+                        })(),
                       }]
                     : []),
                   ...(documentPath ? [{ id: 'sel', label: '1 selected' }] : []),

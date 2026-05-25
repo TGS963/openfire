@@ -3,7 +3,8 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
-import { useDeleteDocument } from '@/hooks/firestore';
+import { useDeleteDocument, useDocumentCount } from '@/hooks/firestore';
+import { countDocuments } from '@/lib/tauri';
 import { useAuthStore } from '@/stores/auth-store';
 import { useConnectionStore } from '@/stores/connection-store';
 
@@ -14,6 +15,7 @@ vi.mock('@/lib/tauri', () => ({
   listCollections: vi.fn(),
   listDocuments: vi.fn(),
   queryDocuments: vi.fn(),
+  countDocuments: vi.fn(),
 }));
 
 const KEY = 'conn-1';
@@ -66,5 +68,40 @@ describe('useDeleteDocument', () => {
       expect(inf?.isInvalidated).toBe(true);
       expect(client.getQueryData(['document', KEY, 'users/abc'])).toBeUndefined();
     });
+  });
+
+  it('removes the cached docCount so the chip reverts to clickable', async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(['docCount', KEY, 'users'], 300);
+
+    const { result } = renderHook(() => useDeleteDocument(), { wrapper: makeWrapper(client) });
+    await result.current.mutateAsync('users/abc');
+
+    await waitFor(() => {
+      expect(client.getQueryData(['docCount', KEY, 'users'])).toBeUndefined();
+    });
+  });
+});
+
+describe('useDocumentCount', () => {
+  beforeEach(() => {
+    useAuthStore.setState({ activeAccountId: null, connectionMode: 'production' });
+    useConnectionStore.setState({ activeConnectionId: KEY });
+    vi.mocked(countDocuments).mockReset();
+  });
+
+  it('does not fetch until refetch is called (click-triggered)', async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    vi.mocked(countDocuments).mockResolvedValue(12840);
+
+    const { result } = renderHook(() => useDocumentCount('users'), { wrapper: makeWrapper(client) });
+
+    expect(countDocuments).not.toHaveBeenCalled();
+    expect(result.current.data).toBeUndefined();
+
+    await result.current.refetch();
+
+    await waitFor(() => expect(result.current.data).toBe(12840));
+    expect(countDocuments).toHaveBeenCalledWith('users');
   });
 });

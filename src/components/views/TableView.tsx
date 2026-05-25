@@ -9,18 +9,6 @@ import type { FirestoreDocument } from '@/types/firestore';
 const ID_COL_WIDTH = 220;
 const DATA_COL_WIDTH = 180;
 
-const FixedTable = forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
-  function FixedTable(props, ref) {
-    return (
-      <table
-        {...props}
-        ref={ref}
-        style={{ ...props.style, tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}
-      />
-    );
-  },
-);
-
 export type TableViewProps = {
   documents: FirestoreDocument[];
   selectedPath: string | null;
@@ -95,6 +83,46 @@ export function TableView({
   isFetchingMore,
 }: TableViewProps) {
   const columns = useMemo(() => detectColumns(documents), [documents]);
+
+  // Deterministic table width + <colgroup> are the authoritative width source
+  // under table-layout: fixed. Without them the leftover space oscillates per
+  // frame during fast scroll, dragging fixed columns 1px via subpixel rounding.
+  //
+  // Memoized on column *count* only (not the `columns` array ref, which is a
+  // fresh value on every refetch/load-more). A stable component identity keeps
+  // Virtuoso from remounting the table mid-scroll when more docs append.
+  const colCount = columns.length;
+  const FixedTable = useMemo(
+    () =>
+      forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
+        function FixedTable(props, ref) {
+          return (
+            <table
+              {...props}
+              ref={ref}
+              style={{
+                ...props.style,
+                width: ID_COL_WIDTH + colCount * DATA_COL_WIDTH,
+                minWidth: ID_COL_WIDTH + colCount * DATA_COL_WIDTH,
+                tableLayout: 'fixed',
+                borderCollapse: 'separate',
+                borderSpacing: 0,
+              }}
+            >
+              <colgroup>
+                <col style={{ width: ID_COL_WIDTH }} />
+                {Array.from({ length: colCount }, (_, i) => (
+                  <col key={i} style={{ width: DATA_COL_WIDTH }} />
+                ))}
+              </colgroup>
+              {props.children}
+            </table>
+          );
+        },
+      ),
+    [colCount],
+  );
+
   const pending = useCellEditsStore((s) => s.pending);
   const setPending = useCellEditsStore((s) => s.setPending);
 
@@ -169,7 +197,7 @@ export function TableView({
                   <tfoot>
                     <tr>
                       <td
-                        colSpan={columns.length + 2}
+                        colSpan={columns.length + 1}
                         className="border-t border-border-soft bg-surface-1 px-3 py-1.5 text-center text-[11px] text-text-muted"
                       >
                         {isFetchingMore ? 'Loading more…' : 'Scroll for more'}
@@ -198,7 +226,6 @@ export function TableView({
                 {col}
               </th>
             ))}
-            <th aria-hidden style={{ width: 'auto' }} className="bg-muted" />
           </tr>
         )}
         itemContent={(_, doc) => {
@@ -289,7 +316,6 @@ export function TableView({
                   </td>
                 );
               })}
-              <td aria-hidden style={{ width: 'auto' }} className={rowBg} />
             </>
           );
         }}

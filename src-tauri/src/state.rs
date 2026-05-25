@@ -2,7 +2,12 @@ use crate::error::{AppError, Result};
 use firestore::FirestoreDb;
 use serde::Serialize;
 use std::collections::HashMap;
+use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
+
+/// How long a cached collection count stays fresh. Writes bust the cache
+/// outright, so this only bounds staleness from out-of-band changes.
+const COUNT_CACHE_TTL: Duration = Duration::from_secs(60);
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case", tag = "type")]
@@ -24,6 +29,8 @@ impl ConnectionMode {
 pub struct AppState {
     connections: RwLock<HashMap<String, (FirestoreDb, ConnectionMode)>>,
     active_connection_id: RwLock<Option<String>>,
+    /// Server-side count cache, keyed by `"{connection_id}\0{collection_path}"`.
+    count_cache: RwLock<HashMap<String, (u64, Instant)>>,
 }
 
 impl Default for AppState {
@@ -31,6 +38,7 @@ impl Default for AppState {
         Self {
             connections: RwLock::new(HashMap::new()),
             active_connection_id: RwLock::new(None),
+            count_cache: RwLock::new(HashMap::new()),
         }
     }
 }
@@ -103,6 +111,41 @@ impl AppState {
             .ok_or_else(|| AppError::ConnectionNotFound(id.to_string()))
     }
 
+    /// The active connection's id, if any.
+    pub async fn active_connection_id(&self) -> Option<String> {
+        self.active_connection_id.read().await.clone()
+    }
+
+    /// Build the count-cache key for a collection under the active connection.
+    /// `None` when there is no active connection (nothing to cache).
+    pub async fn count_cache_key(&self, collection_path: &str) -> Option<String> {
+        self.active_connection_id()
+            .await
+            .map(|conn| format!("{conn}\u{0}{collection_path}"))
+    }
+
+    /// Fresh cached count for a key, or `None` if absent/expired.
+    pub async fn cached_count(&self, key: &str) -> Option<u64> {
+        let cache = self.count_cache.read().await;
+        cache
+            .get(key)
+            .filter(|(_, stored_at)| stored_at.elapsed() < COUNT_CACHE_TTL)
+            .map(|(count, _)| *count)
+    }
+
+    pub async fn store_count(&self, key: String, count: u64) {
+        self.count_cache
+            .write()
+            .await
+            .insert(key, (count, Instant::now()));
+    }
+
+    /// Drop every cached count. Called after any write that can change a
+    /// collection's size, so a later count never reports a stale total.
+    pub async fn clear_count_cache(&self) {
+        self.count_cache.write().await.clear();
+    }
+
     pub async fn list_connections(&self) -> Vec<ConnectionEntry> {
         let conns = self.connections.read().await;
         let active_id = self.active_connection_id.read().await;
@@ -172,5 +215,32 @@ mod tests {
         let state = make_state();
         let result = state.db_for("nonexistent").await;
         assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn count_cache_stores_and_returns_fresh() {
+        let state = make_state();
+        state.store_count("k".to_string(), 300).await;
+        assert_eq!(state.cached_count("k").await, Some(300));
+    }
+
+    #[tokio::test]
+    async fn count_cache_miss_returns_none() {
+        let state = make_state();
+        assert_eq!(state.cached_count("absent").await, None);
+    }
+
+    #[tokio::test]
+    async fn clear_count_cache_empties_it() {
+        let state = make_state();
+        state.store_count("k".to_string(), 7).await;
+        state.clear_count_cache().await;
+        assert_eq!(state.cached_count("k").await, None);
+    }
+
+    #[tokio::test]
+    async fn count_cache_key_none_without_active_connection() {
+        let state = make_state();
+        assert!(state.count_cache_key("users").await.is_none());
     }
 }

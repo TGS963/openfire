@@ -217,7 +217,7 @@ export function DocumentPreviewSection({
             <b className="mr-1 font-medium text-text-mid">updated</b>
             {fmtTime(document.updateTime)}
           </span>
-          <span>
+          <span className="whitespace-nowrap">
             <b className="mr-1 font-medium text-text-mid">{fieldCount} fields</b>
           </span>
           {isDirty && (
@@ -234,7 +234,11 @@ export function DocumentPreviewSection({
             </button>
           )}
           <span
-            className={isDirty ? 'text-warning' : 'ml-auto text-success'}
+            className={
+              isDirty
+                ? 'whitespace-nowrap text-warning'
+                : 'ml-auto whitespace-nowrap text-success'
+            }
           >
             ● {isDirty ? `unsaved · ${changeCount} change${changeCount === 1 ? '' : 's'}` : 'saved'}
           </span>

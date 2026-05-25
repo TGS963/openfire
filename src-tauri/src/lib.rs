@@ -52,6 +52,7 @@ pub fn run() {
             delete_document,
             delete_collection,
             query_documents,
+            count_documents,
             export_collection,
             import_collection,
             connect_emulator,

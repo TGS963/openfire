@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
+  countDocuments,
   deleteCollection,
   deleteDocument,
   getDocument,
@@ -46,6 +47,21 @@ export function useDocumentsInfinite(collectionPath: string | null, pageSize = 1
   });
 }
 
+/**
+ * Exact server-side document count for a collection. Click-triggered only
+ * (`enabled: false`); call `.refetch()` to fetch. Keyed by collection + connection
+ * so switching either shows no stale count until requested again.
+ */
+export function useDocumentCount(collectionPath: string | null) {
+  const { key } = useConnectionKey();
+  return useQuery<number>({
+    queryKey: ['docCount', key, collectionPath],
+    queryFn: () => countDocuments(collectionPath!),
+    enabled: false,
+    staleTime: 30_000,
+  });
+}
+
 export function useDocument(documentPath: string | null) {
   const { key, hasConnection } = useConnectionKey();
   return useQuery<FirestoreDocument>({
@@ -71,6 +87,12 @@ export function useDeleteDocument() {
       }
       queryClient.invalidateQueries({
         queryKey: ['queryDocuments', key],
+        exact: false,
+      });
+      // Drop the cached count so the chip reverts to its clickable state — a
+      // disabled query keeps stale data through invalidate, so remove it.
+      queryClient.removeQueries({
+        queryKey: ['docCount', key],
         exact: false,
       });
       queryClient.removeQueries({
@@ -102,6 +124,10 @@ export function useDeleteCollection() {
       });
       queryClient.invalidateQueries({
         queryKey: ['collections'],
+        exact: false,
+      });
+      queryClient.removeQueries({
+        queryKey: ['docCount', key],
         exact: false,
       });
     },

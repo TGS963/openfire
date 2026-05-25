@@ -11,12 +11,13 @@ use base64::Engine;
 use chrono::{DateTime, Utc};
 use firestore::errors::FirestoreError;
 use firestore::{
-    FirestoreCreateSupport, FirestoreDb, FirestoreDbOptions, FirestoreDeleteSupport,
-    FirestoreGetByIdSupport, FirestoreListCollectionIdsParams, FirestoreListDocParams,
-    FirestoreListingSupport, FirestoreQueryCollection, FirestoreQueryDirection,
-    FirestoreQueryFilter, FirestoreQueryFilterCompare, FirestoreQueryFilterComposite,
-    FirestoreQueryOrder, FirestoreQueryParams, FirestoreQuerySupport, FirestoreUpdateSupport,
-    FirestoreValue,
+    FirestoreAggregatedQueryParams, FirestoreAggregatedQuerySupport, FirestoreAggregation,
+    FirestoreAggregationOperator, FirestoreAggregationOperatorCount, FirestoreCreateSupport,
+    FirestoreDb, FirestoreDbOptions, FirestoreDeleteSupport, FirestoreGetByIdSupport,
+    FirestoreListCollectionIdsParams, FirestoreListDocParams, FirestoreListingSupport,
+    FirestoreQueryCollection, FirestoreQueryDirection, FirestoreQueryFilter,
+    FirestoreQueryFilterCompare, FirestoreQueryFilterComposite, FirestoreQueryOrder,
+    FirestoreQueryParams, FirestoreQuerySupport, FirestoreUpdateSupport, FirestoreValue,
 };
 use gcloud_sdk::google::firestore::v1::value::ValueType;
 use gcloud_sdk::google::firestore::v1::{ArrayValue, Document, MapValue, Value};
@@ -204,6 +205,7 @@ pub async fn save_document(
     }
     .map_err(|err| err.to_string())?;
 
+    app_state.clear_count_cache().await;
     document_to_model(updated, &db).map_err(|err| err.to_string())
 }
 
@@ -258,6 +260,7 @@ pub async fn duplicate_document(
         Err(err) => return Err(err.to_string()),
     };
 
+    app_state.clear_count_cache().await;
     document_to_model(result, &db).map_err(|err| err.to_string())
 }
 
@@ -276,7 +279,7 @@ pub async fn duplicate_collection(
         parse_collection_path(&db, &target_collection_path).map_err(|err| err.to_string())?;
     let target_parent_path = parent_or_root(&db, &target_parent);
 
-    for_each_doc_in_collection(&db, &source_collection, &source_parent, |mut doc| {
+    let copied = for_each_doc_in_collection(&db, &source_collection, &source_parent, |mut doc| {
         let db = db.clone();
         let target_parent_path = target_parent_path.clone();
         let target_collection = target_collection.clone();
@@ -316,7 +319,9 @@ pub async fn duplicate_collection(
             Ok(true)
         }
     })
-    .await
+    .await?;
+    app_state.clear_count_cache().await;
+    Ok(copied)
 }
 
 #[tauri::command]
@@ -330,6 +335,7 @@ pub async fn delete_document(
     db.delete_by_id_at(&parent, &collection_id, &document_id, None)
         .await
         .map_err(|err| err.to_string())?;
+    app_state.clear_count_cache().await;
     Ok(())
 }
 
@@ -343,7 +349,7 @@ pub async fn delete_collection(
         parse_collection_path(&db, &collection_path).map_err(|err| err.to_string())?;
     let parent_path = parent_or_root(&db, &parent);
 
-    for_each_doc_in_collection(&db, &collection_id, &parent, |doc| {
+    let removed = for_each_doc_in_collection(&db, &collection_id, &parent, |doc| {
         let db = db.clone();
         let parent_path = parent_path.clone();
         let collection_id = collection_id.clone();
@@ -355,7 +361,9 @@ pub async fn delete_collection(
             Ok(true)
         }
     })
-    .await
+    .await?;
+    app_state.clear_count_cache().await;
+    Ok(removed)
 }
 
 #[tauri::command]
@@ -375,6 +383,55 @@ pub async fn query_documents(
         documents,
         next_page_token: None,
     })
+}
+
+/// Exact document count for a collection via Firestore COUNT() aggregation —
+/// one cheap server-side query, no documents downloaded.
+#[tauri::command]
+pub async fn count_documents(
+    app_state: State<'_, AppState>,
+    collection_path: String,
+) -> CmdResult<u64> {
+    let cache_key = app_state.count_cache_key(&collection_path).await;
+    if let Some(key) = &cache_key {
+        if let Some(count) = app_state.cached_count(key).await {
+            return Ok(count);
+        }
+    }
+
+    let db = app_state.db().await.map_err(|err| err.to_string())?;
+    let (collection_id, parent) =
+        parse_collection_path(&db, &collection_path).map_err(|err| err.to_string())?;
+    let query_params = FirestoreQueryParams::new(FirestoreQueryCollection::Single(collection_id))
+        .opt_parent(parent);
+    let params = FirestoreAggregatedQueryParams::new(
+        query_params,
+        vec![FirestoreAggregation::new("count".to_string()).with_operator(
+            FirestoreAggregationOperator::Count(FirestoreAggregationOperatorCount::new()),
+        )],
+    );
+    let docs = db
+        .aggregated_query_doc(params)
+        .await
+        .map_err(|err| err.to_string())?;
+    let count = count_from_aggregated_docs(&docs);
+
+    if let Some(key) = cache_key {
+        app_state.store_count(key, count).await;
+    }
+    Ok(count)
+}
+
+/// Pull the integer under the "count" alias from an aggregation response.
+fn count_from_aggregated_docs(docs: &[Document]) -> u64 {
+    docs.first()
+        .and_then(|doc| doc.fields.get("count"))
+        .and_then(|value| match &value.value_type {
+            Some(ValueType::IntegerValue(n)) => Some(*n),
+            _ => None,
+        })
+        .map(|n| n.max(0) as u64)
+        .unwrap_or(0)
 }
 
 fn build_query_params(db: &FirestoreDb, query: &QuerySpec) -> Result<FirestoreQueryParams> {
@@ -545,6 +602,7 @@ pub async fn import_collection(
         imported += 1;
     }
 
+    app_state.clear_count_cache().await;
     Ok(ImportResult { imported, skipped })
 }
 
@@ -730,6 +788,7 @@ pub async fn transfer_documents(
     })
     .await?;
 
+    app_state.clear_count_cache().await;
     Ok(TransferResult {
         transferred,
         skipped: skipped.load(std::sync::atomic::Ordering::Relaxed),
@@ -1139,5 +1198,40 @@ mod tests {
     #[test]
     fn test_extract_doc_id_single_segment() {
         assert_eq!(extract_doc_id("doc1").unwrap(), "doc1");
+    }
+
+    fn count_doc(n: i64) -> Document {
+        let mut fields = HashMap::new();
+        fields.insert(
+            "count".to_string(),
+            Value { value_type: Some(ValueType::IntegerValue(n)) },
+        );
+        Document { name: String::new(), fields, create_time: None, update_time: None }
+    }
+
+    #[test]
+    fn test_count_from_aggregated_docs_reads_integer() {
+        assert_eq!(count_from_aggregated_docs(&[count_doc(12840)]), 12840);
+    }
+
+    #[test]
+    fn test_count_from_aggregated_docs_empty_is_zero() {
+        assert_eq!(count_from_aggregated_docs(&[]), 0);
+    }
+
+    #[test]
+    fn test_count_from_aggregated_docs_missing_alias_is_zero() {
+        let doc = Document {
+            name: String::new(),
+            fields: HashMap::new(),
+            create_time: None,
+            update_time: None,
+        };
+        assert_eq!(count_from_aggregated_docs(&[doc]), 0);
+    }
+
+    #[test]
+    fn test_count_from_aggregated_docs_negative_clamped() {
+        assert_eq!(count_from_aggregated_docs(&[count_doc(-5)]), 0);
     }
 }
