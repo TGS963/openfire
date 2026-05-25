@@ -264,4 +264,73 @@ describe('useAuthStore', () => {
       expect(useAuthStore.getState().error).toBeNull();
     });
   });
+
+  describe('disconnect', () => {
+    it('clears every connection marker the rest of the app reads', () => {
+      useAuthStore.setState({
+        accounts: [{ id: 'acc1', projectId: 'proj', clientEmail: 'a@b.com' }],
+        initialized: true,
+        activeAccountId: 'acc1',
+        connectionMode: 'production',
+        connectionError: 'stale',
+        emulatorUrl: 'http://localhost:8080',
+        emulatorProjectId: 'emu-proj',
+      });
+
+      useAuthStore.getState().disconnect();
+
+      const state = useAuthStore.getState();
+      expect(state.activeAccountId).toBeNull();
+      expect(state.connectionMode).toBeNull();
+      expect(state.connectionError).toBeNull();
+      expect(state.emulatorUrl).toBeNull();
+      expect(state.emulatorProjectId).toBeNull();
+    });
+
+    it('leaves the account list and initialized flag untouched', () => {
+      const accounts = [{ id: 'acc1', projectId: 'proj', clientEmail: 'a@b.com' }];
+      useAuthStore.setState({
+        accounts,
+        initialized: true,
+        activeAccountId: 'acc1',
+        connectionMode: 'production',
+      });
+
+      useAuthStore.getState().disconnect();
+
+      const state = useAuthStore.getState();
+      expect(state.accounts).toEqual(accounts);
+      expect(state.initialized).toBe(true);
+    });
+
+    it('is idempotent — calling on an already-disconnected store is a no-op', () => {
+      const before = useAuthStore.getState();
+      useAuthStore.getState().disconnect();
+      const after = useAuthStore.getState();
+      expect(after.activeAccountId).toBe(before.activeAccountId);
+      expect(after.connectionMode).toBe(before.connectionMode);
+    });
+  });
+
+  describe('disconnectFromEmulator (post-refactor regression)', () => {
+    it('ends in the same disconnected state as disconnect()', async () => {
+      useAuthStore.setState({
+        connectionMode: 'emulator',
+        emulatorUrl: 'http://localhost:8080',
+        emulatorProjectId: 'emu-proj',
+        connectionError: 'stale',
+        activeAccountId: null,
+      });
+      mockedInvoke.mockResolvedValueOnce(undefined).mockResolvedValueOnce([]);
+
+      await useAuthStore.getState().disconnectFromEmulator();
+
+      const state = useAuthStore.getState();
+      expect(state.connectionMode).toBeNull();
+      expect(state.emulatorUrl).toBeNull();
+      expect(state.emulatorProjectId).toBeNull();
+      expect(state.connectionError).toBeNull();
+      expect(state.activeAccountId).toBeNull();
+    });
+  });
 });

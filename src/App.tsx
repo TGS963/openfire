@@ -586,8 +586,10 @@ export function App() {
   };
 
   const handleRemoveConnection = async (id: string) => {
+    const wasActive = id === activeConnectionId;
     await removeConnectionFromStore(id);
-    if (id === activeConnectionId) {
+    if (wasActive) {
+      useAuthStore.getState().disconnect();
       await queryClient.cancelQueries();
       queryClient.clear();
       resetNav();

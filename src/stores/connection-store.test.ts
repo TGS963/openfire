@@ -83,6 +83,23 @@ describe('connection-store', () => {
     expect(useConnectionStore.getState().connections).toHaveLength(1);
   });
 
+  it('removeConnection clears activeConnectionId when removing the active one', async () => {
+    useConnectionStore.setState({
+      connections: [
+        { id: 'prod-proj', mode: { type: 'production' as const }, isActive: true },
+      ],
+      activeConnectionId: 'prod-proj',
+    });
+
+    // remove_connection then list_connections (empty — backend dropped it).
+    mockedInvoke.mockResolvedValueOnce(undefined).mockResolvedValueOnce([]);
+
+    await useConnectionStore.getState().removeConnection('prod-proj');
+
+    expect(useConnectionStore.getState().activeConnectionId).toBeNull();
+    expect(useConnectionStore.getState().connections).toEqual([]);
+  });
+
   it('switchConnection calls IPC and reloads', async () => {
     // set_active_connection call
     mockedInvoke.mockResolvedValueOnce(undefined);

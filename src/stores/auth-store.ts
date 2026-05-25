@@ -33,6 +33,7 @@ type AuthStore = {
   selectAccount: (id: string) => Promise<void>;
   connectToEmulator: (projectId: string, url: string) => Promise<void>;
   disconnectFromEmulator: () => Promise<void>;
+  disconnect: () => void;
   validateActiveAccount: () => Promise<void>;
   clearError: () => void;
 };
@@ -149,13 +150,8 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null });
         try {
           await disconnectEmulator();
-          set({
-            connectionMode: null,
-            connectionError: null,
-            emulatorUrl: null,
-            emulatorProjectId: null,
-            isLoading: false,
-          });
+          get().disconnect();
+          set({ isLoading: false });
           useConnectionStore.getState().loadConnections();
         } catch (error) {
           set({
@@ -163,6 +159,15 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
           });
         }
+      },
+      disconnect() {
+        set({
+          activeAccountId: null,
+          connectionMode: null,
+          connectionError: null,
+          emulatorUrl: null,
+          emulatorProjectId: null,
+        });
       },
       async validateActiveAccount() {
         const { connectionMode, activeAccountId } = get();

@@ -39,11 +39,6 @@ describe('DocumentListSection', () => {
     expect(getByText("Couldn't load documents")).toBeDefined();
   });
 
-  // Hook-order regression: hasCollection toggling false->true on the same
-  // component instance previously crashed in prod ("undefined is not an
-  // object (h[c])") because useViewStore / useRef / useCallback sat after
-  // the early return — hook count changed across renders. Dev React surfaces
-  // it as a console warning instead of throwing, so we assert on that too.
   it('does not crash when hasCollection flips false to true', () => {
     useViewStore.setState({ listMode: 'list' });
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
