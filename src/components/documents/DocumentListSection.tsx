@@ -163,7 +163,7 @@ export function DocumentListSection({
                       </div>
                     ),
                   }
-                : undefined
+                : {}
             }
             itemContent={(_, doc) => (
               <DocumentRow

@@ -4,8 +4,12 @@ import { render } from '@testing-library/react';
 import { useViewStore } from '@/stores/view-store';
 import { DocumentListSection } from '@/components/documents/DocumentListSection';
 
+const virtuosoComponentsSpy = vi.fn();
 vi.mock('react-virtuoso', () => ({
-  Virtuoso: () => <div data-testid="virtuoso" />,
+  Virtuoso: (props: { components?: unknown }) => {
+    virtuosoComponentsSpy(props.components);
+    return <div data-testid="virtuoso" />;
+  },
   TableVirtuoso: () => <div data-testid="table-virtuoso" />,
 }));
 
@@ -51,6 +55,24 @@ describe('DocumentListSection', () => {
     );
     errSpy.mockRestore();
     expect(hookOrderWarning).toBeUndefined();
+  });
+
+  it('never passes components={undefined} to Virtuoso', () => {
+    useViewStore.setState({ listMode: 'list' });
+    virtuosoComponentsSpy.mockClear();
+    render(
+      <DocumentListSection
+        {...baseProps}
+        hasCollection={true}
+        documents={[
+          { id: 'a', path: 'col/a', data: {}, createTime: null, updateTime: null },
+        ]}
+      />,
+    );
+    expect(virtuosoComponentsSpy).toHaveBeenCalled();
+    for (const call of virtuosoComponentsSpy.mock.calls) {
+      expect(call[0]).not.toBeUndefined();
+    }
   });
 
   it('does not crash when error appears then clears', () => {
