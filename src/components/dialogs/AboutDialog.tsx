@@ -41,9 +41,11 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
       <DialogContent className="max-w-sm">
         <div className="p-6">
           <DialogHeader className="items-center text-center">
-            <div className="mb-2 grid h-16 w-16 place-items-center rounded-xl bg-ember font-mono text-[28px] font-bold tracking-[-0.04em] text-ember-fg">
-              of
-            </div>
+            <img
+              src="/openfire-icon.svg"
+              alt="OpenFire"
+              className="mb-2 h-16 w-16 rounded-xl"
+            />
             <DialogTitle className="text-xl">OpenFire</DialogTitle>
             <DialogDescription>Desktop Firestore Manager</DialogDescription>
           </DialogHeader>
