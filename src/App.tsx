@@ -36,6 +36,7 @@ import { DocumentListSection } from '@/components/documents/DocumentListSection'
 import { DocumentPreviewSection } from '@/components/documents/DocumentPreviewSection';
 import { AboutDialog } from '@/components/dialogs/AboutDialog';
 import { CreateDocumentDialog } from '@/components/dialogs/CreateDocumentDialog';
+import { CreateCollectionDialog } from '@/components/dialogs/CreateCollectionDialog';
 import { DuplicateDocumentDialog } from '@/components/dialogs/DuplicateDocumentDialog';
 import { DuplicateCollectionDialog } from '@/components/dialogs/DuplicateCollectionDialog';
 import { DeleteConfirmDialog } from '@/components/dialogs/DeleteConfirmDialog';
@@ -434,6 +435,28 @@ export function App() {
     });
     openDocumentTab(doc.path);
     closeDialog('createDocument');
+  };
+
+  const handleCreateCollection = async ({
+    collectionId,
+    documentId,
+    data,
+  }: {
+    collectionId: string;
+    documentId: string;
+    data: Record<string, unknown>;
+  }) => {
+    const doc = await persistDocument({
+      path: `${collectionId.trim()}/${documentId.trim()}`,
+      data,
+      successMessage: 'Collection created',
+    });
+    // persistDocument only refreshes document-level caches; the tree reads the
+    // collections query, so invalidate it for the new collection to appear.
+    queryClient.invalidateQueries({ queryKey: ['collections'], exact: false });
+    openCollectionTab(collectionId.trim());
+    openDocumentTab(doc.path);
+    closeDialog('createCollection');
   };
 
   const handleSaveDocument = async (path: string, data: Record<string, unknown>) => {
@@ -893,6 +916,7 @@ export function App() {
             connectionCount={connections.length}
             onManageConnections={() => openDialog('connectionManager')}
             onDeleteCollection={(path) => setDeleteCollectionPath(path)}
+            onCreateCollection={() => openDialog('createCollection')}
             onAbout={() => openDialog('about')}
           />
         }
@@ -1060,6 +1084,12 @@ export function App() {
         onOpenChange={(next) => { if (!next) closeDialog('createDocument'); }}
         collectionPath={collectionPath}
         onSubmit={handleCreateDocument}
+        isSubmitting={saveDocumentMutation.isPending}
+      />
+      <CreateCollectionDialog
+        open={isDialogOpen('createCollection')}
+        onOpenChange={(next) => { if (!next) closeDialog('createCollection'); }}
+        onSubmit={handleCreateCollection}
         isSubmitting={saveDocumentMutation.isPending}
       />
       <DuplicateDocumentDialog

@@ -1,3 +1,5 @@
+import { Plus } from 'lucide-react';
+
 import { useCollections } from '@/hooks/firestore';
 import { CollectionTreeItem } from '@/components/collections/CollectionTreeItem';
 
@@ -8,6 +10,7 @@ export type CollectionTreeProps = {
   onSelectCollection: (path: string, opts?: { background?: boolean }) => void;
   onSelectDocument?: (path: string, opts?: { background?: boolean }) => void;
   onDeleteCollection?: (path: string) => void;
+  onCreateCollection?: () => void;
 };
 
 export function CollectionTree({
@@ -17,6 +20,7 @@ export function CollectionTree({
   onSelectCollection,
   onSelectDocument,
   onDeleteCollection,
+  onCreateCollection,
 }: CollectionTreeProps) {
   const { data, isLoading } = useCollections(parentDocumentPath);
   const collections = data?.collectionIds ?? [];
@@ -26,7 +30,21 @@ export function CollectionTree({
   }
 
   if (!collections.length) {
-    return <p className="px-1 py-1 text-[13px] text-text-muted">No collections found.</p>;
+    return (
+      <div className="space-y-1.5 px-1 py-1">
+        <p className="text-[13px] text-text-muted">No collections found.</p>
+        {onCreateCollection && !parentDocumentPath && (
+          <button
+            type="button"
+            onClick={onCreateCollection}
+            className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[12.5px] text-ember hover:bg-surface-2"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Create collection
+          </button>
+        )}
+      </div>
+    );
   }
 
   return (

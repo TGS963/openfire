@@ -49,6 +49,35 @@ describe('CollectionTree', () => {
     expect(screen.getByText('No collections found.')).toBeInTheDocument();
   });
 
+  it('shows a create CTA in the empty state and calls onCreateCollection', async () => {
+    const user = userEvent.setup();
+    const onCreateCollection = vi.fn();
+    mockedUseCollections.mockReturnValue({
+      data: { collectionIds: [], nextPageToken: null },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useCollections>);
+
+    render(<CollectionTree {...defaultProps} onCreateCollection={onCreateCollection} />);
+    await user.click(screen.getByRole('button', { name: /Create collection/i }));
+    expect(onCreateCollection).toHaveBeenCalled();
+  });
+
+  it('does not show the create CTA inside a subcollection level', () => {
+    mockedUseCollections.mockReturnValue({
+      data: { collectionIds: [], nextPageToken: null },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useCollections>);
+
+    render(
+      <CollectionTree
+        {...defaultProps}
+        parentDocumentPath="users/doc-1"
+        onCreateCollection={vi.fn()}
+      />,
+    );
+    expect(screen.queryByRole('button', { name: /Create collection/i })).not.toBeInTheDocument();
+  });
+
   it('renders collection names as buttons when data is available', () => {
     mockedUseCollections.mockReturnValue({
       data: { collectionIds: ['users', 'posts', 'comments'], nextPageToken: null },

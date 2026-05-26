@@ -6,7 +6,9 @@ import { useViewStore } from '@/stores/view-store';
 import type { ServiceAccountSummary } from '@/types/firestore';
 
 vi.mock('@/components/collections/CollectionTree', () => ({
-  CollectionTree: () => <div data-testid="collection-tree" />,
+  CollectionTree: ({ onCreateCollection }: { onCreateCollection?: () => void }) => (
+    <div data-testid="collection-tree" data-can-create={onCreateCollection ? 'yes' : 'no'} />
+  ),
 }));
 
 const account: ServiceAccountSummary = {
@@ -49,6 +51,45 @@ describe('Sidebar', () => {
     render(<Sidebar {...baseProps} onManageConnections={onManageConnections} />);
     await user.click(screen.getByRole('button', { name: /pinion-prod/i }));
     expect(onManageConnections).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a header create-collection button when connected and calls the handler', async () => {
+    const user = userEvent.setup();
+    const onCreateCollection = vi.fn();
+    render(<Sidebar {...baseProps} onCreateCollection={onCreateCollection} />);
+    await user.click(screen.getByRole('button', { name: /New collection/i }));
+    expect(onCreateCollection).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the header create-collection button when disconnected', () => {
+    render(
+      <Sidebar
+        {...baseProps}
+        connectionMode={null}
+        activeAccountId={null}
+        accounts={[]}
+        onCreateCollection={vi.fn()}
+      />,
+    );
+    expect(screen.queryByRole('button', { name: /New collection/i })).not.toBeInTheDocument();
+  });
+
+  it('does not pass onCreateCollection to the tree when disconnected', () => {
+    render(
+      <Sidebar
+        {...baseProps}
+        connectionMode={null}
+        activeAccountId={null}
+        accounts={[]}
+        onCreateCollection={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId('collection-tree')).toHaveAttribute('data-can-create', 'no');
+  });
+
+  it('passes onCreateCollection to the tree when connected', () => {
+    render(<Sidebar {...baseProps} onCreateCollection={vi.fn()} />);
+    expect(screen.getByTestId('collection-tree')).toHaveAttribute('data-can-create', 'yes');
   });
 
   it('shows an emulator status indicator in emulator mode', () => {

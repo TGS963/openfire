@@ -1,4 +1,4 @@
-import { ChevronsUpDown, HelpCircle, Moon, Search, Sun } from 'lucide-react';
+import { ChevronsUpDown, HelpCircle, Moon, Plus, Search, Sun } from 'lucide-react';
 
 import { Kbd } from '@/components/ui/kbd';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -24,6 +24,7 @@ export type SidebarProps = {
   connectionCount?: number;
   onManageConnections?: () => void;
   onDeleteCollection?: (path: string) => void;
+  onCreateCollection?: () => void;
   onAbout?: () => void;
 };
 
@@ -39,6 +40,7 @@ export function Sidebar({
   emulatorProjectId,
   onManageConnections,
   onDeleteCollection,
+  onCreateCollection,
   onAbout,
 }: SidebarProps) {
   const theme = useViewStore((s) => s.theme);
@@ -84,6 +86,16 @@ export function Sidebar({
       {/* collections */}
       <div className="flex items-center justify-between px-2.5 pb-1 pt-3 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-text-faint">
         Collections
+        {onCreateCollection && connectionMode !== null && (
+          <button
+            type="button"
+            aria-label="New collection"
+            onClick={onCreateCollection}
+            className="grid h-[18px] w-[18px] place-items-center rounded-sm text-text-muted hover:bg-surface-2 hover:text-text"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
       <ScrollArea className="min-h-0 flex-1">
         <div className="px-1.5 pb-2">
@@ -93,6 +105,7 @@ export function Sidebar({
             onSelectCollection={onSelectCollection}
             onSelectDocument={onSelectDocument}
             onDeleteCollection={onDeleteCollection}
+            onCreateCollection={connectionMode !== null ? onCreateCollection : undefined}
           />
         </div>
       </ScrollArea>
