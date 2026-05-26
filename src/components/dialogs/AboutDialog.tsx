@@ -42,7 +42,7 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
         <div className="p-6">
           <DialogHeader className="items-center text-center">
             <img
-              src="/openfire-icon.svg"
+              src="/openfire-icon.png"
               alt="OpenFire"
               className="mb-2 h-16 w-16 rounded-xl"
             />
