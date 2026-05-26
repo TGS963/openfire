@@ -1,7 +1,7 @@
 {
   "name": "openfire-app",
   "private": true,
-  "version": "0.1.4",
+  "version": "0.1.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -52,6 +52,7 @@
     "cmdk": "^1.1.1",
     "date-fns": "^4.3.0",
     "lucide-react": "^0.554.0",
+    "monaco-editor": "^0.55.1",
     "react": "^18.3.1",
     "react-day-picker": "^10.0.1",
     "react-dom": "^18.3.1",

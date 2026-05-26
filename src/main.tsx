@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 import { App } from './App';
+import './lib/monaco-setup';
 import './style.css';
 
 const rootElement = document.getElementById('root');

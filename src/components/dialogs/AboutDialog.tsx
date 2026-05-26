@@ -53,7 +53,7 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
               this machine.
             </p>
             <Badge variant="outline" className="font-mono text-xs">
-              v0.1.0
+              v{__APP_VERSION__}
             </Badge>
             <p className="text-xs">Built with Tauri, React, and Rust.</p>
             <div className="inline-flex items-stretch overflow-hidden rounded-md border border-border-soft text-xs text-text">

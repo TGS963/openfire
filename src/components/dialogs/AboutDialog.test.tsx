@@ -12,6 +12,6 @@ describe('AboutDialog', () => {
 
   it('renders version info', () => {
     render(<AboutDialog open onOpenChange={vi.fn()} />);
-    expect(screen.getByText('v0.1.0')).toBeInTheDocument();
+    expect(screen.getByText(/^v\d+\.\d+\.\d+$/)).toBeInTheDocument();
   });
 });
