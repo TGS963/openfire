@@ -14,9 +14,15 @@ const defaultProps = {
 };
 
 const prodConnection: ConnectionEntry = {
-  id: 'prod-myproj',
+  id: 'prod-upscayl-cloud',
   mode: { type: 'production' },
   isActive: true,
+};
+
+const prodDevConnection: ConnectionEntry = {
+  id: 'prod-upscayl-cloud-dev',
+  mode: { type: 'production' },
+  isActive: false,
 };
 
 const emuConnection: ConnectionEntry = {
@@ -35,15 +41,33 @@ describe('ConnectionManagerDialog', () => {
     expect(screen.getByText(/no connections/i)).toBeInTheDocument();
   });
 
-  it('renders list of connections', () => {
+  it('labels an emulator row with its project id', () => {
+    render(
+      <ConnectionManagerDialog {...defaultProps} connections={[emuConnection]} />,
+    );
+    expect(screen.getByText('demo')).toBeInTheDocument();
+    expect(screen.queryByText('emu-demo')).not.toBeInTheDocument();
+  });
+
+  it('labels each production row from its prod-<project_id>', () => {
     render(
       <ConnectionManagerDialog
         {...defaultProps}
-        connections={[prodConnection, emuConnection]}
+        connections={[prodConnection, prodDevConnection]}
       />,
     );
-    expect(screen.getByText('prod-myproj')).toBeInTheDocument();
-    expect(screen.getByText('emu-demo')).toBeInTheDocument();
+    expect(screen.getByText('upscayl-cloud')).toBeInTheDocument();
+    expect(screen.getByText('upscayl-cloud-dev')).toBeInTheDocument();
+  });
+
+  it('falls back to a placeholder name when the id lacks the prod- prefix', () => {
+    render(
+      <ConnectionManagerDialog
+        {...defaultProps}
+        connections={[{ id: 'legacy', mode: { type: 'production' }, isActive: false }]}
+      />,
+    );
+    expect(screen.getByText('Unknown project')).toBeInTheDocument();
   });
 
   it('shows active indicator on active connection', () => {
@@ -79,7 +103,7 @@ describe('ConnectionManagerDialog', () => {
     );
     const removeBtns = screen.getAllByRole('button', { name: /remove/i });
     await user.click(removeBtns[0]);
-    expect(defaultProps.onRemove).toHaveBeenCalledWith('prod-myproj');
+    expect(defaultProps.onRemove).toHaveBeenCalledWith('prod-upscayl-cloud');
   });
 
   it('does not show Switch button for active connection', () => {

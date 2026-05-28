@@ -257,6 +257,66 @@ describe('useAuthStore', () => {
     });
   });
 
+  describe('syncFromConnection', () => {
+    it('applies emulator state from an emulator entry', () => {
+      useAuthStore.setState({ connectionMode: 'production', activeAccountId: 'acc1' });
+
+      useAuthStore.getState().syncFromConnection({
+        id: 'emu-demo',
+        mode: { type: 'emulator', url: 'http://localhost:8080', project_id: 'demo' },
+        isActive: true,
+      });
+
+      const state = useAuthStore.getState();
+      expect(state.connectionMode).toBe('emulator');
+      expect(state.emulatorProjectId).toBe('demo');
+      expect(state.emulatorUrl).toBe('http://localhost:8080');
+      expect(state.activeAccountId).toBeNull();
+      expect(state.connectionError).toBeNull();
+    });
+
+    it('resolves the account from a prod-<project_id> entry', () => {
+      useAuthStore.setState({
+        accounts: [
+          { id: 'acc1', projectId: 'upscayl-cloud', clientEmail: 'a@b.com' },
+          { id: 'acc2', projectId: 'upscayl-cloud-dev', clientEmail: 'c@d.com' },
+        ],
+        connectionMode: 'emulator',
+        emulatorProjectId: 'demo',
+        emulatorUrl: 'http://localhost:8080',
+        activeAccountId: null,
+      });
+
+      useAuthStore.getState().syncFromConnection({
+        id: 'prod-upscayl-cloud-dev',
+        mode: { type: 'production' },
+        isActive: true,
+      });
+
+      const state = useAuthStore.getState();
+      expect(state.connectionMode).toBe('production');
+      expect(state.activeAccountId).toBe('acc2');
+      expect(state.emulatorProjectId).toBeNull();
+      expect(state.emulatorUrl).toBeNull();
+      expect(state.connectionError).toBeNull();
+    });
+
+    it('falls back to null active account when no account matches', () => {
+      useAuthStore.setState({
+        accounts: [{ id: 'acc1', projectId: 'other', clientEmail: 'a@b.com' }],
+        activeAccountId: 'acc1',
+      });
+
+      useAuthStore.getState().syncFromConnection({
+        id: 'prod-unknown',
+        mode: { type: 'production' },
+        isActive: true,
+      });
+
+      expect(useAuthStore.getState().activeAccountId).toBeNull();
+    });
+  });
+
   describe('clearError', () => {
     it('clears the error', () => {
       useAuthStore.setState({ error: 'Something went wrong' });

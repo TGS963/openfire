@@ -11,7 +11,7 @@ import {
   setActiveAccount,
 } from '@/lib/tauri';
 import { useConnectionStore } from '@/stores/connection-store';
-import type { ServiceAccountSummary } from '@/types/firestore';
+import type { ConnectionEntry, ServiceAccountSummary } from '@/types/firestore';
 
 type ConnectionMode = 'production' | 'emulator' | null;
 
@@ -34,6 +34,7 @@ type AuthStore = {
   connectToEmulator: (projectId: string, url: string) => Promise<void>;
   disconnectFromEmulator: () => Promise<void>;
   disconnect: () => void;
+  syncFromConnection: (entry: ConnectionEntry) => void;
   validateActiveAccount: () => Promise<void>;
   clearError: () => void;
 };
@@ -167,6 +168,37 @@ export const useAuthStore = create<AuthStore>()(
           connectionError: null,
           emulatorUrl: null,
           emulatorProjectId: null,
+        });
+      },
+      // Mirror authStore onto the connection just activated via the Connection
+      // Manager (which only touches the backend + connection-store). Without
+      // this, the sidebar — which reads authStore — keeps showing the old name.
+      syncFromConnection(entry: ConnectionEntry) {
+        if (entry.mode.type === 'emulator') {
+          set({
+            connectionMode: 'emulator',
+            connectionError: null,
+            emulatorUrl: entry.mode.url,
+            emulatorProjectId: entry.mode.project_id,
+            activeAccountId: null,
+          });
+          return;
+        }
+        // Production entries are keyed by the backend as `prod-<project_id>`
+        // (see commands.rs `set_active_account`); find the account whose
+        // projectId matches so the sidebar shows the right name.
+        const projectId = entry.id.startsWith('prod-')
+          ? entry.id.slice('prod-'.length)
+          : null;
+        const account = projectId
+          ? get().accounts.find((a) => a.projectId === projectId)
+          : undefined;
+        set({
+          connectionMode: 'production',
+          connectionError: null,
+          emulatorUrl: null,
+          emulatorProjectId: null,
+          activeAccountId: account?.id ?? null,
         });
       },
       async validateActiveAccount() {

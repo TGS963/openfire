@@ -28,6 +28,13 @@ export function ConnectionManagerDialog({
   onImport,
   onConnectEmulator,
 }: ConnectionManagerDialogProps) {
+  // Connection ids carry the identity: emulator entries use `emu-<project_id>`
+  // (mode.project_id is the source of truth) and production entries are keyed
+  // by the backend as `prod-<project_id>` (commands.rs `set_active_account`).
+  const labelFor = (conn: ConnectionEntry): string => {
+    if (conn.mode.type === 'emulator') return conn.mode.project_id;
+    return conn.id.startsWith('prod-') ? conn.id.slice('prod-'.length) : 'Unknown project';
+  };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -47,7 +54,7 @@ export function ConnectionManagerDialog({
                 className="flex items-center justify-between rounded-md border p-3"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">{conn.id}</span>
+                  <span className="text-sm font-medium">{labelFor(conn)}</span>
                   <Badge variant={conn.mode.type === 'emulator' ? 'secondary' : 'default'}>
                     {conn.mode.type === 'emulator' ? 'Emulator' : 'Production'}
                   </Badge>
