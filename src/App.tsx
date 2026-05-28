@@ -605,15 +605,14 @@ export function App() {
   };
 
   const handleSwitchConnection = async (id: string) => {
+    closeDialog('connectionManager');
     await switchConnection(id);
-    // switchConnection awaits loadConnections, so the active entry is current.
     const active = useConnectionStore.getState().connections.find((c) => c.isActive);
     if (active) useAuthStore.getState().syncFromConnection(active);
     await queryClient.cancelQueries();
     queryClient.clear();
     resetNav();
     resetTabs();
-    closeDialog('connectionManager');
   };
 
   const handleRemoveConnection = async (id: string) => {

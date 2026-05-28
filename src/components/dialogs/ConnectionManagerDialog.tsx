@@ -28,9 +28,6 @@ export function ConnectionManagerDialog({
   onImport,
   onConnectEmulator,
 }: ConnectionManagerDialogProps) {
-  // Connection ids carry the identity: emulator entries use `emu-<project_id>`
-  // (mode.project_id is the source of truth) and production entries are keyed
-  // by the backend as `prod-<project_id>` (commands.rs `set_active_account`).
   const labelFor = (conn: ConnectionEntry): string => {
     if (conn.mode.type === 'emulator') return conn.mode.project_id;
     return conn.id.startsWith('prod-') ? conn.id.slice('prod-'.length) : 'Unknown project';
